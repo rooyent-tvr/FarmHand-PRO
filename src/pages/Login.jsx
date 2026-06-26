@@ -1,60 +1,99 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../services/supabase";
+
 export default function Login() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  async function login(e) {
+    e.preventDefault();
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    navigate("/dashboard");
+  }
+
   return (
     <div
       style={{
-        height: "100vh",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        background: "#1b5e20",
+        height: "100vh",
+        background: "#1B5E20",
       }}
     >
-      <div
+      <form
+        onSubmit={login}
         style={{
-          background: "white",
-          padding: 40,
-          borderRadius: 20,
-          width: 380,
+          width: "380px",
+          background: "#fff",
+          padding: "40px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 30px rgba(0,0,0,.2)",
         }}
       >
-        <h1>🌾 FarmHand PRO</h1>
-
-        <p>Professional Farm Management</p>
+        <h1
+          style={{
+            textAlign: "center",
+            marginBottom: "30px",
+          }}
+        >
+          FarmHand PRO
+        </h1>
 
         <input
           placeholder="Email"
-          style={{
-            width: "100%",
-            padding: 12,
-            marginTop: 20,
-          }}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={inputStyle}
         />
 
         <input
           type="password"
           placeholder="Password"
-          style={{
-            width: "100%",
-            padding: 12,
-            marginTop: 15,
-          }}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={inputStyle}
         />
 
         <button
+          type="submit"
           style={{
             width: "100%",
-            marginTop: 20,
-            padding: 14,
-            background: "#2e7d32",
-            color: "white",
-            border: 0,
-            borderRadius: 8,
+            padding: "14px",
+            background: "#2E7D32",
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "16px",
             cursor: "pointer",
           }}
         >
           Login
         </button>
-      </div>
+      </form>
     </div>
   );
 }
+
+const inputStyle = {
+  width: "100%",
+  padding: "12px",
+  marginBottom: "20px",
+  borderRadius: "8px",
+  border: "1px solid #ddd",
+  fontSize: "15px",
+  boxSizing: "border-box",
+};
