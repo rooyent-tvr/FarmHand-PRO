@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Livestock from "./pages/Livestock";
 import Crops from "./pages/Crops";
+import Health from "./pages/Health";
 import Tasks from "./pages/Tasks";
 import Reports from "./pages/Reports";
 import Account from "./pages/Account";
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/livestock" element={<Livestock />} />
         <Route path="/crops" element={<Crops />} />
+        <Route path="/health" element={<Health />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/account" element={<Account />} />

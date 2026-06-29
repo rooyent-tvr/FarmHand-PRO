@@ -1,12 +1,34 @@
 import { Link } from "react-router-dom";
 
 const menu = [
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Livestock", path: "/livestock" },
-  { name: "Crops", path: "/crops" },
-  { name: "Tasks", path: "/tasks" },
-  { name: "Reports", path: "/reports" },
-  { name: "Account", path: "/account" },
+  {
+    name: "🏠 Dashboard",
+    path: "/dashboard",
+  },
+  {
+    name: "🐄 Livestock",
+    path: "/livestock",
+  },
+  {
+    name: "🌾 Crops",
+    path: "/crops",
+  },
+  {
+    name: "❤️ Animal Health",
+    path: "/health",
+  },
+  {
+    name: "📋 Tasks",
+    path: "/tasks",
+  },
+  {
+    name: "📊 Reports",
+    path: "/reports",
+  },
+  {
+    name: "⚙️ Account",
+    path: "/account",
+  },
 ];
 
 export default function Sidebar() {
@@ -14,12 +36,19 @@ export default function Sidebar() {
     <aside
       style={{
         width: 260,
-        background: "#1b5e20",
+        background: "#1B5E20",
         color: "white",
         padding: 24,
+        minHeight: "100vh",
       }}
     >
-      <h2 style={{ marginBottom: 40 }}>🌾 FarmHand PRO</h2>
+      <h2
+        style={{
+          marginBottom: 40,
+        }}
+      >
+        🌾 FarmHand PRO
+      </h2>
 
       {menu.map((item) => (
         <Link
@@ -27,8 +56,10 @@ export default function Sidebar() {
           to={item.path}
           style={{
             display: "block",
-            padding: "12px 0",
+            padding: "14px 0",
             color: "white",
+            textDecoration: "none",
+            fontWeight: 500,
           }}
         >
           {item.name}

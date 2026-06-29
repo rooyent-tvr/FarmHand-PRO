@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import HeroBanner from "../components/dashboard/HeroBanner";
+import FarmSummary from "../components/dashboard/FarmSummary";
 import StatsGrid from "../components/dashboard/StatsGrid";
 import CropStatsGrid from "../components/dashboard/CropStatsGrid";
 import StatusChart from "../components/dashboard/StatusChart";
@@ -39,35 +41,14 @@ export default function Dashboard() {
   return (
     <div
       style={{
-        padding: "10px",
+        padding: 15,
       }}
     >
-      <h1
-        style={{
-          marginBottom: "10px",
-        }}
-      >
-        🌾 Farm Dashboard
-      </h1>
+      {/* Hero Banner */}
+      <HeroBanner />
 
-      <p
-        style={{
-          color: "#666",
-          marginBottom: "6px",
-        }}
-      >
-        Welcome back to FarmHand PRO
-      </p>
-
-      <p
-        style={{
-          color: "#999",
-          fontSize: "13px",
-          marginBottom: "30px",
-        }}
-      >
-        Last Updated: {new Date().toLocaleString("en-ZA")}
-      </p>
+      {/* Farm Summary */}
+      <FarmSummary dashboard={dashboard} />
 
       {/* Livestock Statistics */}
       <StatsGrid animals={animals} />
@@ -80,7 +61,7 @@ export default function Dashboard() {
         <HeaviestAnimal animals={animals} />
       </div>
 
-      {/* Charts and Purchases */}
+      {/* Charts & Purchases */}
       <div
         style={{
           display: "grid",
@@ -91,7 +72,6 @@ export default function Dashboard() {
         }}
       >
         <StatusChart animals={animals} />
-
         <RecentPurchases animals={animals} />
       </div>
 
@@ -104,7 +84,6 @@ export default function Dashboard() {
         }}
       >
         <RecentAnimals animals={animals} />
-
         <RecentCrops crops={crops} />
       </div>
     </div>
