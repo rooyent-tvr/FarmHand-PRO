@@ -13,6 +13,7 @@ export default function AnimalTable({
 
     return (
       animal.tag.toLowerCase().includes(term) ||
+      (animal.animal_type || "Cattle").toLowerCase().includes(term) ||
       animal.breed.toLowerCase().includes(term) ||
       animal.gender.toLowerCase().includes(term) ||
       animal.status.toLowerCase().includes(term)
@@ -79,7 +80,7 @@ export default function AnimalTable({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
-            padding: "12px",
+            padding: "14px 16px",
             width: "260px",
             borderRadius: "8px",
             border: "1px solid #ddd",
@@ -102,6 +103,7 @@ export default function AnimalTable({
             }}
           >
             <th style={header}>Tag</th>
+            <th style={header}>Species</th>
             <th style={header}>Breed</th>
             <th style={header}>Gender</th>
             <th style={header}>Weight</th>
@@ -119,6 +121,8 @@ export default function AnimalTable({
               }}
             >
               <td style={cell}>{animal.tag}</td>
+
+              <td style={cell}>{getSpeciesIcon(animal.animal_type)} {animal.animal_type || "Cattle"}</td>
 
               <td style={cell}>{animal.breed}</td>
 
@@ -187,7 +191,7 @@ const editButton = {
   background: "#E3F2FD",
   border: "none",
   borderRadius: "6px",
-  padding: "8px 10px",
+  padding: "10px 14px",
   cursor: "pointer",
   marginRight: "8px",
 };
@@ -196,6 +200,9 @@ const deleteButton = {
   background: "#FFEBEE",
   border: "none",
   borderRadius: "6px",
-  padding: "8px 10px",
+  padding: "10px 14px",
   cursor: "pointer",
 };
+
+
+function getSpeciesIcon(animal_type){switch(animal_type){case "Sheep":return "🐑";case "Goats":return "🐐";case "Pigs":return "🐖";case "Poultry":return "🐔";default:return "🐄";}}

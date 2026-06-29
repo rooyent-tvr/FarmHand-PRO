@@ -8,7 +8,7 @@ export default function AnimalForm({
 }) {
   const [form, setForm] = useState({
     tag: "",
-    species: "Cattle",
+    animal_type: "Cattle",
     breed: "",
     gender: "Cow",
     weight: "",
@@ -28,7 +28,7 @@ export default function AnimalForm({
     if (animal) {
       setForm({
         tag: animal.tag || "",
-        species: animal.species || "Cattle",
+        animal_type: animal.animal_type || "Cattle",
         breed: animal.breed || "",
         gender: animal.gender || "Cow",
         weight: animal.weight || "",
@@ -43,7 +43,7 @@ export default function AnimalForm({
   function handleChange(e) {
     const { name, value } = e.target;
 
-    if (name === "species") {
+    if (name === "animal_type") {
       let defaultGender = "Cow";
 
       switch (value) {
@@ -69,7 +69,7 @@ export default function AnimalForm({
 
       setForm({
         ...form,
-        species: value,
+        animal_type: value,
         gender: defaultGender,
       });
 
@@ -106,7 +106,7 @@ export default function AnimalForm({
 
       setForm({
         tag: "",
-        species: "Cattle",
+        animal_type: "Cattle",
         breed: "",
         gender: "Cow",
         weight: "",
@@ -132,13 +132,13 @@ export default function AnimalForm({
   }
 
   const genderOptions =
-    form.species === "Cattle"
+    form.animal_type === "Cattle"
       ? ["Cow", "Bull", "Heifer", "Calf"]
-      : form.species === "Sheep"
+      : form.animal_type === "Sheep"
       ? ["Ewe", "Ram", "Lamb"]
-      : form.species === "Goats"
+      : form.animal_type === "Goats"
       ? ["Doe", "Buck", "Kid"]
-      : form.species === "Pigs"
+      : form.animal_type === "Pigs"
       ? ["Sow", "Boar", "Piglet"]
       : ["Hen", "Rooster", "Chick"];
 
@@ -174,8 +174,8 @@ export default function AnimalForm({
 
         <select
           style={selectStyle}
-          name="species"
-          value={form.species}
+          name="animal_type"
+          value={form.animal_type}
           onChange={handleChange}
         >
           <option value="Cattle">🐄 Cattle</option>
