@@ -1,38 +1,47 @@
 import { useEffect, useState } from "react";
 
 import StatsGrid from "../components/dashboard/StatsGrid";
+import CropStatsGrid from "../components/dashboard/CropStatsGrid";
 import StatusChart from "../components/dashboard/StatusChart";
 import RecentAnimals from "../components/dashboard/RecentAnimals";
+import RecentCrops from "../components/dashboard/RecentCrops";
 import RecentPurchases from "../components/dashboard/RecentPurchases";
 import HeaviestAnimal from "../components/dashboard/HeaviestAnimal";
 
-import { getAnimals } from "../services/livestockService";
+import { getDashboardStats } from "../services/dashboardService";
 
 export default function Dashboard() {
-  const [animals, setAnimals] = useState([]);
+  const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
     try {
-      const data = await getAnimals();
-      setAnimals(data || []);
+      const data = await getDashboardStats();
+      setDashboard(data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   useEffect(() => {
     loadDashboard();
   }, []);
 
-  if (loading) {
+  if (loading || !dashboard) {
     return <h2>Loading dashboard...</h2>;
   }
 
+  const animals = dashboard.animals || [];
+  const crops = dashboard.crops || [];
+
   return (
-    <div>
+    <div
+      style={{
+        padding: "10px",
+      }}
+    >
       <h1
         style={{
           marginBottom: "10px",
@@ -60,22 +69,25 @@ export default function Dashboard() {
         Last Updated: {new Date().toLocaleString("en-ZA")}
       </p>
 
-      {/* Dashboard Statistics */}
+      {/* Livestock Statistics */}
       <StatsGrid animals={animals} />
+
+      {/* Crop Statistics */}
+      <CropStatsGrid crops={crops} />
 
       {/* Heaviest Animal */}
       <div style={{ marginTop: 20 }}>
         <HeaviestAnimal animals={animals} />
       </div>
 
-      {/* Status Chart + Recent Purchases */}
+      {/* Charts and Purchases */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "2fr 1fr",
-          gap: "20px",
-          marginTop: "20px",
-          marginBottom: "20px",
+          gap: 20,
+          marginTop: 20,
+          marginBottom: 20,
         }}
       >
         <StatusChart animals={animals} />
@@ -83,8 +95,18 @@ export default function Dashboard() {
         <RecentPurchases animals={animals} />
       </div>
 
-      {/* Recent Livestock */}
-      <RecentAnimals animals={animals} />
+      {/* Recent Activity */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 20,
+        }}
+      >
+        <RecentAnimals animals={animals} />
+
+        <RecentCrops crops={crops} />
+      </div>
     </div>
   );
 }

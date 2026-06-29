@@ -1,3 +1,5 @@
+import CropPage from "./crops/CropPage";
+
 export default function Crops() {
-  return <h1>🌾 Crops</h1>;
+  return <CropPage />;
 }
