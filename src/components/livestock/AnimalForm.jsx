@@ -8,6 +8,7 @@ export default function AnimalForm({
 }) {
   const [form, setForm] = useState({
     tag: "",
+    species: "Cattle",
     breed: "",
     gender: "Cow",
     weight: "",
@@ -19,10 +20,15 @@ export default function AnimalForm({
 
   const [saving, setSaving] = useState(false);
 
+  const inputStyle={width:"100%",padding:"12px 14px",fontSize:"15px",border:"1px solid #d0d7de",borderRadius:8,background:"#fff",minHeight:"46px",boxSizing:"border-box"};
+  const selectStyle={...inputStyle,cursor:"pointer"};
+  const textareaStyle={width:"100%",marginTop:18,padding:"14px",fontSize:"15px",border:"1px solid #d0d7de",borderRadius:8,boxSizing:"border-box",resize:"vertical"};
+
   useEffect(() => {
     if (animal) {
       setForm({
         tag: animal.tag || "",
+        species: animal.species || "Cattle",
         breed: animal.breed || "",
         gender: animal.gender || "Cow",
         weight: animal.weight || "",
@@ -35,9 +41,44 @@ export default function AnimalForm({
   }, [animal]);
 
   function handleChange(e) {
+    const { name, value } = e.target;
+
+    if (name === "species") {
+      let defaultGender = "Cow";
+
+      switch (value) {
+        case "Sheep":
+          defaultGender = "Ewe";
+          break;
+
+        case "Goats":
+          defaultGender = "Doe";
+          break;
+
+        case "Pigs":
+          defaultGender = "Sow";
+          break;
+
+        case "Poultry":
+          defaultGender = "Hen";
+          break;
+
+        default:
+          defaultGender = "Cow";
+      }
+
+      setForm({
+        ...form,
+        species: value,
+        gender: defaultGender,
+      });
+
+      return;
+    }
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   }
 
@@ -65,6 +106,7 @@ export default function AnimalForm({
 
       setForm({
         tag: "",
+        species: "Cattle",
         breed: "",
         gender: "Cow",
         weight: "",
@@ -81,7 +123,6 @@ export default function AnimalForm({
       if (onSaved) {
         onSaved();
       }
-
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -89,6 +130,17 @@ export default function AnimalForm({
 
     setSaving(false);
   }
+
+  const genderOptions =
+    form.species === "Cattle"
+      ? ["Cow", "Bull", "Heifer", "Calf"]
+      : form.species === "Sheep"
+      ? ["Ewe", "Ram", "Lamb"]
+      : form.species === "Goats"
+      ? ["Doe", "Buck", "Kid"]
+      : form.species === "Pigs"
+      ? ["Sow", "Boar", "Piglet"]
+      : ["Hen", "Rooster", "Chick"];
 
   return (
     <form
@@ -108,18 +160,33 @@ export default function AnimalForm({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-          gap: 15,
+          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+          gap: 18,
         }}
       >
         <input
+          style={inputStyle}
           name="tag"
           placeholder="Tag Number"
           value={form.tag}
           onChange={handleChange}
         />
 
+        <select
+          style={selectStyle}
+          name="species"
+          value={form.species}
+          onChange={handleChange}
+        >
+          <option value="Cattle">🐄 Cattle</option>
+          <option value="Sheep">🐑 Sheep</option>
+          <option value="Goats">🐐 Goats</option>
+          <option value="Pigs">🐖 Pigs</option>
+          <option value="Poultry">🐔 Poultry</option>
+        </select>
+
         <input
+          style={inputStyle}
           name="breed"
           placeholder="Breed"
           value={form.breed}
@@ -127,17 +194,23 @@ export default function AnimalForm({
         />
 
         <select
+          style={selectStyle}
           name="gender"
           value={form.gender}
           onChange={handleChange}
         >
-          <option>Cow</option>
-          <option>Bull</option>
-          <option>Heifer</option>
-          <option>Calf</option>
+          {genderOptions.map((gender) => (
+            <option
+              key={gender}
+              value={gender}
+            >
+              {gender}
+            </option>
+          ))}
         </select>
 
         <input
+          style={inputStyle}
           type="number"
           name="weight"
           placeholder="Weight (kg)"
@@ -146,6 +219,7 @@ export default function AnimalForm({
         />
 
         <select
+          style={selectStyle}
           name="status"
           value={form.status}
           onChange={handleChange}
@@ -157,6 +231,7 @@ export default function AnimalForm({
         </select>
 
         <input
+          style={inputStyle}
           type="date"
           name="purchase_date"
           value={form.purchase_date}
@@ -164,6 +239,7 @@ export default function AnimalForm({
         />
 
         <input
+          style={inputStyle}
           type="number"
           name="purchase_price"
           placeholder="Purchase Price"
@@ -178,13 +254,7 @@ export default function AnimalForm({
         placeholder="Notes..."
         value={form.notes}
         onChange={handleChange}
-        style={{
-          width: "100%",
-          marginTop: 15,
-          padding: 10,
-          borderRadius: 8,
-          boxSizing: "border-box",
-        }}
+        style={textareaStyle}
       />
 
       <button
@@ -192,7 +262,9 @@ export default function AnimalForm({
         type="submit"
         style={{
           marginTop: 20,
-          padding: "12px 28px",
+          padding: "14px 36px",
+          fontSize: "15px",
+          fontWeight: "600",
           background: "#2E7D32",
           color: "white",
           border: "none",
