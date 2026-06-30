@@ -1,3 +1,5 @@
+import QuickActions from "./QuickActions";
+
 export default function HeroBanner({
   totalAnimals = 0,
   totalCrops = 0,
@@ -28,9 +30,8 @@ export default function HeroBanner({
   return (
     <div
       style={{
-        background:
-          "linear-gradient(135deg,#2E7D32,#43A047)",
-        color: "#FFFFFF",
+        background: "linear-gradient(135deg,#2E7D32,#43A047)",
+        color: "#fff",
         borderRadius: 24,
         padding: 32,
         marginBottom: 32,
@@ -39,19 +40,19 @@ export default function HeroBanner({
     >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-          gap: 30,
+          display: "grid",
+          gridTemplateColumns: "2fr 1fr",
+          gap: 32,
+          alignItems: "start",
         }}
       >
-        <div style={{ flex: 1 }}>
+        {/* LEFT */}
+
+        <div>
           <div
             style={{
-              fontSize: 16,
-              opacity: 0.95,
-              marginBottom: 8,
+              fontSize: 15,
+              opacity: 0.9,
             }}
           >
             {greeting} 👋
@@ -59,8 +60,8 @@ export default function HeroBanner({
 
           <h1
             style={{
-              margin: 0,
-              fontSize: 36,
+              margin: "10px 0",
+              fontSize: 42,
               fontWeight: 800,
             }}
           >
@@ -69,10 +70,10 @@ export default function HeroBanner({
 
           <p
             style={{
-              marginTop: 12,
               fontSize: 17,
               opacity: 0.95,
               maxWidth: 650,
+              marginBottom: 28,
             }}
           >
             Welcome back. Here's a live overview of your farm operations.
@@ -80,55 +81,132 @@ export default function HeroBanner({
 
           <div
             style={{
-              display: "flex",
-              flexWrap: "wrap",
+              display: "grid",
+              gridTemplateColumns: "repeat(4,minmax(120px,1fr))",
               gap: 14,
-              marginTop: 28,
             }}
           >
             <Metric emoji="🐄" label="Animals" value={totalAnimals} />
-            <Metric emoji="🌱" label="Crops" value={totalCrops} />
-            <Metric emoji="🍼" label="Pregnancies" value={pregnantBreeding} />
+            <Metric emoji="🌾" label="Crops" value={totalCrops} />
+            <Metric
+              emoji="🍼"
+              label="Pregnancies"
+              value={pregnantBreeding}
+            />
             <Metric emoji="❤️" label="Health Due" value={healthDue} />
           </div>
         </div>
 
-        <div
-          style={{
-            minWidth: 240,
-            textAlign: "right",
-          }}
-        >
+        {/* RIGHT */}
+
+        <div>
           <div
             style={{
-              fontSize: 14,
-              opacity: 0.9,
+              textAlign: "right",
+              marginBottom: 18,
             }}
           >
-            📅 {today}
+            <div
+              style={{
+                fontSize: 14,
+                opacity: 0.9,
+              }}
+            >
+              📅 {today}
+            </div>
+
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 20,
+                fontWeight: 700,
+              }}
+            >
+              🕘 {currentTime}
+            </div>
           </div>
 
           <div
             style={{
-              marginTop: 10,
-              fontSize: 18,
-              fontWeight: 700,
+              background: "rgba(255,255,255,.12)",
+              borderRadius: 18,
+              padding: 18,
+              marginBottom: 18,
             }}
           >
-            🕘 {currentTime}
+            <div
+              style={{
+                fontWeight: 700,
+                marginBottom: 6,
+              }}
+            >
+              🌱 Farm Status
+            </div>
+
+            <div
+              style={{
+                fontSize: 15,
+                opacity: 0.95,
+              }}
+            >
+              Active & operating normally
+            </div>
           </div>
 
           <div
             style={{
-              marginTop: 22,
-              display: "inline-block",
-              background: "rgba(255,255,255,.18)",
-              padding: "10px 18px",
-              borderRadius: 999,
-              fontWeight: 700,
+              background: "rgba(255,255,255,.12)",
+              borderRadius: 18,
+              padding: 18,
+              marginBottom: 18,
             }}
           >
-            🌱 Farm Status: Active
+            <div
+              style={{
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
+            >
+              ☀ Weather
+            </div>
+
+            <div
+              style={{
+                opacity: 0.9,
+              }}
+            >
+              Weather integration coming soon.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "rgba(255,255,255,.12)",
+              borderRadius: 18,
+              padding: 18,
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
+            >
+              ⚡ Quick Actions
+            </div>
+
+            <QuickActions />
+
+            <div
+              style={{
+                marginTop: 16,
+                fontSize: 13,
+                opacity: 0.85,
+                textAlign: "center",
+              }}
+            >
+              Last Updated • {currentTime}
+            </div>
           </div>
         </div>
       </div>
@@ -141,9 +219,8 @@ function Metric({ emoji, label, value }) {
     <div
       style={{
         background: "rgba(255,255,255,.15)",
-        borderRadius: 16,
-        padding: "14px 18px",
-        minWidth: 140,
+        borderRadius: 14,
+        padding: 16,
       }}
     >
       <div
@@ -157,7 +234,7 @@ function Metric({ emoji, label, value }) {
 
       <div
         style={{
-          marginTop: 6,
+          marginTop: 8,
           fontSize: 30,
           fontWeight: 800,
         }}

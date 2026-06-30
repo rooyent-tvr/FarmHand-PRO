@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 
 import PageContainer from "../components/layout/PageContainer";
+
 import HeroBanner from "../components/dashboard/HeroBanner";
-import FarmSummary from "../components/dashboard/FarmSummary";
-import StatsGrid from "../components/dashboard/StatsGrid";
-import CropStatsGrid from "../components/dashboard/CropStatsGrid";
+import TodayPriorities from "../components/dashboard/TodayPriorities";
+import DashboardKPIs from "../components/dashboard/DashboardKPIs";
+import BreedingAlerts from "../components/dashboard/BreedingAlerts";
+import HeaviestAnimal from "../components/dashboard/HeaviestAnimal";
 import StatusChart from "../components/dashboard/StatusChart";
+import RecentPurchases from "../components/dashboard/RecentPurchases";
 import RecentAnimals from "../components/dashboard/RecentAnimals";
 import RecentCrops from "../components/dashboard/RecentCrops";
-import RecentPurchases from "../components/dashboard/RecentPurchases";
-import HeaviestAnimal from "../components/dashboard/HeaviestAnimal";
-import BreedingAlerts from "../components/dashboard/BreedingAlerts";
 
 import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
@@ -30,13 +30,15 @@ export default function Dashboard() {
       setDashboard(dash);
 
       const today = new Date();
-      today.setHours(0,0,0,0);
+      today.setHours(0, 0, 0, 0);
 
-      const due = (health || []).filter(r => {
-        if (!r.next_due) return false;
-        const d = new Date(r.next_due);
-        d.setHours(0,0,0,0);
-        return d <= today;
+      const due = (health || []).filter((record) => {
+        if (!record.next_due) return false;
+
+        const dueDate = new Date(record.next_due);
+        dueDate.setHours(0, 0, 0, 0);
+
+        return dueDate <= today;
       });
 
       setHealthDue(due.length);
@@ -51,17 +53,25 @@ export default function Dashboard() {
     loadDashboard();
   }, []);
 
-  if (loading || !dashboard) return <h2>Loading dashboard...</h2>;
+  if (loading || !dashboard) {
+    return <h2>Loading dashboard...</h2>;
+  }
 
   const animals = dashboard.animals || [];
   const crops = dashboard.crops || [];
   const latestBreeding = dashboard.latestBreeding || null;
+
+  const growingCrops = crops.filter(
+    (crop) => crop.status === "Growing"
+  ).length;
 
   return (
     <PageContainer
       title="🌾 Farm Dashboard"
       subtitle="Monitor your livestock, crops and daily farm activities from one place."
     >
+      {/* Hero Banner */}
+
       <HeroBanner
         totalAnimals={dashboard.totalAnimals}
         totalCrops={dashboard.totalCrops}
@@ -69,28 +79,47 @@ export default function Dashboard() {
         healthDue={healthDue}
       />
 
+      {/* Health Warning */}
+
       {healthDue > 0 && (
-        <div style={{
-          background:"#FFF3E0",
-          border:"1px solid #FFB74D",
-          color:"#E65100",
-          padding:16,
-          borderRadius:10,
-          marginBottom:20,
-          fontWeight:600
-        }}>
-          ⚠️ {healthDue} treatment{healthDue!==1?"s":""} due. Open the Animal Health page to review them.
+        <div
+          style={{
+            background: "#FFF8E1",
+            border: "1px solid #FFCC80",
+            color: "#E65100",
+            padding: 16,
+            borderRadius: 12,
+            marginBottom: 24,
+            fontWeight: 600,
+          }}
+        >
+          ⚠️ {healthDue} treatment
+          {healthDue !== 1 ? "s are" : " is"} due today.
+          Please review the Animal Health module.
         </div>
       )}
 
-      <FarmSummary dashboard={dashboard} />
-      <StatsGrid
-        animals={animals}
-        pregnantBreeding={dashboard.pregnantBreeding}
-      />
-      <CropStatsGrid crops={crops} />
+      {/* Today's Priorities */}
 
-      <div style={{ marginTop: 20 }}>
+      <TodayPriorities
+        healthDue={healthDue}
+        pregnant={dashboard.pregnantBreeding}
+        growing={growingCrops}
+        tasksDue={0}
+      />
+
+      {/* Farm KPIs */}
+
+      <div style={{ marginTop: 24 }}>
+        <DashboardKPIs
+          dashboard={dashboard}
+          healthDue={healthDue}
+        />
+      </div>
+
+      {/* Breeding Alerts */}
+
+      <div style={{ marginTop: 24 }}>
         <BreedingAlerts
           pregnant={dashboard.pregnantBreeding}
           dueSoon={dashboard.dueSoonBreeding}
@@ -99,16 +128,36 @@ export default function Dashboard() {
         />
       </div>
 
-      <div style={{marginTop:20}}>
+      {/* Heaviest Animal */}
+
+      <div style={{ marginTop: 24 }}>
         <HeaviestAnimal animals={animals} />
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:20,marginTop:20}}>
+      {/* Analytics */}
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "2fr 1fr",
+          gap: 20,
+          marginTop: 24,
+        }}
+      >
         <StatusChart animals={animals} />
         <RecentPurchases animals={animals} />
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginTop:20}}>
+      {/* Recent Activity */}
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 20,
+          marginTop: 24,
+        }}
+      >
         <RecentAnimals animals={animals} />
         <RecentCrops crops={crops} />
       </div>
