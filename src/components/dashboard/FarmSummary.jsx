@@ -4,50 +4,40 @@ export default function FarmSummary({ dashboard }) {
   if (!dashboard) return null;
 
   const {
-    totalAnimals,
-    totalCrops,
-    totalValue,
-    totalArea,
+    totalValue = 0,
+    totalArea = 0,
+    animals = [],
+    crops = [],
   } = dashboard;
 
+  const healthyAnimals = animals.filter(
+    (animal) => animal.status === "Healthy"
+  ).length;
+
+  const growingCrops = crops.filter(
+    (crop) => crop.status === "Growing"
+  ).length;
+
   return (
-    <div style={{ marginBottom: 30 }}>
-      <h2
-        style={{
-          marginBottom: 20,
-          color: "#2E7D32",
-        }}
-      >
-        🚜 Farm Summary
-      </h2>
+    <section className="mb-8">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">
+            🚜 Farm Summary
+          </h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit,minmax(250px,1fr))",
-          gap: 20,
-        }}
-      >
-        <StatCard
-          title="Total Animals"
-          value={totalAnimals}
-          icon="🐄"
-          color="#2E7D32"
-        />
+          <p className="text-sm text-slate-500 mt-1">
+            Live overview of your farm operations.
+          </p>
+        </div>
+      </div>
 
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
         <StatCard
-          title="Total Crops"
-          value={totalCrops}
-          icon="🌾"
-          color="#388E3C"
-        />
-
-        <StatCard
-          title="Livestock Value"
+          title="Farm Value"
           value={`R ${Number(totalValue).toLocaleString()}`}
           icon="💰"
-          color="#F9A825"
+          color="#2E7D32"
         />
 
         <StatCard
@@ -56,7 +46,21 @@ export default function FarmSummary({ dashboard }) {
           icon="📏"
           color="#1565C0"
         />
+
+        <StatCard
+          title="Healthy Animals"
+          value={healthyAnimals}
+          icon="❤️"
+          color="#43A047"
+        />
+
+        <StatCard
+          title="Growing Crops"
+          value={growingCrops}
+          icon="🌱"
+          color="#7CB342"
+        />
       </div>
-    </div>
+    </section>
   );
 }

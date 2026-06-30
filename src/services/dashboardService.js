@@ -28,6 +28,25 @@ export async function getDashboardStats() {
   const cropList = crops || [];
 
   // -------------------------
+  // BREEDING
+  // -------------------------
+
+  const {
+    data: breeding,
+    error: breedingError,
+  } = await supabase
+    .from("breeding_records")
+    .select(`
+      *,
+      female:female_id(tag),
+      male:male_id(tag)
+    `);
+
+  if (breedingError) throw breedingError;
+
+  const breedingRecords = breeding || [];
+
+  // -------------------------
   // LIVESTOCK STATS
   // -------------------------
 
@@ -100,12 +119,60 @@ export async function getDashboardStats() {
     .slice(0, 5);
 
   // -------------------------
+  // BREEDING STATS
+  // -------------------------
+
+  const totalBreeding = breedingRecords.length;
+
+  const pregnantBreeding =
+    breedingRecords.filter(
+      (b) => b.status === "Pregnant"
+    ).length;
+
+  const completedBreeding =
+    breedingRecords.filter(
+      (b) => b.status === "Completed"
+    ).length;
+
+  const today = new Date();
+
+  const dueSoonBreeding =
+    breedingRecords.filter((record) => {
+      if (!record.expected_birth) return false;
+
+      const due = new Date(record.expected_birth);
+
+      const diff =
+        (due - today) /
+        (1000 * 60 * 60 * 24);
+
+      return diff >= 0 && diff <= 30;
+    }).length;
+
+  const overdueBreeding =
+    breedingRecords.filter((record) => {
+      if (!record.expected_birth) return false;
+
+      return new Date(record.expected_birth) < today;
+    }).length;
+
+  const latestBreeding =
+    breedingRecords.length > 0
+      ? [...breedingRecords]
+          .sort(
+            (a, b) =>
+              new Date(b.breeding_date) -
+              new Date(a.breeding_date)
+          )[0]
+      : null;
+
+  // -------------------------
   // RETURN
   // -------------------------
 
   return {
+    // Livestock
     animals,
-
     totalAnimals,
     healthy,
     pregnant,
@@ -114,13 +181,22 @@ export async function getDashboardStats() {
     totalValue,
     heaviestAnimal,
 
+    // Crops
     crops: cropList,
-
     totalCrops,
     growing,
     harvested,
     totalArea,
     expectedYield,
     recentCrops,
+
+    // Breeding
+    breedingRecords,
+    totalBreeding,
+    pregnantBreeding,
+    completedBreeding,
+    dueSoonBreeding,
+    overdueBreeding,
+    latestBreeding,
   };
 }

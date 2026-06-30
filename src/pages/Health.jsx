@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import HealthStats from "../components/health/HealthStats";
 import HealthForm from "../components/health/HealthForm";
 import HealthTable from "../components/health/HealthTable";
 
@@ -32,7 +33,9 @@ export default function Health() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1 style={{ marginBottom: 10 }}>❤️ Animal Health</h1>
+      <h1 style={{ marginBottom: 10 }}>
+        ❤️ Animal Health
+      </h1>
 
       <p
         style={{
@@ -43,12 +46,17 @@ export default function Health() {
         Record vaccinations, treatments, medication and veterinary visits.
       </p>
 
+      {/* Health Statistics */}
+      <HealthStats records={records} />
+
+      {/* Health Form */}
       <HealthForm
         record={selectedRecord}
         refreshRecords={loadRecords}
         onSaved={() => setSelectedRecord(null)}
       />
 
+      {/* Health Records */}
       <HealthTable
         records={records}
         refreshRecords={loadRecords}

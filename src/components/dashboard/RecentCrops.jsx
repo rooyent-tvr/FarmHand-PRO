@@ -7,61 +7,155 @@ export default function RecentCrops({ crops = [] }) {
     )
     .slice(0, 5);
 
+  function getStatusColor(status) {
+    switch (status) {
+      case "Growing":
+        return "#43A047";
+
+      case "Harvested":
+        return "#1976D2";
+
+      case "Planted":
+        return "#FB8C00";
+
+      default:
+        return "#757575";
+    }
+  }
+
   return (
     <div
       style={{
-        background: "#fff",
-        padding: 20,
-        borderRadius: 12,
-        boxShadow: "0 5px 15px rgba(0,0,0,.08)",
-        marginTop: 20,
+        background: "#FFFFFF",
+        border: "1px solid #E2E8F0",
+        borderRadius: 20,
+        padding: 24,
+        boxShadow: "0 10px 30px rgba(15,23,42,.08)",
+        height: "100%",
       }}
     >
-      <h3
+      {/* Header */}
+
+      <div
         style={{
-          marginTop: 0,
-          marginBottom: 15,
+          marginBottom: 20,
+          borderBottom: "1px solid #E5E7EB",
+          paddingBottom: 14,
         }}
       >
-        🌾 Recent Crops
-      </h3>
-
-      {recent.length === 0 ? (
-        <p>No crops recorded.</p>
-      ) : (
-        <table
+        <h2
           style={{
-            width: "100%",
-            borderCollapse: "collapse",
+            margin: 0,
+            color: "#0F172A",
+            fontSize: 22,
+            fontWeight: 700,
           }}
         >
-          <thead>
-            <tr>
-              <th align="left">Crop</th>
-              <th align="left">Field</th>
-              <th align="left">Status</th>
-              <th align="right">Area</th>
-            </tr>
-          </thead>
+          🌾 Recent Crops
+        </h2>
 
-          <tbody>
-            {recent.map((crop) => (
-              <tr key={crop.id}>
-                <td style={{ padding: "10px 0" }}>
-                  🌾 {crop.crop_name}
-                </td>
+        <p
+          style={{
+            marginTop: 6,
+            color: "#64748B",
+            fontSize: 14,
+          }}
+        >
+          Recently created crop records.
+        </p>
+      </div>
 
-                <td>{crop.field_name}</td>
+      {recent.length === 0 ? (
+        <div
+          style={{
+            padding: 50,
+            textAlign: "center",
+            color: "#94A3B8",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 42,
+              marginBottom: 10,
+            }}
+          >
+            🌾
+          </div>
 
-                <td>{crop.status}</td>
+          <strong>No crop records available.</strong>
 
-                <td align="right">
-                  {crop.area} {crop.area_unit}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+[O          <p
+            style={{
+              marginTop: 8,
+              fontSize: 13,
+            }}
+          >
+            Your latest crop records will appear here.
+          </p>
+        </div>
+      ) : (
+        recent.map((crop, index) => (
+          <div
+            key={crop.id}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "18px 0",
+              borderBottom:
+                index === recent.length - 1
+                  ? "none"
+                  : "1px solid #F1F5F9",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 17,
+                  color: "#0F172A",
+                }}
+              >
+                🌾 {crop.crop_name}
+              </div>
+
+              <div
+                style={{
+                  color: "#64748B",
+                  fontSize: 14,
+                  marginTop: 4,
+                }}
+              >
+                📍 {crop.field_name}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  color: "#94A3B8",
+                  fontSize: 12,
+                }}
+              >
+                {crop.area} {crop.area_unit}
+              </div>
+            </div>
+
+            <span
+              style={{
+                background: getStatusColor(crop.status),
+                color: "#FFFFFF",
+                padding: "7px 14px",
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 700,
+                minWidth: 95,
+                textAlign: "center",
+              }}
+            >
+              {crop.status}
+            </span>
+          </div>
+        ))
       )}
     </div>
   );

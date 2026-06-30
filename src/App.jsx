@@ -9,8 +9,10 @@ import Dashboard from "./pages/Dashboard";
 import Livestock from "./pages/Livestock";
 import Crops from "./pages/Crops";
 import Health from "./pages/Health";
+import Breeding from "./pages/Breeding";
 import Tasks from "./pages/Tasks";
 import Reports from "./pages/Reports";
+import Finance from "./pages/Finance";
 import Account from "./pages/Account";
 
 export default function App() {
@@ -26,6 +28,8 @@ export default function App() {
         <Route path="/livestock" element={<Livestock />} />
         <Route path="/crops" element={<Crops />} />
         <Route path="/health" element={<Health />} />
+        <Route path="/breeding" element={<Breeding />} />
+        <Route path="/finance" element={<Finance />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/account" element={<Account />} />

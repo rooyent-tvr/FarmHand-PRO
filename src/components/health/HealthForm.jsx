@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import Input from "../ui/Input";
+import Select from "../ui/Select";
+import Button from "../ui/Button";
 import {
   addHealthRecord,
   updateHealthRecord,
@@ -120,7 +123,7 @@ export default function HealthForm({
           gap: 15,
         }}
       >
-        <select
+        <Select
           name="animal_id"
           value={form.animal_id}
           onChange={handleChange}
@@ -132,9 +135,9 @@ export default function HealthForm({
               {animal.tag} - {animal.animal_type} - {animal.breed}
             </option>
           ))}
-        </select>
+        </Select>
 
-        <select
+        <Select
           name="treatment_type"
           value={form.treatment_type}
           onChange={handleChange}
@@ -144,37 +147,37 @@ export default function HealthForm({
           <option>Medication</option>
           <option>Treatment</option>
           <option>Veterinary Visit</option>
-        </select>
+        </Select>
 
-        <input
+        <Input
           name="medication"
           placeholder="Medication"
           value={form.medication}
           onChange={handleChange}
         />
 
-        <input
+        <Input
           type="date"
           name="treatment_date"
           value={form.treatment_date}
           onChange={handleChange}
         />
 
-        <input
+        <Input
           type="date"
           name="next_due"
           value={form.next_due}
           onChange={handleChange}
         />
 
-        <input
+        <Input
           name="veterinarian"
           placeholder="Veterinarian"
           value={form.veterinarian}
           onChange={handleChange}
         />
 
-        <input
+        <Input
           type="number"
           step="0.01"
           name="cost"
@@ -199,9 +202,10 @@ export default function HealthForm({
         }}
       />
 
-      <button
+      <Button
         type="submit"
         disabled={saving}
+        variant="primary"
         style={{
           marginTop: 20,
           padding: "12px 28px",
@@ -213,7 +217,7 @@ export default function HealthForm({
         }}
       >
         {saving ? "Saving..." : record ? "Update Record" : "Save Record"}
-      </button>
+      </Button>
     </form>
   );
 }

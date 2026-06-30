@@ -1,52 +1,52 @@
 import StatCard from "../ui/StatCard";
 
-export default function StatsGrid({
-  animals = [],
-  pregnantBreeding = 0,
-}) {
-  const total = animals.length;
+export default function LivestockStatsGrid({ animals = [] }) {
+  const totalAnimals = animals.length;
 
-  const healthy = animals.filter(
+  const healthyAnimals = animals.filter(
     (animal) => animal.status === "Healthy"
   ).length;
 
-  const totalWeight = animals.reduce(
-    (sum, animal) => sum + Number(animal.weight || 0),
-    0
-  );
+  const pregnantAnimals = animals.filter(
+    (animal) => animal.status === "Pregnant"
+  ).length;
 
   const averageWeight =
-    total > 0
-      ? Math.round(totalWeight / total)
+    totalAnimals > 0
+      ? (
+          animals.reduce(
+            (sum, animal) => sum + Number(animal.weight || 0),
+            0
+          ) / totalAnimals
+        ).toFixed(0)
       : 0;
 
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit,minmax(240px,1fr))",
-        gap: "20px",
-        marginBottom: "25px",
+        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+        gap: 20,
+        marginBottom: 25,
       }}
     >
       <StatCard
         title="Total Animals"
-        value={total}
+        value={totalAnimals}
         icon="🐄"
         color="#2E7D32"
       />
 
       <StatCard
         title="Healthy"
-        value={healthy}
+        value={healthyAnimals}
         icon="❤️"
         color="#43A047"
       />
 
       <StatCard
         title="Pregnant"
-        value={pregnantBreeding}
+        value={pregnantAnimals}
         icon="🤰"
         color="#FB8C00"
       />

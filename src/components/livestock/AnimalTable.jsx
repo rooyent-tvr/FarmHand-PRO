@@ -42,7 +42,7 @@ export default function AnimalTable({
         background: "#ffffff",
         borderRadius: "14px",
         padding: "24px",
-        boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
       }}
     >
       <div
@@ -56,13 +56,7 @@ export default function AnimalTable({
         }}
       >
         <div>
-          <h2
-            style={{
-              margin: 0,
-            }}
-          >
-            Livestock
-          </h2>
+          <h2 style={{ margin: 0 }}>Livestock</h2>
 
           <p
             style={{
@@ -76,104 +70,107 @@ export default function AnimalTable({
 
         <input
           type="text"
-          placeholder="🔍 Search animals..."
+          placeholder="🔍 Search by Tag, Breed, Species or Status..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
-            padding: "14px 16px",
-            width: "260px",
+            padding: "12px 16px",
+            width: "300px",
             borderRadius: "8px",
-            border: "1px solid #ddd",
+            border: "1px solid #D0D7DE",
             fontSize: "14px",
           }}
         />
       </div>
 
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-        }}
-      >
-        <thead>
-          <tr
-            style={{
-              background: "#2E7D32",
-              color: "white",
-            }}
-          >
-            <th style={header}>Tag</th>
-            <th style={header}>Species</th>
-            <th style={header}>Breed</th>
-            <th style={header}>Gender</th>
-            <th style={header}>Weight</th>
-            <th style={header}>Status</th>
-            <th style={header}>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {filtered.map((animal) => (
+      <div style={{ overflowX: "auto" }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+          }}
+        >
+          <thead>
             <tr
-              key={animal.id}
               style={{
-                borderBottom: "1px solid #eee",
+                background: "#2E7D32",
+                color: "white",
               }}
             >
-              <td style={cell}>{animal.tag}</td>
-
-              <td style={cell}>{getSpeciesIcon(animal.animal_type)} {animal.animal_type || "Cattle"}</td>
-
-              <td style={cell}>{animal.breed}</td>
-
-              <td style={cell}>{animal.gender}</td>
-
-              <td style={cell}>
-                {animal.weight ? `${animal.weight} kg` : "-"}
-              </td>
-
-              <td style={cell}>
-                <span
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "20px",
-                    fontWeight: "600",
-                    fontSize: "13px",
-                    background:
-                      animal.status === "Healthy"
-                        ? "#DFF5E1"
-                        : "#FFE8B3",
-                    color:
-                      animal.status === "Healthy"
-                        ? "#1B5E20"
-                        : "#8A6D3B",
-                  }}
-                >
-                  {animal.status}
-                </span>
-              </td>
-
-              <td style={cell}>
-                <button
-                  style={editButton}
-                  onClick={() => onEdit(animal)}
-                  title="Edit Animal"
-                >
-                  ✏️
-                </button>
-
-                <button
-                  style={deleteButton}
-                  onClick={() => handleDelete(animal.id)}
-                  title="Delete Animal"
-                >
-                  🗑️
-                </button>
-              </td>
+              <th style={header}>Tag</th>
+              <th style={header}>Species</th>
+              <th style={header}>Breed</th>
+              <th style={header}>Gender</th>
+              <th style={header}>Weight</th>
+              <th style={header}>Status</th>
+              <th style={header}>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {filtered.map((animal, index) => (
+              <tr
+                key={animal.id}
+                style={{
+                  borderBottom: "1px solid #eee",
+                  background: index % 2 ? "#FCFCFC" : "#FFF",
+                }}
+              >
+                <td style={cell}>{animal.tag}</td>
+
+                <td style={cell}>
+                  {getSpeciesIcon(animal.animal_type)}{" "}
+                  {animal.animal_type || "Cattle"}
+                </td>
+
+                <td style={cell}>{animal.breed}</td>
+
+                <td style={cell}>{animal.gender}</td>
+
+                <td style={cell}>
+                  {animal.weight ? `${animal.weight} kg` : "-"}
+                </td>
+
+                <td style={cell}>
+                  <span
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: "20px",
+                      fontWeight: 600,
+                      fontSize: 13,
+                      color: "#fff",
+                      background:
+                        animal.status === "Healthy"
+                          ? "#2E7D32"
+                          : animal.status === "Pregnant"
+                          ? "#FB8C00"
+                          : "#D32F2F",
+                    }}
+                  >
+                    {animal.status}
+                  </span>
+                </td>
+
+                <td style={cell}>
+                  <button
+                    style={editButton}
+                    onClick={() => onEdit(animal)}
+                  >
+                    ✏️ Edit
+                  </button>
+
+                  <button
+                    style={deleteButton}
+                    onClick={() => handleDelete(animal.id)}
+                  >
+                    🗑 Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -188,21 +185,39 @@ const cell = {
 };
 
 const editButton = {
-  background: "#E3F2FD",
+  background: "#1976D2",
+  color: "#FFFFFF",
   border: "none",
-  borderRadius: "6px",
-  padding: "10px 14px",
+  borderRadius: "8px",
+  padding: "8px 14px",
   cursor: "pointer",
   marginRight: "8px",
+  fontWeight: 600,
 };
 
 const deleteButton = {
-  background: "#FFEBEE",
+  background: "#D32F2F",
+  color: "#FFFFFF",
   border: "none",
-  borderRadius: "6px",
-  padding: "10px 14px",
+  borderRadius: "8px",
+  padding: "8px 14px",
   cursor: "pointer",
+  fontWeight: 600,
 };
 
+function getSpeciesIcon(animal_type) {
+  switch (animal_type) {
+    case "Sheep":
+      return "🐑";
+    case "Goats":
+      return "🐐";
+    case "Pigs":
+      return "🐖";
+    case "Poultry":
+      return "🐔";
+    default:
+      return "🐄";
+  }
+}
 
-function getSpeciesIcon(animal_type){switch(animal_type){case "Sheep":return "🐑";case "Goats":return "🐐";case "Pigs":return "🐖";case "Poultry":return "🐔";default:return "🐄";}}
+

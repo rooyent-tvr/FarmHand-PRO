@@ -10,12 +10,20 @@ const menu = [
     path: "/livestock",
   },
   {
-    name: "🌾 Crops",
-    path: "/crops",
-  },
-  {
     name: "❤️ Animal Health",
     path: "/health",
+  },
+  {
+    name: "🐂 Breeding",
+    path: "/breeding",
+  },
+  {
+    name: "💰 Finance",
+    path: "/finance",
+  },
+  {
+    name: "🌾 Crops",
+    path: "/crops",
   },
   {
     name: "📋 Tasks",

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
+
+import PageContainer from "../../components/layout/PageContainer";
+import StatCard from "../../components/ui/StatCard";
+
 import CropForm from "../../components/crops/CropForm";
 import CropTable from "../../components/crops/CropTable";
+
 import { getCrops } from "../../services/cropService";
 
 export default function CropPage() {
@@ -17,9 +22,9 @@ export default function CropPage() {
     } catch (err) {
       console.error(err);
       alert(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   useEffect(() => {
@@ -28,6 +33,7 @@ export default function CropPage() {
 
   function handleEdit(crop) {
     setSelectedCrop(crop);
+
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -38,7 +44,6 @@ export default function CropPage() {
     setSelectedCrop(null);
   }
 
-  // Dashboard Statistics
   const totalCrops = crops.length;
 
   const growing = crops.filter(
@@ -55,58 +60,45 @@ export default function CropPage() {
   );
 
   return (
-    <div
-      style={{
-        maxWidth: 1200,
-        margin: "0 auto",
-        padding: 20,
-      }}
+    <PageContainer
+      title="🌾 Crop Management"
+      subtitle="Manage planting, tracking and harvest information."
     >
-      <h1
-        style={{
-          marginBottom: 10,
-        }}
-      >
-        🌾 Crop Management
-      </h1>
-
-      <p
-        style={{
-          color: "#666",
-          marginTop: 0,
-          marginBottom: 30,
-        }}
-      >
-        Manage planting, tracking and harvest information.
-      </p>
-
-      {/* Statistics */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(240px,1fr))",
           gap: 20,
           marginBottom: 30,
         }}
       >
         <StatCard
-          title="🌾 Total Crops"
+          title="Total Crops"
           value={totalCrops}
+          icon="🌾"
+          color="#2E7D32"
         />
 
         <StatCard
-          title="🌱 Growing"
+          title="Growing"
           value={growing}
+          icon="🌱"
+          color="#43A047"
         />
 
         <StatCard
-          title="🚜 Harvested"
+          title="Harvested"
           value={harvested}
+          icon="🚜"
+          color="#EF6C00"
         />
 
         <StatCard
-          title="📏 Total Area"
+          title="Total Area"
           value={`${totalArea.toFixed(2)} ha`}
+          icon="📏"
+          color="#1565C0"
         />
       </div>
 
@@ -125,39 +117,6 @@ export default function CropPage() {
           refreshCrops={loadCrops}
         />
       )}
-    </div>
-  );
-}
-
-function StatCard({ title, value }) {
-  return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 14,
-        padding: 24,
-        boxShadow: "0 5px 15px rgba(0,0,0,.08)",
-      }}
-    >
-      <div
-        style={{
-          color: "#666",
-          fontSize: 14,
-          marginBottom: 10,
-        }}
-      >
-        {title}
-      </div>
-
-      <div
-        style={{
-          fontSize: 30,
-          fontWeight: "700",
-          color: "#2E7D32",
-        }}
-      >
-        {value}
-      </div>
-    </div>
+    </PageContainer>
   );
 }
