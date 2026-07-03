@@ -3,14 +3,17 @@ import { useEffect, useState } from "react";
 import PageContainer from "../components/layout/PageContainer";
 import LivestockStatsGrid from "../components/livestock/LivestockStatsGrid";
 import AnimalForm from "../components/livestock/AnimalForm";
-import AnimalTable from "../components/livestock/AnimalTable";
 import AnimalModal from "../components/livestock/AnimalModal";
+import ViewToggle from "../components/livestock/ViewToggle";
+import LivestockView from "../components/livestock/LivestockView";
 
 import { getAnimals } from "../services/livestockService";
 
 export default function Livestock() {
   const [animals, setAnimals] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [view, setView] = useState("table");
 
   const [selectedAnimal, setSelectedAnimal] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -51,10 +54,16 @@ export default function Livestock() {
 
       <AnimalForm refreshAnimals={loadAnimals} />
 
+      <ViewToggle
+        view={view}
+        setView={setView}
+      />
+
       {loading ? (
         <p>Loading livestock...</p>
       ) : (
-        <AnimalTable
+        <LivestockView
+          view={view}
           animals={animals}
           onEdit={handleEdit}
           refreshAnimals={loadAnimals}
