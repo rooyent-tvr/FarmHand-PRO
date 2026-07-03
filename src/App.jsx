@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 
 import Dashboard from "./pages/Dashboard";
 import Livestock from "./pages/Livestock";
+import AnimalProfile from "./pages/AnimalProfile";
 import Crops from "./pages/Crops";
 import Health from "./pages/Health";
 import Breeding from "./pages/Breeding";
@@ -26,6 +27,13 @@ export default function App() {
       <Route element={<MainLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/livestock" element={<Livestock />} />
+
+        {/* NEW */}
+        <Route
+          path="/animals/:id"
+          element={<AnimalProfile />}
+        />
+
         <Route path="/crops" element={<Crops />} />
         <Route path="/health" element={<Health />} />
         <Route path="/breeding" element={<Breeding />} />

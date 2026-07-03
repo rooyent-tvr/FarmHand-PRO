@@ -1,8 +1,12 @@
+import { useNavigate } from "react-router-dom";
+
 export default function AnimalCard({
   animal,
   onEdit,
   onDelete,
 }) {
+  const navigate = useNavigate();
+
   const statusColor = {
     Healthy: "#16A34A",
     Pregnant: "#F59E0B",
@@ -114,6 +118,30 @@ export default function AnimalCard({
               : "-"
           }
         />
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: 10,
+          marginBottom: 10,
+        }}
+      >
+        <button
+          onClick={() => navigate(`/animals/${animal.id}`)}
+          style={{
+            padding: 12,
+            border: "none",
+            borderRadius: 10,
+            background: "#2E7D32",
+            color: "#FFFFFF",
+            cursor: "pointer",
+            fontWeight: 700,
+          }}
+        >
+          👁 View Profile
+        </button>
       </div>
 
       <div
