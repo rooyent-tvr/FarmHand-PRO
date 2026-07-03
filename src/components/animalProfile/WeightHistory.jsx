@@ -1,5 +1,6 @@
 export default function WeightHistory({
   records = [],
+  onAddWeight,
 }) {
   return (
     <div
@@ -29,6 +30,7 @@ export default function WeightHistory({
         </h2>
 
         <button
+          onClick={onAddWeight}
           style={{
             background: "#2E7D32",
             color: "#FFFFFF",
@@ -83,7 +85,7 @@ export default function WeightHistory({
             >
               <th style={header}>Date</th>
               <th style={header}>Weight</th>
-              <th style={header}>Recorded By</th>
+              <th style={header}>Notes</th>
             </tr>
           </thead>
 
@@ -96,15 +98,15 @@ export default function WeightHistory({
                 }}
               >
                 <td style={cell}>
-                  {record.date}
+                  {record.recorded_at}
                 </td>
 
                 <td style={cell}>
-                  {record.weight} kg
+                  <strong>{record.weight} kg</strong>
                 </td>
 
                 <td style={cell}>
-                  {record.recorded_by || "-"}
+                  {record.notes || "-"}
                 </td>
               </tr>
             ))}
