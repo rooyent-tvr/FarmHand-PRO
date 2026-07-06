@@ -28,8 +28,10 @@ export default function UpcomingBirths({
     (p) => p.daysLeft >= 0 && p.daysLeft <= 30
   );
 
-  const nextBirth =
-    pregnancies.length > 0 ? pregnancies[0] : null;
+  const nextBirths =
+    upcoming.length > 0
+      ? upcoming
+      : pregnancies.slice(0, 3);
 
   return (
     <div
@@ -48,158 +50,10 @@ export default function UpcomingBirths({
           color: "#0F172A",
         }}
       >
-        🍼 Upcoming Births
+        🍼 Upcoming Births ({pregnancies.length})
       </h2>
 
-      {upcoming.length > 0 ? (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
-          <thead>
-            <tr
-              style={{
-                background: "#F59E0B",
-                color: "#FFFFFF",
-              }}
-            >
-              <th style={th}>Female</th>
-              <th style={th}>Male</th>
-              <th style={th}>Expected Birth</th>
-              <th style={th}>Days Left</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {upcoming.map((record) => (
-              <tr key={record.id}>
-                <td style={td}>
-                  {record.female?.tag}
-                </td>
-
-                <td style={td}>
-                  {record.male?.tag}
-                </td>
-
-                <td style={td}>
-                  {record.expected_birth}
-                </td>
-
-                <td
-                  style={{
-                    ...td,
-                    fontWeight: 700,
-                    color:
-                      record.daysLeft <= 7
-                        ? "#DC2626"
-                        : "#16A34A",
-                  }}
-                >
-                  🟢 {record.daysLeft} days
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : nextBirth ? (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 30,
-            padding: 20,
-            background: "#F8FAFC",
-            border: "1px solid #E2E8F0",
-            borderRadius: 16,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 18,
-            }}
-          >
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: "50%",
-                background: "#FEF3C7",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 32,
-              }}
-            >
-              🍼
-            </div>
-
-            <div>
-              <div
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: "#0F172A",
-                  marginBottom: 12,
-                }}
-              >
-                Next Expected Birth
-              </div>
-
-              <div style={row}>
-                <strong>Female</strong>
-
-                <span>
-                  🐄 {nextBirth.female?.tag}
-                </span>
-              </div>
-
-              <div style={row}>
-                <strong>Expected Birth</strong>
-
-                <span
-                  style={{
-                    color: "#2563EB",
-                    fontWeight: 700,
-                  }}
-                >
-                  {nextBirth.expected_birth}
-                </span>
-              </div>
-
-              <div style={row}>
-                <strong>Remaining</strong>
-
-                <span
-                  style={{
-                    color: "#16A34A",
-                    fontWeight: 700,
-                  }}
-                >
-                  ⏳ {nextBirth.daysLeft} days
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#DCFCE7",
-              color: "#166534",
-              padding: "10px 18px",
-              borderRadius: 999,
-              fontWeight: 700,
-              whiteSpace: "nowrap",
-            }}
-          >
-            🟢 Pregnancy progressing normally
-          </div>
-        </div>
-      ) : (
+      {nextBirths.length === 0 ? (
         <div
           style={{
             textAlign: "center",
@@ -209,6 +63,112 @@ export default function UpcomingBirths({
         >
           No pregnancy records found.
         </div>
+      ) : (
+        <>
+          {nextBirths.map((record, index) => (
+            <div
+              key={record.id}
+              style={{
+                background: "#F8FAFC",
+                border: "1px solid #E2E8F0",
+                borderRadius: 16,
+                padding: 18,
+                marginBottom:
+                  index === nextBirths.length - 1
+                    ? 0
+                    : 16,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: "#0F172A",
+                      marginBottom: 10,
+                    }}
+                  >
+                    🐄 {record.female?.tag}
+                  </div>
+
+                  <div style={row}>
+                    <strong>Male</strong>
+                    <span>
+                      🐂 {record.male?.tag}
+                    </span>
+                  </div>
+
+                  <div style={row}>
+                    <strong>Expected Birth</strong>
+                    <span
+                      style={{
+                        color: "#2563EB",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {record.expected_birth}
+                    </span>
+                  </div>
+
+                  <div style={row}>
+                    <strong>Remaining</strong>
+                    <span
+                      style={{
+                        color:
+                          record.daysLeft <= 30
+                            ? "#DC2626"
+                            : "#16A34A",
+                        fontWeight: 700,
+                      }}
+                    >
+                      ⏳ {record.daysLeft} days
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    background: "#DCFCE7",
+                    color: "#166534",
+                    padding: "10px 16px",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  🟢 Healthy Pregnancy
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {pregnancies.length > 3 && (
+            <div
+              style={{
+                marginTop: 18,
+                textAlign: "center",
+                color: "#64748B",
+                fontWeight: 600,
+              }}
+            >
+              +{pregnancies.length - 3} more upcoming
+              birth
+              {pregnancies.length - 3 > 1
+                ? "s"
+                : ""}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -216,17 +176,7 @@ export default function UpcomingBirths({
 
 const row = {
   display: "flex",
-  gap: 16,
-  marginBottom: 8,
+  gap: 12,
+  marginBottom: 6,
   fontSize: 15,
-};
-
-const th = {
-  padding: 14,
-  textAlign: "left",
-};
-
-const td = {
-  padding: 14,
-  borderBottom: "1px solid #E5E7EB",
 };
