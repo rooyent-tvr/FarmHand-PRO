@@ -4,6 +4,7 @@ import PageContainer from "../components/layout/PageContainer";
 
 import BreedingStats from "../components/breeding/BreedingStats";
 import UpcomingBirths from "../components/breeding/UpcomingBirths";
+import OverdueBirths from "../components/breeding/OverdueBirths";
 import BreedingForm from "../components/breeding/BreedingForm";
 import BreedingTable from "../components/breeding/BreedingTable";
 
@@ -42,6 +43,10 @@ export default function Breeding() {
       <BreedingStats records={records} />
 
       <UpcomingBirths
+        records={records}
+      />
+
+      <OverdueBirths
         records={records}
       />
 

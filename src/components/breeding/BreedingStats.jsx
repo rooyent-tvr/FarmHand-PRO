@@ -1,9 +1,9 @@
 import StatCard from "../ui/StatCard";
 
 export default function BreedingStats({ records = [] }) {
-  const total = records.length;
+  const today = new Date();
 
-  const pregnant = records.filter(
+  const activePregnancies = records.filter(
     (r) => r.status === "Pregnant"
   ).length;
 
@@ -11,20 +11,44 @@ export default function BreedingStats({ records = [] }) {
     (r) => r.status === "Completed"
   ).length;
 
-  const today = new Date();
+  const pregnancies = records
+    .filter(
+      (r) =>
+        r.status === "Pregnant" &&
+        r.expected_birth
+    )
+    .map((record) => {
+      const expected = new Date(
+        record.expected_birth
+      );
 
-  const dueSoon = records.filter((r) => {
-    if (!r.expected_birth) return false;
+      const daysLeft = Math.ceil(
+        (expected - today) /
+          (1000 * 60 * 60 * 24)
+      );
 
-    const due = new Date(r.expected_birth);
+      return {
+        ...record,
+        daysLeft,
+      };
+    });
 
-    const days = Math.ceil(
-      (due - today) /
-      (1000 * 60 * 60 * 24)
-    );
+  const dueSoon = pregnancies.filter(
+    (r) =>
+      r.daysLeft >= 0 &&
+      r.daysLeft <= 30
+  ).length;
 
-    return days >= 0 && days <= 30;
-  }).length;
+  const overdue = pregnancies.filter(
+    (r) => r.daysLeft < 0
+  ).length;
+
+  const nextBirth = pregnancies
+    .filter((r) => r.daysLeft >= 0)
+    .sort(
+      (a, b) =>
+        a.daysLeft - b.daysLeft
+    )[0];
 
   return (
     <div
@@ -37,17 +61,21 @@ export default function BreedingStats({ records = [] }) {
       }}
     >
       <StatCard
-        title="Breeding Records"
-        value={total}
-        icon="🐂"
-        color="#1565C0"
+        title="Active Pregnancies"
+        value={activePregnancies}
+        icon="🐄"
+        color="#2E7D32"
       />
 
       <StatCard
-        title="Pregnant"
-        value={pregnant}
-        icon="🤰"
-        color="#2E7D32"
+        title="Next Birth"
+        value={
+          nextBirth
+            ? `${nextBirth.daysLeft} Days`
+            : "-"
+        }
+        icon="🍼"
+        color="#1565C0"
       />
 
       <StatCard
@@ -58,10 +86,10 @@ export default function BreedingStats({ records = [] }) {
       />
 
       <StatCard
-        title="Completed"
-        value={completed}
-        icon="🎉"
-        color="#8E24AA"
+        title="Overdue"
+        value={overdue}
+        icon="🚨"
+        color="#D32F2F"
       />
     </div>
   );
