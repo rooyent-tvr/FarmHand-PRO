@@ -21,6 +21,7 @@ import WeightEntryModal from "../components/weight/WeightEntryModal";
 
 import HealthEntryModal from "../components/health/HealthEntryModal";
 import BreedingEntryModal from "../components/breeding/BreedingEntryModal";
+import PregnancySummary from "../components/breeding/PregnancySummary";
 
 import { getAnimals } from "../services/livestockService";
 import { getWeightHistory } from "../services/weightService";
@@ -149,12 +150,18 @@ export default function AnimalProfile() {
       )}
 
       {activeTab === "breeding" && (
-        <BreedingHistory
-          records={breedingHistory}
-          onAddBreeding={() =>
-            setShowBreedingModal(true)
-          }
-        />
+        <>
+          <PregnancySummary
+            records={breedingHistory}
+          />
+
+          <BreedingHistory
+            records={breedingHistory}
+            onAddBreeding={() =>
+              setShowBreedingModal(true)
+            }
+          />
+        </>
       )}
 
       {activeTab === "finance" && (

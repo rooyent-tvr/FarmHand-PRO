@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import PageContainer from "../components/layout/PageContainer";
 
 import BreedingStats from "../components/breeding/BreedingStats";
+import UpcomingBirths from "../components/breeding/UpcomingBirths";
 import BreedingForm from "../components/breeding/BreedingForm";
 import BreedingTable from "../components/breeding/BreedingTable";
 
@@ -39,6 +40,10 @@ export default function Breeding() {
       subtitle="Manage breeding records, pregnancies and expected births."
     >
       <BreedingStats records={records} />
+
+      <UpcomingBirths
+        records={records}
+      />
 
       <BreedingForm
         record={selectedRecord}
