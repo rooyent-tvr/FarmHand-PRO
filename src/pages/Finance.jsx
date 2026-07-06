@@ -1,73 +1,45 @@
 import { useEffect, useState } from "react";
 
 import PageContainer from "../components/layout/PageContainer";
-import FinanceSummary from "../components/finance/FinanceSummary";
-import IncomeForm from "../components/finance/IncomeForm";
-import ExpenseForm from "../components/finance/ExpenseForm";
-import TransactionTable from "../components/finance/TransactionTable";
+
+import FinanceStats from "../components/finance/FinanceStats";
+import FinanceForm from "../components/finance/FinanceForm";
+import FinanceTable from "../components/finance/FinanceTable";
 
 import {
-  getFinanceSummary,
-  addTransaction,
-  deleteTransaction,
+  getFinanceRecords,
 } from "../services/financeService";
 
 export default function Finance() {
-  const [summary, setSummary] = useState({
-    income: 0,
-    expenses: 0,
-    profit: 0,
-    transactions: [],
-  });
+  const [records, setRecords] = useState([]);
+  const [selectedRecord, setSelectedRecord] =
+    useState(null);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [loading, setLoading] = useState(true);
-
-  async function loadFinance() {
+  async function loadRecords() {
     try {
-      const data = await getFinanceSummary();
-      setSummary(data);
-    } catch (error) {
-      console.error("Finance Error:", error);
+      const data =
+        await getFinanceRecords();
+
+      setRecords(data || []);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadFinance();
+    loadRecords();
   }, []);
-
-  async function handleAdd(transaction) {
-    try {
-      await addTransaction(transaction);
-      await loadFinance();
-    } catch (error) {
-      alert(error.message);
-    }
-  }
-
-  async function handleDelete(id) {
-    if (!window.confirm("Delete this transaction?")) return;
-
-    try {
-      await deleteTransaction(id);
-      await loadFinance();
-    } catch (error) {
-      alert(error.message);
-    }
-  }
-
-  function handleEdit(transaction) {
-    console.log("Edit transaction:", transaction);
-
-    // Editing will be added in Sprint 8.3
-  }
 
   if (loading) {
     return (
       <PageContainer
         title="💰 Finance"
-        subtitle="Loading finance data..."
+        subtitle="Loading finance records..."
       >
         Loading...
       </PageContainer>
@@ -79,29 +51,22 @@ export default function Finance() {
       title="💰 Finance"
       subtitle="Manage your farm income and expenses."
     >
-      <FinanceSummary
-        income={summary.income}
-        expenses={summary.expenses}
-        profit={summary.profit}
-        transactions={summary.transactions}
+      <FinanceStats
+        records={records}
       />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
-          gap: 24,
-          marginBottom: 30,
-        }}
-      >
-        <IncomeForm onSubmit={handleAdd} />
-        <ExpenseForm onSubmit={handleAdd} />
-      </div>
+      <FinanceForm
+        record={selectedRecord}
+        refreshRecords={loadRecords}
+        onSaved={() =>
+          setSelectedRecord(null)
+        }
+      />
 
-      <TransactionTable
-        transactions={summary.transactions}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+      <FinanceTable
+        records={records}
+        refreshRecords={loadRecords}
+        onEdit={setSelectedRecord}
       />
     </PageContainer>
   );

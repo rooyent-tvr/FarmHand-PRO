@@ -1,26 +1,49 @@
 import { supabase } from "./supabase";
 
-export async function getTransactions() {
+export async function getFinanceRecords() {
   const { data, error } = await supabase
-    .from("transactions")
-    .select("*")
-    .order("transaction_date", { ascending: false });
+    .from("finance_records")
+    .select(`
+      *,
+      animal:livestock (
+        id,
+        tag,
+        breed
+      )
+    `)
+    .order("transaction_date", {
+      ascending: false,
+    });
 
   if (error) throw error;
 
   return data || [];
 }
 
-export async function addTransaction(transaction) {
+export async function getAnimalFinance(animalId) {
+  const { data, error } = await supabase
+    .from("finance_records")
+    .select("*")
+    .eq("animal_id", animalId)
+    .order("transaction_date", {
+      ascending: false,
+    });
+
+  if (error) throw error;
+
+  return data || [];
+}
+
+export async function addFinanceRecord(record) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
-    .from("transactions")
+    .from("finance_records")
     .insert([
       {
-        ...transaction,
+        ...record,
         user_id: user.id,
       },
     ])
@@ -32,9 +55,12 @@ export async function addTransaction(transaction) {
   return data;
 }
 
-export async function updateTransaction(id, updates) {
+export async function updateFinanceRecord(
+  id,
+  updates
+) {
   const { data, error } = await supabase
-    .from("transactions")
+    .from("finance_records")
     .update(updates)
     .eq("id", id)
     .select()
@@ -45,9 +71,9 @@ export async function updateTransaction(id, updates) {
   return data;
 }
 
-export async function deleteTransaction(id) {
+export async function deleteFinanceRecord(id) {
   const { error } = await supabase
-    .from("transactions")
+    .from("finance_records")
     .delete()
     .eq("id", id);
 
@@ -55,20 +81,32 @@ export async function deleteTransaction(id) {
 }
 
 export async function getFinanceSummary() {
-  const transactions = await getTransactions();
+  const records = await getFinanceRecords();
 
-  const income = transactions
-    .filter((t) => t.type === "Income")
-    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const income = records
+    .filter(
+      (r) => r.category === "Income"
+    )
+    .reduce(
+      (sum, r) =>
+        sum + Number(r.amount || 0),
+      0
+    );
 
-  const expenses = transactions
-    .filter((t) => t.type === "Expense")
-    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const expenses = records
+    .filter(
+      (r) => r.category === "Expense"
+    )
+    .reduce(
+      (sum, r) =>
+        sum + Number(r.amount || 0),
+      0
+    );
 
   return {
     income,
     expenses,
     profit: income - expenses,
-    transactions,
+    records,
   };
 }
