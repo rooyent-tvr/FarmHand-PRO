@@ -12,6 +12,7 @@ export default function HealthForm({
   refreshRecords,
   record = null,
   onSaved,
+  animalId = null,
 }) {
   const [animals, setAnimals] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -46,6 +47,15 @@ export default function HealthForm({
     }
   }, [record]);
 
+  useEffect(() => {
+    if (animalId) {
+      setForm((prev) => ({
+        ...prev,
+        animal_id: animalId,
+      }));
+    }
+  }, [animalId]);
+
   async function loadAnimals() {
     try {
       const data = await getAnimals();
@@ -56,7 +66,10 @@ export default function HealthForm({
   }
 
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   }
 
   async function handleSubmit(e) {
@@ -81,12 +94,17 @@ export default function HealthForm({
         await addHealthRecord(form);
       }
 
-      if (refreshRecords) await refreshRecords();
-      if (onSaved) onSaved();
+      if (refreshRecords) {
+        await refreshRecords();
+      }
+
+      if (onSaved) {
+        onSaved();
+      }
 
       if (!record) {
         setForm({
-          animal_id: "",
+          animal_id: animalId || "",
           treatment_type: "Vaccination",
           medication: "",
           treatment_date: "",
@@ -114,28 +132,41 @@ export default function HealthForm({
         boxShadow: "0 5px 15px rgba(0,0,0,.08)",
       }}
     >
-      <h2>{record ? "Edit Health Record" : "Animal Health Record"}</h2>
+      <h2>
+        {record
+          ? "Edit Health Record"
+          : "Animal Health Record"}
+      </h2>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit,minmax(240px,1fr))",
           gap: 15,
         }}
       >
-        <Select
-          name="animal_id"
-          value={form.animal_id}
-          onChange={handleChange}
-        >
-          <option value="">Select Animal</option>
-
-          {animals.map((animal) => (
-            <option key={animal.id} value={animal.id}>
-              {animal.tag} - {animal.animal_type} - {animal.breed}
+        {!animalId && (
+          <Select
+            name="animal_id"
+            value={form.animal_id}
+            onChange={handleChange}
+          >
+            <option value="">
+              Select Animal
             </option>
-          ))}
-        </Select>
+
+            {animals.map((animal) => (
+              <option
+                key={animal.id}
+                value={animal.id}
+              >
+                {animal.tag} - {animal.animal_type} -{" "}
+                {animal.breed}
+              </option>
+            ))}
+          </Select>
+        )}
 
         <Select
           name="treatment_type"
@@ -216,7 +247,11 @@ export default function HealthForm({
           cursor: "pointer",
         }}
       >
-        {saving ? "Saving..." : record ? "Update Record" : "Save Record"}
+        {saving
+          ? "Saving..."
+          : record
+          ? "Update Record"
+          : "Save Record"}
       </Button>
     </form>
   );

@@ -19,17 +19,23 @@ import WeightAnalytics from "../components/weight/WeightAnalytics";
 import GrowthInsights from "../components/weight/GrowthInsights";
 import WeightEntryModal from "../components/weight/WeightEntryModal";
 
+import HealthEntryModal from "../components/health/HealthEntryModal";
+
 import { getAnimals } from "../services/livestockService";
 import { getWeightHistory } from "../services/weightService";
+import { getHealthHistory } from "../services/healthService";
 
 export default function AnimalProfile() {
   const { id } = useParams();
 
   const [animal, setAnimal] = useState(null);
-  const [weightHistory, setWeightHistory] = useState([]);
-  const [showWeightModal, setShowWeightModal] = useState(false);
 
-  // NEW
+  const [weightHistory, setWeightHistory] = useState([]);
+  const [healthHistory, setHealthHistory] = useState([]);
+
+  const [showWeightModal, setShowWeightModal] = useState(false);
+  const [showHealthModal, setShowHealthModal] = useState(false);
+
   const [activeTab, setActiveTab] = useState("weight");
 
   useEffect(() => {
@@ -48,7 +54,10 @@ export default function AnimalProfile() {
 
       setAnimal(selected);
 
-      await loadWeightHistory(selected.id);
+      await Promise.all([
+        loadWeightHistory(selected.id),
+        loadHealthHistory(selected.id),
+      ]);
     } catch (err) {
       console.error(err);
     }
@@ -58,6 +67,15 @@ export default function AnimalProfile() {
     try {
       const data = await getWeightHistory(animalId);
       setWeightHistory(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadHealthHistory(animalId) {
+    try {
+      const data = await getHealthHistory(animalId);
+      setHealthHistory(data || []);
     } catch (err) {
       console.error(err);
     }
@@ -106,7 +124,12 @@ export default function AnimalProfile() {
       )}
 
       {activeTab === "health" && (
-        <HealthHistory records={[]} />
+        <HealthHistory
+          records={healthHistory}
+          onAddTreatment={() =>
+            setShowHealthModal(true)
+          }
+        />
       )}
 
       {activeTab === "breeding" && (
@@ -133,6 +156,18 @@ export default function AnimalProfile() {
         onSaved={() => {
           loadWeightHistory(animal.id);
           setShowWeightModal(false);
+        }}
+      />
+
+      <HealthEntryModal
+        open={showHealthModal}
+        onClose={() =>
+          setShowHealthModal(false)
+        }
+        animalId={animal.id}
+        refreshRecords={() => {
+          loadHealthHistory(animal.id);
+          setShowHealthModal(false);
         }}
       />
     </PageContainer>

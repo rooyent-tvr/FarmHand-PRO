@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 
 /*
- * Get all health records
+ * Get all health records (Health page)
  */
 export async function getHealthRecords() {
   const { data, error } = await supabase
@@ -15,7 +15,30 @@ export async function getHealthRecords() {
         animal_type
       )
     `)
-    .order("treatment_date", { ascending: false });
+    .order("treatment_date", {
+      ascending: false,
+    });
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return data || [];
+}
+
+/*
+ * Get health records for ONE animal
+ * (Animal Profile)
+ */
+export async function getHealthRecordsByAnimal(animalId) {
+  const { data, error } = await supabase
+    .from("animal_health")
+    .select("*")
+    .eq("animal_id", animalId)
+    .order("treatment_date", {
+      ascending: false,
+    });
 
   if (error) {
     console.error(error);
@@ -107,3 +130,8 @@ export async function deleteHealthRecord(id) {
 
   return true;
 }
+
+/*
+ * Alias used by Animal Profile
+ */
+export const getHealthHistory = getHealthRecordsByAnimal;
