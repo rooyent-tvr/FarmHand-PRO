@@ -20,10 +20,12 @@ import GrowthInsights from "../components/weight/GrowthInsights";
 import WeightEntryModal from "../components/weight/WeightEntryModal";
 
 import HealthEntryModal from "../components/health/HealthEntryModal";
+import BreedingEntryModal from "../components/breeding/BreedingEntryModal";
 
 import { getAnimals } from "../services/livestockService";
 import { getWeightHistory } from "../services/weightService";
 import { getHealthHistory } from "../services/healthService";
+import { getBreedingHistory } from "../services/breedingService";
 
 export default function AnimalProfile() {
   const { id } = useParams();
@@ -32,9 +34,11 @@ export default function AnimalProfile() {
 
   const [weightHistory, setWeightHistory] = useState([]);
   const [healthHistory, setHealthHistory] = useState([]);
+  const [breedingHistory, setBreedingHistory] = useState([]);
 
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showHealthModal, setShowHealthModal] = useState(false);
+  const [showBreedingModal, setShowBreedingModal] = useState(false);
 
   const [activeTab, setActiveTab] = useState("weight");
 
@@ -57,6 +61,7 @@ export default function AnimalProfile() {
       await Promise.all([
         loadWeightHistory(selected.id),
         loadHealthHistory(selected.id),
+        loadBreedingHistory(selected.id),
       ]);
     } catch (err) {
       console.error(err);
@@ -81,10 +86,19 @@ export default function AnimalProfile() {
     }
   }
 
+  async function loadBreedingHistory(animalId) {
+    try {
+      const data = await getBreedingHistory(animalId);
+      setBreedingHistory(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   if (!animal) {
     return (
       <PageContainer
-        title="Animal Profile"
+        title="🐄 Animal Profile"
         subtitle="Loading..."
       >
         <p>Loading animal...</p>
@@ -101,26 +115,28 @@ export default function AnimalProfile() {
 
       <AnimalInfo animal={animal} />
 
-      <WeightSummary records={weightHistory} />
-
-      <WeightChart records={weightHistory} />
-
-      <WeightAnalytics records={weightHistory} />
-
-      <GrowthInsights records={weightHistory} />
-
       <ProfileTabs
         activeTab={activeTab}
         onChange={setActiveTab}
       />
 
       {activeTab === "weight" && (
-        <WeightHistory
-          records={weightHistory}
-          onAddWeight={() =>
-            setShowWeightModal(true)
-          }
-        />
+        <>
+          <WeightSummary records={weightHistory} />
+
+          <WeightChart records={weightHistory} />
+
+          <WeightAnalytics records={weightHistory} />
+
+          <GrowthInsights records={weightHistory} />
+
+          <WeightHistory
+            records={weightHistory}
+            onAddWeight={() =>
+              setShowWeightModal(true)
+            }
+          />
+        </>
       )}
 
       {activeTab === "health" && (
@@ -133,7 +149,12 @@ export default function AnimalProfile() {
       )}
 
       {activeTab === "breeding" && (
-        <BreedingHistory records={[]} />
+        <BreedingHistory
+          records={breedingHistory}
+          onAddBreeding={() =>
+            setShowBreedingModal(true)
+          }
+        />
       )}
 
       {activeTab === "finance" && (
@@ -168,6 +189,18 @@ export default function AnimalProfile() {
         refreshRecords={() => {
           loadHealthHistory(animal.id);
           setShowHealthModal(false);
+        }}
+      />
+
+      <BreedingEntryModal
+        open={showBreedingModal}
+        onClose={() =>
+          setShowBreedingModal(false)
+        }
+        animalId={animal.id}
+        refreshRecords={async () => {
+          await loadBreedingHistory(animal.id);
+          setShowBreedingModal(false);
         }}
       />
     </PageContainer>

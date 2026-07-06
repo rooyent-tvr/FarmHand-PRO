@@ -14,7 +14,29 @@ export async function getBreedingRecords() {
 
   if (error) throw error;
 
-  return data;
+  return data || [];
+}
+
+/*
+ * Get breeding history for ONE animal
+ * (Animal Profile)
+ */
+export async function getBreedingHistory(animalId) {
+  const { data, error } = await supabase
+    .from("breeding_records")
+    .select(`
+      *,
+      female:female_id(tag, breed, animal_type),
+      male:male_id(tag, breed, animal_type)
+    `)
+    .or(`female_id.eq.${animalId},male_id.eq.${animalId}`)
+    .order("breeding_date", {
+      ascending: false,
+    });
+
+  if (error) throw error;
+
+  return data || [];
 }
 
 export async function addBreedingRecord(record) {
@@ -74,7 +96,7 @@ export async function getFemaleAnimals() {
 
   if (error) throw error;
 
-  return data;
+  return data || [];
 }
 
 export async function getMaleAnimals() {
@@ -93,5 +115,5 @@ export async function getMaleAnimals() {
 
   if (error) throw error;
 
-  return data;
+  return data || [];
 }

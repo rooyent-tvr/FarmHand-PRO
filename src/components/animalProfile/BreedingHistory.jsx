@@ -1,5 +1,6 @@
 export default function BreedingHistory({
   records = [],
+  onAddBreeding,
 }) {
   return (
     <div
@@ -29,6 +30,7 @@ export default function BreedingHistory({
         </h2>
 
         <button
+          onClick={onAddBreeding}
           style={{
             background: "#F59E0B",
             color: "#FFFFFF",
@@ -102,11 +104,13 @@ export default function BreedingHistory({
                 </td>
 
                 <td style={cell}>
-                  {record.sire || "-"}
+                  {record.male?.tag || "-"}
                 </td>
 
                 <td style={cell}>
-                  {record.pregnant ? "✅ Yes" : "❌ No"}
+                  {record.status === "Pregnant"
+                    ? "✅ Yes"
+                    : "❌ No"}
                 </td>
 
                 <td style={cell}>
@@ -114,7 +118,7 @@ export default function BreedingHistory({
                 </td>
 
                 <td style={cell}>
-                  {record.outcome || "Pending"}
+                  {record.status || "Pending"}
                 </td>
               </tr>
             ))}
