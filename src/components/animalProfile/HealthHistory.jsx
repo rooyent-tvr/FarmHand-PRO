@@ -1,5 +1,6 @@
 export default function HealthHistory({
   records = [],
+  onAddTreatment,
 }) {
   return (
     <div
@@ -29,6 +30,7 @@ export default function HealthHistory({
         </h2>
 
         <button
+          onClick={onAddTreatment}
           style={{
             background: "#DC2626",
             color: "#FFFFFF",
@@ -83,6 +85,7 @@ export default function HealthHistory({
             >
               <th style={header}>Date</th>
               <th style={header}>Treatment</th>
+              <th style={header}>Medication</th>
               <th style={header}>Veterinarian</th>
               <th style={header}>Next Due</th>
               <th style={header}>Status</th>
@@ -99,15 +102,20 @@ export default function HealthHistory({
                 <tr
                   key={record.id}
                   style={{
-                    borderBottom: "1px solid #E2E8F0",
+                    borderBottom:
+                      "1px solid #E2E8F0",
                   }}
                 >
                   <td style={cell}>
-                    {record.date}
+                    {record.treatment_date}
                   </td>
 
                   <td style={cell}>
-                    {record.treatment}
+                    {record.treatment_type}
+                  </td>
+
+                  <td style={cell}>
+                    {record.medication || "-"}
                   </td>
 
                   <td style={cell}>
@@ -125,13 +133,16 @@ export default function HealthHistory({
                           ? "#DC2626"
                           : "#16A34A",
                         color: "#FFFFFF",
-                        padding: "6px 12px",
+                        padding:
+                          "6px 12px",
                         borderRadius: 999,
                         fontSize: 12,
                         fontWeight: 700,
                       }}
                     >
-                      {overdue ? "Overdue" : "Up to Date"}
+                      {overdue
+                        ? "Overdue"
+                        : "Up to Date"}
                     </span>
                   </td>
                 </tr>

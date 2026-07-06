@@ -5,6 +5,8 @@ import PageContainer from "../components/layout/PageContainer";
 
 import ProfileHeader from "../components/animalProfile/ProfileHeader";
 import AnimalInfo from "../components/animalProfile/AnimalInfo";
+import ProfileTabs from "../components/animalProfile/ProfileTabs";
+
 import WeightHistory from "../components/animalProfile/WeightHistory";
 import HealthHistory from "../components/animalProfile/HealthHistory";
 import BreedingHistory from "../components/animalProfile/BreedingHistory";
@@ -14,6 +16,7 @@ import NotesCard from "../components/animalProfile/NotesCard";
 import WeightSummary from "../components/weight/WeightSummary";
 import WeightChart from "../components/weight/WeightChart";
 import WeightAnalytics from "../components/weight/WeightAnalytics";
+import GrowthInsights from "../components/weight/GrowthInsights";
 import WeightEntryModal from "../components/weight/WeightEntryModal";
 
 import { getAnimals } from "../services/livestockService";
@@ -25,6 +28,9 @@ export default function AnimalProfile() {
   const [animal, setAnimal] = useState(null);
   const [weightHistory, setWeightHistory] = useState([]);
   const [showWeightModal, setShowWeightModal] = useState(false);
+
+  // NEW
+  const [activeTab, setActiveTab] = useState("weight");
 
   useEffect(() => {
     loadAnimal();
@@ -77,35 +83,46 @@ export default function AnimalProfile() {
 
       <AnimalInfo animal={animal} />
 
-      <WeightSummary
-        records={weightHistory}
+      <WeightSummary records={weightHistory} />
+
+      <WeightChart records={weightHistory} />
+
+      <WeightAnalytics records={weightHistory} />
+
+      <GrowthInsights records={weightHistory} />
+
+      <ProfileTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
       />
 
-      <WeightChart
-        records={weightHistory}
-      />
+      {activeTab === "weight" && (
+        <WeightHistory
+          records={weightHistory}
+          onAddWeight={() =>
+            setShowWeightModal(true)
+          }
+        />
+      )}
 
-      <WeightAnalytics
-        records={weightHistory}
-      />
+      {activeTab === "health" && (
+        <HealthHistory records={[]} />
+      )}
 
-      <WeightHistory
-        records={weightHistory}
-        onAddWeight={() =>
-          setShowWeightModal(true)
-        }
-      />
+      {activeTab === "breeding" && (
+        <BreedingHistory records={[]} />
+      )}
 
-      <HealthHistory records={[]} />
+      {activeTab === "finance" && (
+        <FinancialHistory
+          animal={animal}
+          transactions={[]}
+        />
+      )}
 
-      <BreedingHistory records={[]} />
-
-      <FinancialHistory
-        animal={animal}
-        transactions={[]}
-      />
-
-      <NotesCard animal={animal} />
+      {activeTab === "notes" && (
+        <NotesCard animal={animal} />
+      )}
 
       <WeightEntryModal
         animal={animal}

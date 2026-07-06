@@ -1,70 +1,59 @@
+import { calculateWeightAnalytics } from "../../utils/weightAnalytics";
+
 export default function WeightAnalytics({
   records = [],
 }) {
-  if (records.length === 0) return null;
+  const analytics =
+    calculateWeightAnalytics(records);
 
-  // Oldest -> newest
-  const sorted = [...records].sort(
-    (a, b) =>
-      new Date(a.created_at) -
-      new Date(b.created_at)
-  );
-
-  const weights = sorted.map((r) =>
-    Number(r.weight)
-  );
-
-  const highestWeight = Math.max(...weights);
-  const lowestWeight = Math.min(...weights);
-
-  const latest = sorted[sorted.length - 1];
-
-  const daysSinceLastWeight = Math.floor(
-    (new Date() -
-      new Date(latest.recorded_at)) /
-      (1000 * 60 * 60 * 24)
-  );
-
-  let averageDailyGain = 0;
-
-  if (sorted.length > 1) {
-    const first = sorted[0];
-    const last = sorted[sorted.length - 1];
-
-    const days = Math.max(
-      1,
-      Math.floor(
-        (new Date(last.recorded_at) -
-          new Date(first.recorded_at)) /
-          (1000 * 60 * 60 * 24)
-      )
-    );
-
-    averageDailyGain =
-      (last.weight - first.weight) / days;
-  }
+  if (!analytics) return null;
 
   const cards = [
     {
       title: "Highest Weight",
-      value: `${highestWeight} kg`,
+      value: `${analytics.highestWeight} kg`,
       color: "#16A34A",
     },
     {
       title: "Lowest Weight",
-      value: `${lowestWeight} kg`,
+      value: `${analytics.lowestWeight} kg`,
       color: "#2563EB",
     },
     {
-      title: "Avg Daily Gain",
-      value: `${averageDailyGain.toFixed(
-        2
-      )} kg/day`,
+      title: "Weight Gain",
+      value: `${analytics.totalGain >= 0 ? "+" : ""}${analytics.totalGain} kg`,
+      color:
+        analytics.totalGain >= 0
+          ? "#16A34A"
+          : "#DC2626",
+    },
+    {
+      title: "Growth %",
+      value: `${analytics.growthPercentage.toFixed(
+        1
+      )}%`,
       color: "#7C3AED",
     },
     {
-      title: "Days Since Last Weight",
-      value: `${daysSinceLastWeight} days`,
+      title: "Avg Daily Gain",
+      value: `${analytics.averageDailyGain.toFixed(
+        2
+      )} kg/day`,
+      color: "#0891B2",
+    },
+    {
+      title: "Days Tracked",
+      value: analytics.totalDays,
+      color: "#F59E0B",
+    },
+    {
+      title: "Weight Records",
+      value: analytics.records,
+      color: "#6366F1",
+    },
+    {
+      title: "Last Weighed",
+      value: `${analytics.daysSinceLastWeight} days ago`,
       color: "#EA580C",
     },
   ];
