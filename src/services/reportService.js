@@ -1,10 +1,19 @@
 import { getAnimals } from "./livestockService";
 import { getFinanceRecords } from "./financeService";
+import { getBreedingRecords } from "./breedingService";
+import { getHealthRecords } from "./healthService";
 
 export async function getFarmReport() {
-  const [animals, finance] = await Promise.all([
+  const [
+    animals,
+    finance,
+    breeding,
+    health,
+  ] = await Promise.all([
     getAnimals(),
     getFinanceRecords(),
+    getBreedingRecords(),
+    getHealthRecords(),
   ]);
 
   const totalAnimals = animals.length;
@@ -31,5 +40,10 @@ export async function getFarmReport() {
     totalIncome,
     totalExpenses,
     netProfit,
+
+    animals,
+    finance,
+    breeding,
+    health,
   };
 }

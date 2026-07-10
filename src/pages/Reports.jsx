@@ -4,6 +4,10 @@ import PageContainer from "../components/layout/PageContainer";
 
 import ReportStats from "../components/reports/ReportStats";
 import IncomeExpenseChart from "../components/reports/IncomeExpenseChart";
+import LivestockChart from "../components/reports/LivestockChart";
+import BreedingOverview from "../components/reports/BreedingOverview";
+import HealthOverview from "../components/reports/HealthOverview";
+import ExportCenter from "../components/reports/ExportCenter";
 
 import { getFarmReport } from "../services/reportService";
 
@@ -13,6 +17,10 @@ export default function Reports() {
     totalIncome: 0,
     totalExpenses: 0,
     netProfit: 0,
+    animals: [],
+    finance: [],
+    breeding: [],
+    health: [],
   });
 
   useEffect(() => {
@@ -40,6 +48,22 @@ export default function Reports() {
         expenses={report.totalExpenses}
       />
 
+      <LivestockChart
+        animals={report.animals}
+      />
+
+      <BreedingOverview
+        records={report.breeding}
+      />
+
+      <HealthOverview
+        records={report.health}
+      />
+
+      <ExportCenter
+        report={report}
+      />
+
       <div
         style={{
           background: "#FFFFFF",
@@ -56,7 +80,7 @@ export default function Reports() {
             marginTop: 0,
           }}
         >
-          🚀 Coming in Sprint 15
+          🚀 Coming Soon
         </h2>
 
         <div
@@ -87,9 +111,9 @@ export default function Reports() {
           </div>
 
           <div>
-            <h3>📄 Exports</h3>
+            <h3>📄 Export Reports</h3>
             <ul>
-              <li>PDF Reports</li>
+              <li>PDF Export</li>
               <li>Excel Export</li>
               <li>CSV Export</li>
             </ul>
