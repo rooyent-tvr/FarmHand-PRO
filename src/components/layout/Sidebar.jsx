@@ -26,8 +26,12 @@ const menu = [
     path: "/crops",
   },
   {
-    name: "📋 Tasks",
+    name: "📋 Planner Dashboard",
     path: "/tasks",
+  },
+  {
+    name: "🧠 Planner Workspace",
+    path: "/planner",
   },
   {
     name: "📊 Reports",

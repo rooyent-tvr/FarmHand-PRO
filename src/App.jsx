@@ -11,9 +11,10 @@ import AnimalProfile from "./pages/AnimalProfile";
 import Crops from "./pages/Crops";
 import Health from "./pages/Health";
 import Breeding from "./pages/Breeding";
-import Tasks from "./pages/Tasks";
-import Reports from "./pages/Reports";
 import Finance from "./pages/Finance";
+import Tasks from "./pages/Tasks";
+import PlannerWorkspace from "./pages/PlannerWorkspace";
+import Reports from "./pages/Reports";
 import Account from "./pages/Account";
 
 export default function App() {
@@ -28,7 +29,6 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/livestock" element={<Livestock />} />
 
-        {/* NEW */}
         <Route
           path="/animals/:id"
           element={<AnimalProfile />}
@@ -38,7 +38,14 @@ export default function App() {
         <Route path="/health" element={<Health />} />
         <Route path="/breeding" element={<Breeding />} />
         <Route path="/finance" element={<Finance />} />
+
         <Route path="/tasks" element={<Tasks />} />
+
+        <Route
+          path="/planner"
+          element={<PlannerWorkspace />}
+        />
+
         <Route path="/reports" element={<Reports />} />
         <Route path="/account" element={<Account />} />
       </Route>
