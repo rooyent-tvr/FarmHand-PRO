@@ -11,6 +11,17 @@ export default function FinanceTable({
 }) {
   const [search, setSearch] = useState("");
 
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "ZAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
+
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString("en-ZA");
+
   const filtered = records.filter((record) => {
     const term = search.toLowerCase();
 
@@ -40,16 +51,11 @@ export default function FinanceTable({
 
     try {
       await deleteFinanceRecord(id);
-      refreshRecords();
+      await refreshRecords();
     } catch (err) {
       alert(err.message);
     }
   }
-
-  const badgeColor = (category) =>
-    category === "Income"
-      ? "#16A34A"
-      : "#DC2626";
 
   return (
     <div
@@ -64,8 +70,7 @@ export default function FinanceTable({
       <div
         style={{
           display: "flex",
-          justifyContent:
-            "space-between",
+          justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           gap: 16,
@@ -73,11 +78,7 @@ export default function FinanceTable({
         }}
       >
         <div>
-          <h2
-            style={{
-              margin: 0,
-            }}
-          >
+          <h2 style={{ margin: 0 }}>
             💰 Finance Records
           </h2>
 
@@ -99,8 +100,7 @@ export default function FinanceTable({
           style={{
             padding: 12,
             width: 320,
-            border:
-              "1px solid #CBD5E1",
+            border: "1px solid #CBD5E1",
             borderRadius: 10,
           }}
         />
@@ -114,45 +114,23 @@ export default function FinanceTable({
         <table
           style={{
             width: "100%",
-            borderCollapse:
-              "collapse",
+            borderCollapse: "collapse",
           }}
         >
           <thead>
             <tr
               style={{
-                background:
-                  "#16A34A",
+                background: "#16A34A",
                 color: "#FFFFFF",
               }}
             >
-              <th style={header}>
-                Animal
-              </th>
-
-              <th style={header}>
-                Category
-              </th>
-
-              <th style={header}>
-                Type
-              </th>
-
-              <th style={header}>
-                Amount
-              </th>
-
-              <th style={header}>
-                Date
-              </th>
-
-              <th style={header}>
-                Description
-              </th>
-
-              <th style={header}>
-                Actions
-              </th>
+              <th style={header}>Animal</th>
+              <th style={header}>Category</th>
+              <th style={header}>Type</th>
+              <th style={header}>Amount</th>
+              <th style={header}>Date</th>
+              <th style={header}>Description</th>
+              <th style={header}>Actions</th>
             </tr>
           </thead>
 
@@ -163,8 +141,7 @@ export default function FinanceTable({
                   colSpan="7"
                   style={{
                     padding: 30,
-                    textAlign:
-                      "center",
+                    textAlign: "center",
                   }}
                 >
                   No finance records found.
@@ -186,35 +163,34 @@ export default function FinanceTable({
                   >
                     <td style={cell}>
                       🐄{" "}
-                      {record.animal
-                        ?.tag || "-"}
+                      {record.animal?.tag || "-"}
                     </td>
 
                     <td style={cell}>
                       <span
                         style={{
                           background:
-                            badgeColor(
-                              record.category
-                            ),
+                            record.category === "Income"
+                              ? "#DCFCE7"
+                              : "#FEE2E2",
                           color:
-                            "#FFFFFF",
-                          padding:
-                            "6px 12px",
+                            record.category === "Income"
+                              ? "#166534"
+                              : "#991B1B",
+                          padding: "6px 12px",
                           borderRadius: 20,
-                          fontWeight: 600,
+                          fontWeight: 700,
+                          fontSize: 13,
                         }}
                       >
-                        {
-                          record.category
-                        }
+                        {record.category === "Income"
+                          ? "💰 Income"
+                          : "💸 Expense"}
                       </span>
                     </td>
 
                     <td style={cell}>
-                      {
-                        record.transaction_type
-                      }
+                      {record.transaction_type}
                     </td>
 
                     <td
@@ -222,26 +198,24 @@ export default function FinanceTable({
                         ...cell,
                         fontWeight: 700,
                         color:
-                          record.category ===
-                          "Income"
+                          record.category === "Income"
                             ? "#16A34A"
                             : "#DC2626",
                       }}
                     >
-                      R{" "}
-                      {Number(
+                      {formatCurrency(
                         record.amount
-                      ).toLocaleString()}
+                      )}
                     </td>
 
                     <td style={cell}>
-                      {
+                      {formatDate(
                         record.transaction_date
-                      }
+                      )}
                     </td>
 
                     <td style={cell}>
-                      {record.description}
+                      {record.description || "-"}
                     </td>
 
                     <td style={cell}>
@@ -249,9 +223,7 @@ export default function FinanceTable({
                         onClick={() =>
                           onEdit(record)
                         }
-                        style={
-                          editButton
-                        }
+                        style={editButton}
                       >
                         ✏️ Edit
                       </button>
@@ -262,9 +234,7 @@ export default function FinanceTable({
                             record.id
                           )
                         }
-                        style={
-                          deleteButton
-                        }
+                        style={deleteButton}
                       >
                         🗑 Delete
                       </button>

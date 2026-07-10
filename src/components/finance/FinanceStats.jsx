@@ -10,8 +10,7 @@ export default function FinanceStats({
     )
     .reduce(
       (sum, record) =>
-        sum +
-        Number(record.amount || 0),
+        sum + Number(record.amount || 0),
       0
     );
 
@@ -22,12 +21,19 @@ export default function FinanceStats({
     )
     .reduce(
       (sum, record) =>
-        sum +
-        Number(record.amount || 0),
+        sum + Number(record.amount || 0),
       0
     );
 
   const profit = income - expenses;
+
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
 
   return (
     <div
@@ -41,28 +47,34 @@ export default function FinanceStats({
     >
       <StatCard
         title="Total Income"
-        value={`R ${income.toLocaleString()}`}
+        value={formatCurrency(income)}
         icon="💰"
         color="#16A34A"
       />
 
       <StatCard
         title="Total Expenses"
-        value={`R ${expenses.toLocaleString()}`}
+        value={formatCurrency(expenses)}
         icon="💸"
         color="#DC2626"
       />
 
       <StatCard
         title="Net Profit"
-        value={`R ${profit.toLocaleString()}`}
+        value={formatCurrency(profit)}
         icon={
-          profit >= 0 ? "📈" : "📉"
+          profit >= 0
+            ? "📈"
+            : profit < 0
+            ? "📉"
+            : "➖"
         }
         color={
-          profit >= 0
-            ? "#2563EB"
-            : "#DC2626"
+          profit > 0
+            ? "#16A34A"
+            : profit < 0
+            ? "#DC2626"
+            : "#64748B"
         }
       />
 

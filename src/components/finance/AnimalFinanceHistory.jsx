@@ -1,6 +1,17 @@
 export default function AnimalFinanceHistory({
   records = [],
 }) {
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
+
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString("en-ZA");
+
   return (
     <div
       style={{
@@ -74,30 +85,31 @@ export default function AnimalFinanceHistory({
                   }}
                 >
                   <td style={cell}>
-                    {record.transaction_date}
+                    {formatDate(
+                      record.transaction_date
+                    )}
                   </td>
 
                   <td style={cell}>
                     <span
                       style={{
                         background:
-                          record.category ===
-                          "Income"
+                          record.category === "Income"
                             ? "#DCFCE7"
                             : "#FEE2E2",
                         color:
-                          record.category ===
-                          "Income"
+                          record.category === "Income"
                             ? "#166534"
                             : "#991B1B",
-                        padding:
-                          "6px 12px",
+                        padding: "6px 12px",
                         borderRadius: 999,
-                        fontWeight: 600,
+                        fontWeight: 700,
                         fontSize: 13,
                       }}
                     >
-                      {record.category}
+                      {record.category === "Income"
+                        ? "💰 Income"
+                        : "💸 Expense"}
                     </span>
                   </td>
 
@@ -106,8 +118,7 @@ export default function AnimalFinanceHistory({
                   </td>
 
                   <td style={cell}>
-                    {record.description ||
-                      "-"}
+                    {record.description || "-"}
                   </td>
 
                   <td
@@ -115,16 +126,14 @@ export default function AnimalFinanceHistory({
                       ...cell,
                       fontWeight: 700,
                       color:
-                        record.category ===
-                        "Income"
+                        record.category === "Income"
                           ? "#16A34A"
                           : "#DC2626",
                     }}
                   >
-                    R{" "}
-                    {Number(
+                    {formatCurrency(
                       record.amount
-                    ).toLocaleString()}
+                    )}
                   </td>
                 </tr>
               ))

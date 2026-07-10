@@ -10,7 +10,7 @@ import ProfileTabs from "../components/animalProfile/ProfileTabs";
 import WeightHistory from "../components/animalProfile/WeightHistory";
 import HealthHistory from "../components/animalProfile/HealthHistory";
 import BreedingHistory from "../components/animalProfile/BreedingHistory";
-import FinancialHistory from "../components/animalProfile/FinancialHistory";
+import FinanceTab from "../components/animalProfile/FinanceTab";
 import NotesCard from "../components/animalProfile/NotesCard";
 
 import WeightSummary from "../components/weight/WeightSummary";
@@ -165,9 +165,8 @@ export default function AnimalProfile() {
       )}
 
       {activeTab === "finance" && (
-        <FinancialHistory
+        <FinanceTab
           animal={animal}
-          transactions={[]}
         />
       )}
 

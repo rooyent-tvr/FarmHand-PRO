@@ -21,6 +21,21 @@ export default function AnimalFinanceSummary({
 
   const profit = income - investment;
 
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0));
+
+  const profitColor =
+    profit > 0
+      ? "#16A34A"
+      : profit < 0
+      ? "#DC2626"
+      : "#64748B";
+
   return (
     <div
       style={{
@@ -51,38 +66,42 @@ export default function AnimalFinanceSummary({
       >
         <SummaryCard
           title="Purchase Price"
-          value={`R ${Number(
+          value={formatCurrency(
             purchasePrice
-          ).toLocaleString()}`}
+          )}
           color="#2563EB"
         />
 
         <SummaryCard
           title="Income"
-          value={`R ${income.toLocaleString()}`}
+          value={formatCurrency(
+            income
+          )}
           color="#16A34A"
         />
 
         <SummaryCard
           title="Expenses"
-          value={`R ${expenses.toLocaleString()}`}
+          value={formatCurrency(
+            expenses
+          )}
           color="#DC2626"
         />
 
         <SummaryCard
           title="Investment"
-          value={`R ${investment.toLocaleString()}`}
+          value={formatCurrency(
+            investment
+          )}
           color="#F59E0B"
         />
 
         <SummaryCard
           title="Profit / Loss"
-          value={`R ${profit.toLocaleString()}`}
-          color={
-            profit >= 0
-              ? "#16A34A"
-              : "#DC2626"
-          }
+          value={formatCurrency(
+            profit
+          )}
+          color={profitColor}
         />
       </div>
     </div>
@@ -97,19 +116,23 @@ function SummaryCard({
   return (
     <div
       style={{
-        borderLeft: `5px solid ${color}`,
-        background: "#F8FAFC",
-        borderRadius: 12,
-        padding: 18,
+        background: "#FFFFFF",
+        border: `2px solid ${color}`,
+        borderRadius: 14,
+        padding: 20,
+        transition: "0.2s",
+        boxShadow:
+          "0 4px 12px rgba(0,0,0,.05)",
       }}
     >
       <div
         style={{
-          fontSize: 13,
+          fontSize: 12,
+          fontWeight: 700,
           color: "#64748B",
-          marginBottom: 8,
-          fontWeight: 600,
           textTransform: "uppercase",
+          letterSpacing: 0.6,
+          marginBottom: 10,
         }}
       >
         {title}
@@ -117,8 +140,8 @@ function SummaryCard({
 
       <div
         style={{
-          fontSize: 28,
-          fontWeight: 700,
+          fontSize: 30,
+          fontWeight: 800,
           color,
         }}
       >
