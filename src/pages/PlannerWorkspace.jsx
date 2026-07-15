@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { Box } from "@mui/material";
+import { useLocation } from "react-router-dom";
 
 import PageContainer from "../components/layout/PageContainer";
 
@@ -11,6 +18,9 @@ import PlannerTaskList from "../components/planner/PlannerTaskList";
 import { getPlannerTasks } from "../services/plannerService";
 
 export default function PlannerWorkspace() {
+  const location = useLocation();
+  const plannerBoardRef = useRef(null);
+
   const [planner, setPlanner] = useState({
     overdue: [],
     today: [],
@@ -25,6 +35,17 @@ export default function PlannerWorkspace() {
   useEffect(() => {
     loadPlanner();
   }, []);
+
+  useEffect(() => {
+    if (!loading && location.search.includes("section=")) {
+      setTimeout(() => {
+        plannerBoardRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 250);
+    }
+  }, [loading, location]);
 
   async function loadPlanner() {
     try {
@@ -91,9 +112,7 @@ export default function PlannerWorkspace() {
 
       <PlannerSearch
         value={search}
-        onChange={(e) =>
-          setSearch(e.target.value)
-        }
+        onChange={(e) => setSearch(e.target.value)}
       />
 
       <Box sx={{ mt: 3 }}>
@@ -103,7 +122,10 @@ export default function PlannerWorkspace() {
         />
       </Box>
 
-      <Box sx={{ mt: 4 }}>
+      <Box
+        ref={plannerBoardRef}
+        sx={{ mt: 4 }}
+      >
         <PlannerTaskList
           planner={filteredPlanner}
         />

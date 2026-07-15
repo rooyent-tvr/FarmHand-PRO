@@ -1,6 +1,7 @@
 import {
   Box,
   Chip,
+  Grid,
   Paper,
   Typography,
 } from "@mui/material";
@@ -13,32 +14,30 @@ export default function PlannerSection({
   tasks = [],
   emptyMessage = "No tasks available.",
 }) {
+  const enableScroll = tasks.length > 6;
+
   return (
     <Paper
       elevation={3}
       sx={{
         borderRadius: 4,
         overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        minHeight: 560,
+        mb: 4,
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           bgcolor: `${color}.main`,
           color: "white",
-          px: 2,
-          py: 1.25,
+          px: 3,
+          py: 1.5,
           display: "flex",
-          alignItems: "center",
           justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
         <Typography
-          variant="subtitle1"
+          variant="h6"
           fontWeight={700}
         >
           {title}
@@ -48,70 +47,71 @@ export default function PlannerSection({
           label={tasks.length}
           size="small"
           sx={{
-            bgcolor: "rgba(255,255,255,0.18)",
+            bgcolor: "rgba(255,255,255,.20)",
             color: "white",
             fontWeight: 700,
-            minWidth: 34,
           }}
         />
       </Box>
 
-      {/* Task Area */}
       <Box
         sx={{
-          flex: 1,
-          p: 2,
-          overflowY: "auto",
-          overflowX: "hidden",
+          p: 3,
           bgcolor: "#fafafa",
         }}
       >
         {tasks.length === 0 ? (
           <Box
             sx={{
-              height: "100%",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+              py: 6,
               textAlign: "center",
               color: "text.secondary",
             }}
           >
-            <Box>
-              <Typography
-                variant="h2"
-                sx={{ mb: 1 }}
-              >
-                ✅
-              </Typography>
+            <Typography variant="h3">
+              ✅
+            </Typography>
 
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-              >
-                {emptyMessage}
-              </Typography>
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              mt={2}
+            >
+              {emptyMessage}
+            </Typography>
 
-              <Typography
-                variant="body2"
-                sx={{ mt: 1 }}
-              >
-                You're all caught up.
-              </Typography>
-            </Box>
+            <Typography
+              variant="body2"
+              mt={1}
+            >
+              You're all caught up.
+            </Typography>
           </Box>
         ) : (
-          tasks.map((task) => (
-            <Box
-              key={task.id}
-              sx={{
-                width: "100%",
-                mb: 2,
-              }}
-            >
-              <TaskCard task={task} />
-            </Box>
-          ))
+          <Box
+            sx={{
+              maxHeight: enableScroll ? 430 : "auto",
+              overflowY: enableScroll ? "auto" : "visible",
+              pr: enableScroll ? 1 : 0,
+            }}
+          >
+            <Grid container spacing={2.5}>
+              {tasks.map((task) => (
+                <Grid
+                  key={task.id}
+                  size={{
+                    xs: 12,
+                    sm: 6,
+                    md: 6,
+                    lg: 4,
+                    xl: 3,
+                  }}
+                >
+                  <TaskCard task={task} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
         )}
       </Box>
     </Paper>

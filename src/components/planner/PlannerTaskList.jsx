@@ -41,8 +41,10 @@ export default function PlannerTaskList({
   });
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
+    <Grid container spacing={4}>
+
+      {/* Overdue */}
+      <Grid item xs={12}>
         <PlannerSection
           title="🔴 Overdue"
           color="error"
@@ -51,7 +53,8 @@ export default function PlannerTaskList({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      {/* Today */}
+      <Grid item xs={12}>
         <PlannerSection
           title="🟠 Today's Tasks"
           color="warning"
@@ -60,7 +63,8 @@ export default function PlannerTaskList({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      {/* This Week */}
+      <Grid item xs={12}>
         <PlannerSection
           title="🟢 This Week"
           color="success"
@@ -69,7 +73,8 @@ export default function PlannerTaskList({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      {/* Future */}
+      <Grid item xs={12}>
         <PlannerSection
           title="🔵 Future"
           color="info"
@@ -78,6 +83,7 @@ export default function PlannerTaskList({
         />
       </Grid>
 
+      {/* Completed */}
       <Grid item xs={12}>
         <PlannerSection
           title="✅ Completed"
@@ -86,6 +92,7 @@ export default function PlannerTaskList({
           emptyMessage="No completed tasks yet."
         />
       </Grid>
+
     </Grid>
   );
 }
