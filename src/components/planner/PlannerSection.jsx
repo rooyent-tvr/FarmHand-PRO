@@ -98,14 +98,13 @@ export default function PlannerSection({
             <Grid container spacing={2.5}>
               {tasks.map((task) => (
                 <Grid
+                  item
+                  xs={12}
+                  sm={12}
+                  md={6}
+                  lg={4}
+                  xl={3}
                   key={task.id}
-                  size={{
-                    xs: 12,
-                    sm: 6,
-                    md: 6,
-                    lg: 4,
-                    xl: 3,
-                  }}
                 >
                   <TaskCard task={task} />
                 </Grid>
@@ -117,3 +116,4 @@ export default function PlannerSection({
     </Paper>
   );
 }
+

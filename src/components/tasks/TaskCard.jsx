@@ -15,6 +15,9 @@ import PaymentsIcon from "@mui/icons-material/Payments";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 export default function TaskCard({ task }) {
+
+  console.log("TaskCard", task);
+
   const priorityColor = {
     Critical: "error",
     High: "error",
@@ -41,6 +44,10 @@ export default function TaskCard({ task }) {
     },
     Livestock: {
       color: "secondary",
+      icon: <PetsIcon />,
+    },
+    General: {
+      color: "info",
       icon: <PetsIcon />,
     },
   };

@@ -1,3 +1,4 @@
+import { supabase } from "./supabase";
 import { getHealthRecords } from "./healthService";
 import { getBreedingRecords } from "./breedingService";
 
@@ -23,6 +24,58 @@ import {
  * Livestock
  */
 
+export async function createManualTask(task) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw userError;
+
+  if (!user) {
+    throw new Error("User not logged in.");
+  }
+
+  const { error } = await supabase
+    .from("planner_tasks")
+    .insert([
+      {
+        user_id: user.id,
+        title: task.title,
+        description: task.description,
+        module: task.module,
+        priority: task.priority,
+        assigned_to: task.assigned_to,
+        due_date: task.due_date || null,
+        status: "Pending",
+        completed: false,
+        source: "Manual",
+      },
+    ]);
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function getManualTasks() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("planner_tasks")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("due_date", { ascending: true });
+
+  if (error) throw error;
+
+  return data ?? [];
+}
+
 export async function getPlannerTasks() {
   const planner = {
     today: [],
@@ -30,6 +83,35 @@ export async function getPlannerTasks() {
     overdue: [],
     completed: [],
   };
+
+  let manualTasks = [];
+
+  try {
+    manualTasks = await getManualTasks();
+  } catch (err) {
+    console.error("Manual Tasks:", err);
+  }
+
+  for (const task of manualTasks) {
+    const plannerTask = {
+      id: task.id,
+      module: task.module || "General",
+      title: task.title,
+      animalTag: "",
+      due: task.due_date
+        ? formatDueDate(task.due_date)
+        : "No Due Date",
+      originalDate: task.due_date,
+      priority: task.priority || "Medium",
+      status: task.due_date
+        ? getTaskStatus(task.due_date)
+        : "Upcoming",
+      sourceId: task.id,
+      record: task,
+    };
+
+    addTask(planner, plannerTask);
+  }
 
   // =====================================================
   // Animal Health
@@ -191,3 +273,5 @@ function addTask(planner, task) {
       planner.upcoming.push(task);
   }
 }
+
+

@@ -14,8 +14,12 @@ import PlannerToolbar from "../components/planner/PlannerToolbar";
 import PlannerSearch from "../components/planner/PlannerSearch";
 import PlannerFilters from "../components/planner/PlannerFilters";
 import PlannerTaskList from "../components/planner/PlannerTaskList";
+import ManualTaskModal from "../components/planner/ManualTaskModal";
 
-import { getPlannerTasks } from "../services/plannerService";
+import {
+  createManualTask,
+  getPlannerTasks,
+} from "../services/plannerService";
 
 export default function PlannerWorkspace() {
   const location = useLocation();
@@ -29,15 +33,23 @@ export default function PlannerWorkspace() {
   });
 
   const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
+
   const [filter, setFilter] = useState("all");
+
+  const [taskModalOpen, setTaskModalOpen] =
+    useState(false);
 
   useEffect(() => {
     loadPlanner();
   }, []);
 
   useEffect(() => {
-    if (!loading && location.search.includes("section=")) {
+    if (
+      !loading &&
+      location.search.includes("section=")
+    ) {
       setTimeout(() => {
         plannerBoardRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -52,9 +64,27 @@ export default function PlannerWorkspace() {
       const data = await getPlannerTasks();
       setPlanner(data);
     } catch (err) {
-      console.error("Planner Workspace:", err);
+      console.error(
+        "Planner Workspace:",
+        err
+      );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSaveTask(task) {
+    try {
+      await createManualTask(task);
+
+      setTaskModalOpen(false);
+
+      await loadPlanner();
+    } catch (err) {
+      console.error(
+        "Create Manual Task:",
+        err
+      );
     }
   }
 
@@ -65,13 +95,19 @@ export default function PlannerWorkspace() {
           search.trim() === "" ||
           task.title
             .toLowerCase()
-            .includes(search.toLowerCase()) ||
+            .includes(
+              search.toLowerCase()
+            ) ||
           task.module
             .toLowerCase()
-            .includes(search.toLowerCase()) ||
+            .includes(
+              search.toLowerCase()
+            ) ||
           (task.animalTag || "")
             .toLowerCase()
-            .includes(search.toLowerCase());
+            .includes(
+              search.toLowerCase()
+            );
 
         const moduleKey = task.module
           .toLowerCase()
@@ -81,14 +117,25 @@ export default function PlannerWorkspace() {
           filter === "all" ||
           moduleKey === filter;
 
-        return matchesSearch && matchesModule;
+        return (
+          matchesSearch &&
+          matchesModule
+        );
       });
 
     return {
-      overdue: applyFilters(planner.overdue),
-      today: applyFilters(planner.today),
-      upcoming: applyFilters(planner.upcoming),
-      completed: applyFilters(planner.completed),
+      overdue: applyFilters(
+        planner.overdue
+      ),
+      today: applyFilters(
+        planner.today
+      ),
+      upcoming: applyFilters(
+        planner.upcoming
+      ),
+      completed: applyFilters(
+        planner.completed
+      ),
     };
   }, [planner, search, filter]);
 
@@ -108,11 +155,17 @@ export default function PlannerWorkspace() {
       title="🧠 Planner Workspace"
       subtitle="Manage your farm reminders from one intelligent workspace."
     >
-      <PlannerToolbar />
+      <PlannerToolbar
+        onNewTask={() =>
+          setTaskModalOpen(true)
+        }
+      />
 
       <PlannerSearch
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) =>
+          setSearch(e.target.value)
+        }
       />
 
       <Box sx={{ mt: 3 }}>
@@ -130,6 +183,14 @@ export default function PlannerWorkspace() {
           planner={filteredPlanner}
         />
       </Box>
+
+      <ManualTaskModal
+        open={taskModalOpen}
+        onClose={() =>
+          setTaskModalOpen(false)
+        }
+        onSave={handleSaveTask}
+      />
     </PageContainer>
   );
 }

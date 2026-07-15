@@ -13,7 +13,9 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import DownloadIcon from "@mui/icons-material/Download";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-export default function PlannerToolbar() {
+export default function PlannerToolbar({
+  onNewTask,
+}) {
   return (
     <Box
       sx={{
@@ -53,8 +55,9 @@ export default function PlannerToolbar() {
             variant="body1"
             color="text.secondary"
           >
-            Manage your daily farm operations, reminders and
-            upcoming activities from one intelligent workspace.
+            Manage your daily farm operations,
+            reminders and upcoming activities
+            from one intelligent workspace.
           </Typography>
         </Box>
 
@@ -81,6 +84,7 @@ export default function PlannerToolbar() {
           variant="contained"
           color="success"
           startIcon={<AddIcon />}
+          onClick={onNewTask}
         >
           New Task
         </Button>
