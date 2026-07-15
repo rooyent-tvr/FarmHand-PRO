@@ -115,7 +115,9 @@ export default function PlannerWorkspace() {
 
         const matchesModule =
           filter === "all" ||
-          moduleKey === filter;
+          moduleKey === filter ||
+          (filter === "health" &&
+            moduleKey === "animalhealth");
 
         return (
           matchesSearch &&
@@ -194,3 +196,4 @@ export default function PlannerWorkspace() {
     </PageContainer>
   );
 }
+
