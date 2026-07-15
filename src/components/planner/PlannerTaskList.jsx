@@ -9,6 +9,7 @@ export default function PlannerTaskList({
     completed: [],
   },
   onComplete,
+  onEdit,
 }) {
   const overdue = planner.overdue || [];
   const today = planner.today || [];
@@ -52,6 +53,7 @@ export default function PlannerTaskList({
           tasks={overdue}
           emptyMessage="Great job! No overdue tasks."
           onComplete={onComplete}
+          onEdit={onEdit}
         />
       </Grid>
 
@@ -63,6 +65,7 @@ export default function PlannerTaskList({
           tasks={today}
           emptyMessage="Nothing scheduled for today."
           onComplete={onComplete}
+          onEdit={onEdit}
         />
       </Grid>
 
@@ -74,6 +77,7 @@ export default function PlannerTaskList({
           tasks={thisWeek}
           emptyMessage="Nothing planned this week."
           onComplete={onComplete}
+          onEdit={onEdit}
         />
       </Grid>
 
@@ -85,6 +89,7 @@ export default function PlannerTaskList({
           tasks={future}
           emptyMessage="No future reminders."
           onComplete={onComplete}
+          onEdit={onEdit}
         />
       </Grid>
 
@@ -96,9 +101,11 @@ export default function PlannerTaskList({
           tasks={completed}
           emptyMessage="No completed tasks yet."
           onComplete={onComplete}
+          onEdit={onEdit}
         />
       </Grid>
 
     </Grid>
   );
 }
+

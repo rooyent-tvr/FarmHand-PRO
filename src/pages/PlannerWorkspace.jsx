@@ -17,203 +17,226 @@ import PlannerTaskList from "../components/planner/PlannerTaskList";
 import ManualTaskModal from "../components/planner/ManualTaskModal";
 
 import {
-  createManualTask,
-  completeManualTask,
-  deleteManualTask,
-  getPlannerTasks,
+	  createManualTask,
+	  updateManualTask,
+	  completeManualTask,
+	  deleteManualTask,
+	  getPlannerTasks,
 } from "../services/plannerService";
 
 export default function PlannerWorkspace() {
-  const location = useLocation();
-  const plannerBoardRef = useRef(null);
+	  const location = useLocation();
+	  const plannerBoardRef = useRef(null);
 
-  const [planner, setPlanner] = useState({
-    overdue: [],
-    today: [],
-    upcoming: [],
-    completed: [],
-  });
+	  const [planner, setPlanner] = useState({
+		      overdue: [],
+		      today: [],
+		      upcoming: [],
+		      completed: [],
+		    });
 
-  const [loading, setLoading] = useState(true);
+	  const [loading, setLoading] = useState(true);
 
-  const [search, setSearch] = useState("");
+	  const [search, setSearch] = useState("");
 
-  const [filter, setFilter] = useState("all");
+	  const [filter, setFilter] = useState("all");
 
-  const [taskModalOpen, setTaskModalOpen] =
-    useState(false);
+	  const [taskModalOpen, setTaskModalOpen] =
+		    useState(false);
 
-  useEffect(() => {
-    loadPlanner();
-  }, []);
+	  const [selectedTask, setSelectedTask] =
+		    useState(null);
 
-  useEffect(() => {
-    if (
-      !loading &&
-      location.search.includes("section=")
-    ) {
-      setTimeout(() => {
-        plannerBoardRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 250);
-    }
-  }, [loading, location]);
+	  useEffect(() => {
+		      loadPlanner();
+		    }, []);
 
-  async function loadPlanner() {
-    try {
-      const data = await getPlannerTasks();
-      setPlanner(data);
-    } catch (err) {
-      console.error(
-        "Planner Workspace:",
-        err
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+	  useEffect(() => {
+		      if (
+			            !loading &&
+			            location.search.includes("section=")
+			          ) {
+			            setTimeout(() => {
+					            plannerBoardRef.current?.scrollIntoView({
+							              behavior: "smooth",
+							              block: "start",
+							            });
+					          }, 250);
+			          }
+		    }, [loading, location]);
 
-  async function handleSaveTask(task) {
-    try {
-      await createManualTask(task);
+	  async function loadPlanner() {
+		      try {
+			            const data = await getPlannerTasks();
+			            setPlanner(data);
+			          } catch (err) {
+					        console.error(
+							        "Planner Workspace:",
+							        err
+							      );
+					      } finally {
+						            setLoading(false);
+						          }
+		    }
 
-      setTaskModalOpen(false);
+	  async function handleSaveTask(task) {
+		      try {
+			            if (task.id) {
+					            await updateManualTask(
+							              task.id,
+							              task
+							            );
+					          } else {
+							          await createManualTask(task);
+							        }
 
-      await loadPlanner();
-    } catch (err) {
-      console.error(
-        "Create Manual Task:",
-        err
-      );
-    }
-  }
+			            setSelectedTask(null);
+			            setTaskModalOpen(false);
 
-  async function handleCompleteTask(task) {
-    try {
-      if (task.status === "Completed") {
-        await deleteManualTask(task.id);
-      } else {
-        await completeManualTask(task.id);
-      }
-      await loadPlanner();
-    } catch (err) {
-      console.error(
-        "Task Action:",
-        err
-      );
-    }
-  }
+			            await loadPlanner();
+			          } catch (err) {
+					        console.error(
+							        "Save Manual Task:",
+							        err
+							      );
+					      }
+		    }
 
-  const filteredPlanner = useMemo(() => {
-    const applyFilters = (tasks) =>
-      tasks.filter((task) => {
-        const matchesSearch =
-          search.trim() === "" ||
-          task.title
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            ) ||
-          task.module
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            ) ||
-          (task.animalTag || "")
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            );
+	  function handleEditTask(task) {
+		      setSelectedTask(task);
+		      setTaskModalOpen(true);
+		    }
 
-        const moduleKey = task.module
-          .toLowerCase()
-          .replace(/\s+/g, "");
+	  async function handleCompleteTask(task) {
+		      try {
+			            if (task.status === "Completed") {
+					            await deleteManualTask(task.id);
+					          } else {
+							          await completeManualTask(task.id);
+							        }
+			            await loadPlanner();
+			          } catch (err) {
+					        console.error(
+							        "Task Action:",
+							        err
+							      );
+					      }
+		    }
 
-        const matchesModule =
-          filter === "all" ||
-          moduleKey === filter ||
-          (filter === "health" &&
-            moduleKey === "animalhealth");
+	  const filteredPlanner = useMemo(() => {
+		      const applyFilters = (tasks) =>
+			        tasks.filter((task) => {
+					        const matchesSearch =
+						          search.trim() === "" ||
+						          task.title
+					            .toLowerCase()
+					            .includes(
+							                  search.toLowerCase()
+							                ) ||
+						          task.module
+					            .toLowerCase()
+					            .includes(
+							                  search.toLowerCase()
+							                ) ||
+						          (task.animalTag || "")
+					            .toLowerCase()
+					            .includes(
+							                  search.toLowerCase()
+							                );
 
-        return (
-          matchesSearch &&
-          matchesModule
-        );
-      });
+					        const moduleKey = task.module
+					          .toLowerCase()
+					          .replace(/\s+/g, "");
 
-    return {
-      overdue: applyFilters(
-        planner.overdue
-      ),
-      today: applyFilters(
-        planner.today
-      ),
-      upcoming: applyFilters(
-        planner.upcoming
-      ),
-      completed: applyFilters(
-        planner.completed
-      ),
-    };
-  }, [planner, search, filter]);
+					        const matchesModule =
+						          filter === "all" ||
+						          moduleKey === filter ||
+						          (filter === "health" &&
+								              moduleKey === "animalhealth");
 
-  if (loading) {
-    return (
-      <PageContainer
-        fullWidth
-        title="🧠 Planner Workspace"
-        subtitle="Loading planner..."
-      />
-    );
-  }
+					        return (
+							          matchesSearch &&
+							          matchesModule
+							        );
+					      });
 
-  return (
-    <PageContainer
-      fullWidth
-      title="🧠 Planner Workspace"
-      subtitle="Manage your farm reminders from one intelligent workspace."
-    >
-      <PlannerToolbar
-        onNewTask={() =>
-          setTaskModalOpen(true)
-        }
-      />
+		      return {
+			            overdue: applyFilters(
+					            planner.overdue
+					          ),
+			            today: applyFilters(
+					            planner.today
+					          ),
+			            upcoming: applyFilters(
+					            planner.upcoming
+					          ),
+			            completed: applyFilters(
+					            planner.completed
+					          ),
+			          };
+		    }, [planner, search, filter]);
 
-      <PlannerSearch
-        value={search}
-        onChange={(e) =>
-          setSearch(e.target.value)
-        }
-      />
+	  if (loading) {
+		      return (
+			            <PageContainer
+			              fullWidth
+			              title="🧠 Planner Workspace"
+			              subtitle="Loading planner..."
+			            />
+			          );
+		    }
 
-      <Box sx={{ mt: 3 }}>
-        <PlannerFilters
-          value={filter}
-          onChange={setFilter}
-        />
-      </Box>
+	  return (
+		      <PageContainer
+		        fullWidth
+		        title="🧠 Planner Workspace"
+		        subtitle="Manage your farm reminders from one intelligent workspace."
+		      >
+		        <PlannerToolbar
+		          onNewTask={() => {
+				            setSelectedTask(null);
+				            setTaskModalOpen(true);
+				          }}
+		        />
 
-      <Box
-        ref={plannerBoardRef}
-        sx={{ mt: 4 }}
-      >
-        <PlannerTaskList
-          planner={filteredPlanner}
-          onComplete={handleCompleteTask}
-        />
-      </Box>
+		        <PlannerSearch
+		          value={search}
+		          onChange={(e) =>
+				            setSearch(e.target.value)
+				          }
+		        />
 
-      <ManualTaskModal
-        open={taskModalOpen}
-        onClose={() =>
-          setTaskModalOpen(false)
-        }
-        onSave={handleSaveTask}
-      />
-    </PageContainer>
-  );
+		        <Box sx={{ mt: 3 }}>
+		          <PlannerFilters
+		            value={filter}
+		            onChange={setFilter}
+		          />
+		        </Box>
+
+		        <Box
+		          ref={plannerBoardRef}
+		          sx={{ mt: 4 }}
+		        >
+		          <PlannerTaskList
+		            planner={filteredPlanner}
+		            onComplete={handleCompleteTask}
+		            onEdit={handleEditTask}
+		          />
+		        </Box>
+
+		        <ManualTaskModal
+		          open={taskModalOpen}
+		          onClose={() => {
+				            setSelectedTask(null);
+				            setTaskModalOpen(false);
+				          }}
+		          onSave={handleSaveTask}
+		          task={selectedTask}
+		        />
+		      </PageContainer>
+		    );
 }
+
+
 
 

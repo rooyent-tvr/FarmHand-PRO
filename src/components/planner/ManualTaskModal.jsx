@@ -1,4 +1,7 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 import {
   Button,
   Dialog,
@@ -42,8 +45,24 @@ export default function ManualTaskModal({
   open,
   onClose,
   onSave,
+  task = null,
 }) {
   const [form, setForm] = useState(initialForm);
+
+  useEffect(() => {
+    if (task) {
+      setForm({
+        title: task.title || "",
+        description: task.record?.description || "",
+        module: task.module || "General",
+        priority: task.priority || "Medium",
+        due_date: task.record?.due_date || "",
+        assigned_to: task.record?.assigned_to || "",
+      });
+    } else {
+      setForm(initialForm);
+    }
+  }, [task]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -66,7 +85,8 @@ export default function ManualTaskModal({
 
     onSave?.({
       ...form,
-      completed: false,
+      id: task?.id,
+      completed: task?.record?.completed ?? false,
       source: "manual",
     });
 
@@ -86,7 +106,7 @@ export default function ManualTaskModal({
           variant="h5"
           fontWeight={700}
         >
-          ➕ Create New Task
+          {task ? "✏️ Edit Task" : "➕ Create New Task"}
         </Typography>
 
         <Typography
@@ -95,7 +115,9 @@ export default function ManualTaskModal({
           color="text.secondary"
           sx={{ mt: 0.5 }}
         >
-          Add a new task to your Smart Farm Planner.
+          {task
+            ? "Update an existing planner task."
+            : "Add a new task to your Smart Farm Planner."}
         </Typography>
       </DialogTitle>
 
@@ -216,10 +238,12 @@ export default function ManualTaskModal({
             onClick={handleSave}
             disabled={!form.title.trim()}
           >
-            Save Task
+            {task ? "Update Task" : "Save Task"}
           </Button>
         </Stack>
       </DialogActions>
     </Dialog>
   );
 }
+
+

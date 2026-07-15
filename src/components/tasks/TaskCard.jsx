@@ -18,6 +18,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 export default function TaskCard({
   task,
   onComplete,
+  onEdit,
 }) {
 
   console.log("TaskCard", task);
@@ -179,12 +180,32 @@ export default function TaskCard({
                 </Button>
               )}
 
-              <ArrowForwardIosIcon
-                sx={{
-                  fontSize: 16,
-                  color: "text.secondary",
+              <Box
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (
+                    task.record?.source === "Manual" &&
+                    onEdit
+                  ) {
+                    onEdit(task);
+                  }
                 }}
-              />
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor:
+                    task.record?.source === "Manual"
+                      ? "pointer"
+                      : "default",
+                }}
+              >
+                <ArrowForwardIosIcon
+                  sx={{
+                    fontSize: 16,
+                    color: "text.secondary",
+                  }}
+                />
+              </Box>
             </Stack>
           </Box>
         </Stack>
@@ -192,4 +213,5 @@ export default function TaskCard({
     </Card>
   );
 }
+
 

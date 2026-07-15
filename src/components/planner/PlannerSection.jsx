@@ -14,6 +14,7 @@ export default function PlannerSection({
   tasks = [],
   emptyMessage = "No tasks available.",
   onComplete,
+  onEdit,
 }) {
   const enableScroll = tasks.length > 6;
 
@@ -110,6 +111,7 @@ export default function PlannerSection({
                   <TaskCard
                     task={task}
                     onComplete={onComplete}
+                    onEdit={onEdit}
                   />
                 </Grid>
               ))}
@@ -120,3 +122,4 @@ export default function PlannerSection({
     </Paper>
   );
 }
+
