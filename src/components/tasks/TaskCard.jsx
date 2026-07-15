@@ -1,6 +1,7 @@
 import {
   Avatar,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -14,7 +15,10 @@ import PetsIcon from "@mui/icons-material/Pets";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
-export default function TaskCard({ task }) {
+export default function TaskCard({
+  task,
+  onComplete,
+}) {
 
   console.log("TaskCard", task);
 
@@ -151,6 +155,24 @@ export default function TaskCard({ task }) {
 
               <Box sx={{ flexGrow: 1 }} />
 
+              {task.record?.source === "Manual" && (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  sx={{ mr: 1 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    if (onComplete) {
+                      onComplete(task);
+                    }
+                  }}
+                >
+                  Complete
+                </Button>
+              )}
+
               <ArrowForwardIosIcon
                 sx={{
                   fontSize: 16,
@@ -164,3 +186,4 @@ export default function TaskCard({ task }) {
     </Card>
   );
 }
+

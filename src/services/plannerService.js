@@ -58,6 +58,20 @@ export async function createManualTask(task) {
   }
 }
 
+export async function completeManualTask(taskId) {
+  const { error } = await supabase
+    .from("planner_tasks")
+    .update({
+      completed: true,
+      status: "Completed",
+    })
+    .eq("id", taskId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 async function getManualTasks() {
   const {
     data: { user },
@@ -103,9 +117,11 @@ export async function getPlannerTasks() {
         : "No Due Date",
       originalDate: task.due_date,
       priority: task.priority || "Medium",
-      status: task.due_date
-        ? getTaskStatus(task.due_date)
-        : "Upcoming",
+      status: task.completed === true
+        ? "Completed"
+        : task.due_date
+          ? getTaskStatus(task.due_date)
+          : "Upcoming",
       sourceId: task.id,
       record: task,
     };
@@ -269,9 +285,14 @@ function addTask(planner, task) {
       planner.overdue.push(task);
       break;
 
+    case "Completed":
+      planner.completed.push(task);
+      break;
+
     default:
       planner.upcoming.push(task);
   }
 }
+
 
 
