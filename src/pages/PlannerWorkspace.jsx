@@ -19,6 +19,7 @@ import ManualTaskModal from "../components/planner/ManualTaskModal";
 import {
   createManualTask,
   completeManualTask,
+  deleteManualTask,
   getPlannerTasks,
 } from "../services/plannerService";
 
@@ -91,11 +92,15 @@ export default function PlannerWorkspace() {
 
   async function handleCompleteTask(task) {
     try {
-      await completeManualTask(task.id);
+      if (task.status === "Completed") {
+        await deleteManualTask(task.id);
+      } else {
+        await completeManualTask(task.id);
+      }
       await loadPlanner();
     } catch (err) {
       console.error(
-        "Complete Manual Task:",
+        "Task Action:",
         err
       );
     }

@@ -159,7 +159,11 @@ export default function TaskCard({
                 <Button
                   size="small"
                   variant="contained"
-                  color="success"
+                  color={
+                    task.status === "Completed"
+                      ? "error"
+                      : "success"
+                  }
                   sx={{ mr: 1 }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -169,7 +173,9 @@ export default function TaskCard({
                     }
                   }}
                 >
-                  Complete
+                  {task.status === "Completed"
+                    ? "Delete"
+                    : "Complete"}
                 </Button>
               )}
 

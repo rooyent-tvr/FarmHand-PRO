@@ -72,6 +72,17 @@ export async function completeManualTask(taskId) {
   }
 }
 
+export async function deleteManualTask(taskId) {
+  const { error } = await supabase
+    .from("planner_tasks")
+    .delete()
+    .eq("id", taskId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 async function getManualTasks() {
   const {
     data: { user },
@@ -293,6 +304,7 @@ function addTask(planner, task) {
       planner.upcoming.push(task);
   }
 }
+
 
 
 
