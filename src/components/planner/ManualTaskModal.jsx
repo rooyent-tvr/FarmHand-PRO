@@ -32,6 +32,14 @@ const priorities = [
   "Critical",
 ];
 
+const repeatOptions = [
+  "None",
+  "Daily",
+  "Weekly",
+  "Monthly",
+  "Yearly",
+];
+
 const initialForm = {
   title: "",
   description: "",
@@ -39,6 +47,8 @@ const initialForm = {
   priority: "Medium",
   due_date: "",
   assigned_to: "",
+  repeat_type: "None",
+  repeat_until: "",
 };
 
 export default function ManualTaskModal({
@@ -56,8 +66,10 @@ export default function ManualTaskModal({
         description: task.record?.description || "",
         module: task.module || "General",
         priority: task.priority || "Medium",
-        due_date: task.record?.due_date || "",
+        due_date: task.record?.due_date || task.due_date || "",
         assigned_to: task.record?.assigned_to || "",
+        repeat_type: task.record?.repeat_type || "None",
+        repeat_until: task.record?.repeat_until || "",
       });
     } else {
       setForm(initialForm);
@@ -215,6 +227,43 @@ export default function ManualTaskModal({
               onChange={handleChange}
             />
           </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              select
+              fullWidth
+              name="repeat_type"
+              label="Repeat"
+              value={form.repeat_type}
+              onChange={handleChange}
+            >
+              {repeatOptions.map((option) => (
+                <MenuItem
+                  key={option}
+                  value={option}
+                >
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              fullWidth
+              type="date"
+              name="repeat_until"
+              label="Repeat Until"
+              value={form.repeat_until}
+              onChange={handleChange}
+              disabled={form.repeat_type === "None"}
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                },
+              }}
+            />
+          </Grid>
         </Grid>
       </DialogContent>
 
@@ -245,5 +294,3 @@ export default function ManualTaskModal({
     </Dialog>
   );
 }
-
-

@@ -6,7 +6,7 @@ import {
 } from "react";
 
 import { Box } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import PageContainer from "../components/layout/PageContainer";
 
@@ -27,6 +27,7 @@ import {
 
 export default function PlannerWorkspace() {
 	  const location = useLocation();
+	  const navigate = useNavigate();
 	  const plannerBoardRef = useRef(null);
 
 	  const [planner, setPlanner] = useState({
@@ -67,6 +68,30 @@ export default function PlannerWorkspace() {
 					          }, 250);
 			          }
 		    }, [loading, location]);
+
+	  // Apply filter from Dashboard notification card navigation
+	  useEffect(() => {
+		      const stateFilter = location.state?.filter;
+		      if (!loading && stateFilter) {
+			            const validFilters = ["overdue", "today", "upcoming"];
+			            if (validFilters.includes(stateFilter)) {
+					            setView("workspace");
+					            setFilter("all");
+					            // Scroll to planner board after a brief delay
+					            setTimeout(() => {
+							              plannerBoardRef.current?.scrollIntoView({
+									                behavior: "smooth",
+									                block: "start",
+									              });
+							            }, 250);
+					          }
+			            // Clear navigation state to prevent reapplying on refresh
+			            navigate(location.pathname, {
+					            replace: true,
+					            state: {},
+					          });
+			          }
+		    }, [loading, location.state]);
 
 	  async function loadPlanner() {
 		      try {

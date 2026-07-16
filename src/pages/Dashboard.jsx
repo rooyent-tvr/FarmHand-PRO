@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 
+import { Box } from "@mui/material";
+
 import PageContainer from "../components/layout/PageContainer";
 
 import HeroBanner from "../components/dashboard/HeroBanner";
+import NotificationCard from "../components/dashboard/NotificationCard";
+import ActionCenter from "../components/dashboard/ActionCenter";
 import TodayPriorities from "../components/dashboard/TodayPriorities";
 import DashboardKPIs from "../components/dashboard/DashboardKPIs";
 import BreedingAlerts from "../components/dashboard/BreedingAlerts";
@@ -14,20 +18,25 @@ import RecentCrops from "../components/dashboard/RecentCrops";
 
 import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
+import { getNotifications } from "../services/notificationService";
+import { completeManualTask } from "../services/plannerService";
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [healthDue, setHealthDue] = useState(0);
+  const [notifications, setNotifications] = useState(null);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
     try {
-      const [dash, health] = await Promise.all([
+      const [dash, health, notifs] = await Promise.all([
         getDashboardStats(),
         getHealthRecords(),
+        getNotifications(),
       ]);
 
       setDashboard(dash);
+      setNotifications(notifs);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -52,6 +61,15 @@ export default function Dashboard() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  async function handleCompleteDashboardTask(task) {
+    try {
+      await completeManualTask(task.id);
+      await loadDashboard();
+    } catch (err) {
+      console.error("Dashboard complete task:", err);
+    }
+  }
 
   if (loading || !dashboard) {
     return <h2>Loading dashboard...</h2>;
@@ -79,24 +97,43 @@ export default function Dashboard() {
         healthDue={healthDue}
       />
 
+      {/* Notification Card */}
+
+      <div style={{ marginTop: 24 }}>
+        <NotificationCard
+          notifications={notifications}
+        />
+      </div>
+
+      {/* Today's Action Centre */}
+
+      <div style={{ marginTop: 24 }}>
+        <ActionCenter
+          tasks={notifications?.actionCenter || []}
+          onComplete={handleCompleteDashboardTask}
+        />
+      </div>
+
       {/* Health Warning */}
 
       {healthDue > 0 && (
-        <div
-          style={{
-            background: "#FFF8E1",
-            border: "1px solid #FFCC80",
-            color: "#E65100",
-            padding: 16,
-            borderRadius: 12,
-            marginBottom: 24,
-            fontWeight: 600,
-          }}
-        >
-          ⚠️ {healthDue} treatment
-          {healthDue !== 1 ? "s are" : " is"} due today.
-          Please review the Animal Health module.
-        </div>
+        <Box sx={{ mt: 3 }}>
+          <div
+            style={{
+              background: "#FFF8E1",
+              border: "1px solid #FFCC80",
+              color: "#E65100",
+              padding: 16,
+              borderRadius: 12,
+              marginBottom: 24,
+              fontWeight: 600,
+            }}
+          >
+            ⚠️ {healthDue} treatment
+            {healthDue !== 1 ? "s are" : " is"} due today.
+            Please review the Animal Health module.
+          </div>
+        </Box>
       )}
 
       {/* Today's Priorities */}

@@ -69,6 +69,7 @@ export default function PlannerCalendar({ planner, onEdit, onComplete, onAddTask
   const [currentMonth, setCurrentMonth] = React.useState(today);
   const [selectedDate, setSelectedDate] = React.useState(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const hadTasksOnOpen = React.useRef(false);
 
   function getChipColor(module) {
     switch (module) {
@@ -90,6 +91,11 @@ export default function PlannerCalendar({ planner, onEdit, onComplete, onAddTask
   }
 
   function handleDayClick(day) {
+    const tasksForDay = tasks.filter((task) => {
+      if (!task.originalDate) return false;
+      return isSameDay(new Date(task.originalDate), day);
+    });
+    hadTasksOnOpen.current = tasksForDay.length > 0;
     setSelectedDate(day);
     setDialogOpen(true);
   }
@@ -103,9 +109,9 @@ export default function PlannerCalendar({ planner, onEdit, onComplete, onAddTask
     });
   }, [tasks, selectedDate]);
 
-  // Auto-close dialog when no tasks remain for the selected day
+  // Auto-close dialog only when tasks were drained after a refresh (not on empty-day click)
   React.useEffect(() => {
-    if (dialogOpen && selectedDate && selectedTasks.length === 0) {
+    if (dialogOpen && selectedDate && hadTasksOnOpen.current && selectedTasks.length === 0) {
       setDialogOpen(false);
     }
   }, [selectedTasks, dialogOpen, selectedDate]);

@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   AssignmentTurnedIn,
   Agriculture,
@@ -25,6 +27,8 @@ import {
 } from "@mui/material";
 
 import { format } from "date-fns";
+
+import RecurringTaskDialog from "./RecurringTaskDialog";
 
 function getPriorityColor(priority) {
   switch (priority) {
@@ -73,6 +77,18 @@ export default function DayPlannerDialog({
   onComplete,
   onAddTask,
 }) {
+  const [recurringDialogOpen, setRecurringDialogOpen] = useState(false);
+  const [selectedRecurringTask, setSelectedRecurringTask] = useState(null);
+
+  function handleEditClick(task) {
+    if (task.record?.repeat_type && task.record.repeat_type !== "None") {
+      setSelectedRecurringTask(task);
+      setRecurringDialogOpen(true);
+    } else {
+      onEdit?.(task);
+    }
+  }
+
   return (
     <Dialog
       open={open}
@@ -199,7 +215,8 @@ export default function DayPlannerDialog({
                   )}
                   label={task.priority}
                 />
-		                  <Stack
+
+                <Stack
                   direction="row"
                   spacing={2}
                   sx={{ mt: 3 }}
@@ -208,7 +225,7 @@ export default function DayPlannerDialog({
                     variant="outlined"
                     startIcon={<Edit />}
                     onClick={() =>
-                      onEdit?.(task)
+                      handleEditClick(task)
                     }
                   >
                     Edit
@@ -250,6 +267,22 @@ export default function DayPlannerDialog({
           Close
         </Button>
       </DialogActions>
+
+      <RecurringTaskDialog
+        open={recurringDialogOpen}
+        task={selectedRecurringTask}
+        onClose={() => {
+          setRecurringDialogOpen(false);
+          setSelectedRecurringTask(null);
+        }}
+        onThisOccurrence={() => {
+          setRecurringDialogOpen(false);
+          onEdit?.(selectedRecurringTask);
+        }}
+        onEntireSeries={() => {
+          // Reserved for Sprint 18.3
+        }}
+      />
 
     </Dialog>
   );
