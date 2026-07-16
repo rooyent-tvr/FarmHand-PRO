@@ -14,6 +14,7 @@ import PlannerToolbar from "../components/planner/PlannerToolbar";
 import PlannerSearch from "../components/planner/PlannerSearch";
 import PlannerFilters from "../components/planner/PlannerFilters";
 import PlannerTaskList from "../components/planner/PlannerTaskList";
+import PlannerCalendar from "../components/planner/PlannerCalendar";
 import ManualTaskModal from "../components/planner/ManualTaskModal";
 
 import {
@@ -43,9 +44,11 @@ export default function PlannerWorkspace() {
 
 	  const [taskModalOpen, setTaskModalOpen] =
 		    useState(false);
-
 	  const [selectedTask, setSelectedTask] =
 		    useState(null);
+
+	  const [view, setView] =
+		    useState("workspace");
 
 	  useEffect(() => {
 		      loadPlanner();
@@ -123,6 +126,13 @@ export default function PlannerWorkspace() {
 					      }
 		    }
 
+	  function handleAddTaskForDate(date) {
+		      setSelectedTask({
+			            due_date: date,
+			          });
+		      setTaskModalOpen(true);
+		    }
+
 	  const filteredPlanner = useMemo(() => {
 		      const applyFilters = (tasks) =>
 			        tasks.filter((task) => {
@@ -197,6 +207,8 @@ export default function PlannerWorkspace() {
 				            setSelectedTask(null);
 				            setTaskModalOpen(true);
 				          }}
+		          view={view}
+		          onViewChange={setView}
 		        />
 
 		        <PlannerSearch
@@ -217,11 +229,20 @@ export default function PlannerWorkspace() {
 		          ref={plannerBoardRef}
 		          sx={{ mt: 4 }}
 		        >
-		          <PlannerTaskList
-		            planner={filteredPlanner}
-		            onComplete={handleCompleteTask}
-		            onEdit={handleEditTask}
-		          />
+		          {view === "workspace" ? (
+		            <PlannerTaskList
+		              planner={filteredPlanner}
+		              onComplete={handleCompleteTask}
+		              onEdit={handleEditTask}
+		            />
+		          ) : (
+		            <PlannerCalendar
+		              planner={filteredPlanner}
+		              onEdit={handleEditTask}
+		              onComplete={handleCompleteTask}
+		              onAddTask={handleAddTaskForDate}
+		            />
+		          )}
 		        </Box>
 
 		        <ManualTaskModal
@@ -236,6 +257,8 @@ export default function PlannerWorkspace() {
 		      </PageContainer>
 		    );
 }
+
+
 
 
 

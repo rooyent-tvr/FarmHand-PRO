@@ -9,13 +9,18 @@ import {
 
 import AddIcon from "@mui/icons-material/Add";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import ViewListIcon from "@mui/icons-material/ViewList";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import DownloadIcon from "@mui/icons-material/Download";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 export default function PlannerToolbar({
   onNewTask,
+  view = "workspace",
+  onViewChange,
 }) {
+  const isCalendar = view === "calendar";
+
   return (
     <Box
       sx={{
@@ -63,7 +68,11 @@ export default function PlannerToolbar({
 
         <Chip
           icon={<CheckCircleIcon />}
-          label="Workspace Active"
+          label={
+            isCalendar
+              ? "Calendar View"
+              : "Workspace Active"
+          }
           color="success"
           sx={{
             fontWeight: 700,
@@ -90,10 +99,28 @@ export default function PlannerToolbar({
         </Button>
 
         <Button
-          variant="outlined"
-          startIcon={<CalendarMonthIcon />}
+          variant={
+            isCalendar
+              ? "contained"
+              : "outlined"
+          }
+          color="primary"
+          startIcon={
+            isCalendar
+              ? <ViewListIcon />
+              : <CalendarMonthIcon />
+          }
+          onClick={() =>
+            onViewChange?.(
+              isCalendar
+                ? "workspace"
+                : "calendar"
+            )
+          }
         >
-          Calendar
+          {isCalendar
+            ? "Workspace"
+            : "Calendar"}
         </Button>
 
         <Button
