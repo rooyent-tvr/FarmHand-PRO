@@ -25,6 +25,12 @@ const actions = [
     to: "/finance",
     color: "#F59E0B",
   },
+  {
+    label: "Machinery",
+    icon: "🚜",
+    to: "/machinery",
+    color: "#6D4C41",
+  },
 ];
 
 export default function QuickActions() {

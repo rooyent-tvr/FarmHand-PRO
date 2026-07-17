@@ -16,6 +16,8 @@ import Tasks from "./pages/Tasks";
 import PlannerWorkspace from "./pages/PlannerWorkspace";
 import Reports from "./pages/Reports";
 import Account from "./pages/Account";
+import Machinery from "./pages/Machinery";
+import MachineProfile from "./pages/MachineProfile";
 
 export default function App() {
   return (
@@ -38,6 +40,9 @@ export default function App() {
         <Route path="/health" element={<Health />} />
         <Route path="/breeding" element={<Breeding />} />
         <Route path="/finance" element={<Finance />} />
+
+        <Route path="/machinery" element={<Machinery />} />
+        <Route path="/machinery/:id" element={<MachineProfile />} />
 
         <Route path="/tasks" element={<Tasks />} />
 

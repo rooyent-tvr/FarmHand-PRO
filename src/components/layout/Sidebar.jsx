@@ -26,6 +26,10 @@ const menu = [
     path: "/crops",
   },
   {
+    name: "🚜 Machinery",
+    path: "/machinery",
+  },
+  {
     name: "📋 Planner Dashboard",
     path: "/tasks",
   },
