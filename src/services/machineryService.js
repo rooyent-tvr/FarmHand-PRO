@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { runAutomationEngine } from "./automationService";
 
 const TABLE = "machinery";
 
@@ -165,6 +166,12 @@ export async function addMachineService(service) {
 
   if (error) throw error;
 
+  try {
+    await runAutomationEngine();
+  } catch (error) {
+    console.error("Automation Engine:", error);
+  }
+
   return data;
 }
 
@@ -291,4 +298,24 @@ export async function deleteMaintenancePlan(id) {
   if (error) throw error;
 
   return true;
+}
+
+
+/*
+========================================================
+
+Get All Active Maintenance Plans
+
+========================================================
+*/
+
+export async function getAllMaintenancePlans() {
+  const { data, error } = await supabase
+    .from(MAINTENANCE_TABLE)
+    .select("*")
+    .eq("active", true);
+
+  if (error) throw error;
+
+  return data || [];
 }

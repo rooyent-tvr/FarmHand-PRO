@@ -1,6 +1,8 @@
 import { supabase } from "./supabase";
-import { getHealthRecords } from "./healthService";
-import { getBreedingRecords } from "./breedingService";
+import { getHealthPlannerTasks } from "./planner/healthPlanner";
+import { getBreedingPlannerTasks } from "./planner/breedingPlanner";
+import { getMachineryPlannerTasks } from "./planner/machineryPlanner";
+import { getCropPlannerTasks } from "./planner/cropPlanner";
 
 import {
   formatDueDate,
@@ -382,131 +384,56 @@ export async function getPlannerTasks() {
   // Animal Health
   // =====================================================
 
-  const healthRecords = await getHealthRecords();
+  try {
+    const healthTasks = await getHealthPlannerTasks();
 
-  for (const record of healthRecords) {
-    if (!record.next_due) continue;
-
-    const task = {
-      id: `health-${record.id}`,
-
-      module: "Animal Health",
-
-      title:
-        record.treatment_type ||
-        record.treatment ||
-        "Health Treatment",
-
-      animalTag:
-        record.livestock?.tag || "",
-
-      due: formatDueDate(record.next_due),
-
-      originalDate: record.next_due,
-
-      priority: getTaskPriority(record.next_due),
-
-      status: getTaskStatus(record.next_due),
-
-      sourceId: record.id,
-
-      record,
-    };
-
-    addTask(planner, task);
+    for (const task of healthTasks) {
+      addTask(planner, task);
+    }
+  } catch (err) {
+    // Health planner failed silently
   }
 
   // =====================================================
   // Breeding
   // =====================================================
 
-  const breedingRecords = await getBreedingRecords();
+  try {
+    const breedingTasks = await getBreedingPlannerTasks();
 
-  for (const record of breedingRecords) {
-    if (
-      record.status !== "Pregnant" ||
-      !record.expected_birth
-    ) {
-      continue;
+    for (const task of breedingTasks) {
+      addTask(planner, task);
     }
+  } catch (err) {
+    // Breeding planner failed silently
+  }
 
-    // ---------------------------------------
-    // Expected Birth
-    // ---------------------------------------
+  // =====================================================
+  // Machinery
+  // =====================================================
 
-    const birthTask = {
-      id: `birth-${record.id}`,
+  try {
+    const machineryTasks = await getMachineryPlannerTasks();
 
-      module: "Breeding",
+    for (const task of machineryTasks) {
+      addTask(planner, task);
+    }
+  } catch (err) {
+    // Machinery planner failed silently
+  }
 
-      title: "Expected Birth",
+  // =====================================================
+  // Crops
+  // =====================================================
 
-      animalTag:
-        record.female?.tag || "",
+  try {
+    const cropTasks = await getCropPlannerTasks();
 
-      due: formatDueDate(
-        record.expected_birth
-      ),
-
-      originalDate:
-        record.expected_birth,
-
-      priority: getTaskPriority(
-        record.expected_birth
-      ),
-
-      status: getTaskStatus(
-        record.expected_birth
-      ),
-
-      sourceId: record.id,
-
-      record,
-    };
-
-    addTask(planner, birthTask);
-
-    // ---------------------------------------
-    // Prepare Birth Pen
-    // (14 days before birth)
-    // ---------------------------------------
-
-    const prepDate = new Date(
-      record.expected_birth
-    );
-
-    prepDate.setDate(
-      prepDate.getDate() - 14
-    );
-
-    const prepTask = {
-      id: `prep-${record.id}`,
-
-      module: "Breeding",
-
-      title: "Prepare Birth Pen",
-
-      animalTag:
-        record.female?.tag || "",
-
-      due: formatDueDate(prepDate),
-
-      originalDate: prepDate,
-
-      priority: getTaskPriority(
-        prepDate
-      ),
-
-      status: getTaskStatus(
-        prepDate
-      ),
-
-      sourceId: record.id,
-
-      record,
-    };
-
-    addTask(planner, prepTask);
+    for (const task of cropTasks) {
+      addTask(planner, task);
+    }
+  } catch (err) {
+    // Crop planner failed silently
   }
 
   // =====================================================
