@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 import MachineHeader from "../components/Machinery/MachineHeader";
 import MachineInfo from "../components/Machinery/MachineInfo";
@@ -9,6 +9,8 @@ import ServiceHistory from "../components/Machinery/ServiceHistory";
 import ServiceEntryModal from "../components/Machinery/ServiceEntryModal";
 import MaintenancePlan from "../components/Machinery/MaintenancePlan";
 import MaintenanceSummary from "../components/Machinery/MaintenanceSummary";
+import RunningCosts from "../components/Machinery/RunningCosts";
+import MachineNotes from "../components/Machinery/MachineNotes";
 
 import {
   getMachine,
@@ -156,20 +158,10 @@ export default function MachineProfile() {
         );
 
       case "costs":
-        return (
-          <Placeholder
-            title="💰 Running Costs"
-            text="Running Costs will be implemented in Sprint 21 Phase 6."
-          />
-        );
+        return <RunningCosts serviceHistory={serviceHistory} />;
 
       case "notes":
-        return (
-          <Placeholder
-            title="📝 Notes"
-            text="Machine Notes will be implemented in Sprint 21 Phase 6."
-          />
-        );
+        return <MachineNotes notes={machine.notes} serviceHistory={serviceHistory} />;
 
       default:
         return <MachineInfo machine={machine} />;
@@ -200,26 +192,5 @@ export default function MachineProfile() {
       />
 
     </Box>
-  );
-}
-
-function Placeholder({ title, text }) {
-  return (
-    <Paper
-      elevation={2}
-      sx={{
-        p: 5,
-        borderRadius: 3,
-        textAlign: "center",
-      }}
-    >
-      <Typography variant="h5" gutterBottom>
-        {title}
-      </Typography>
-
-      <Typography color="text.secondary">
-        {text}
-      </Typography>
-    </Paper>
   );
 }
