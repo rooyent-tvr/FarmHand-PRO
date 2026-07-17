@@ -1,170 +1,161 @@
 import {
+  Box,
   Card,
   CardContent,
-  Typography,
-  Stack,
-  Paper,
-  Button,
   Chip,
   Divider,
+  Stack,
+  Typography,
 } from "@mui/material";
 
 import {
+  Bolt,
   CheckCircle,
-  ArrowForward,
-  Warning,
+  Schedule,
 } from "@mui/icons-material";
 
-import { useNavigate } from "react-router-dom";
+function getPriorityChip(priority) {
+  switch (priority) {
+    case "high":
+      return <Chip label="HIGH" size="small" color="error" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
+    case "medium":
+      return <Chip label="MEDIUM" size="small" color="warning" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
+    case "low":
+      return <Chip label="LOW" size="small" color="info" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
+    default:
+      return <Chip label="INFO" size="small" color="success" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
+  }
+}
+
+function getSourceColor(source) {
+  switch (source?.toLowerCase()) {
+    case "planner":
+      return "#ed6c02";
+    case "health":
+      return "#d32f2f";
+    case "machinery":
+      return "#1976d2";
+    case "crops":
+      return "#2e7d32";
+    case "finance":
+      return "#7b1fa2";
+    case "breeding":
+      return "#e91e63";
+    case "weather":
+      return "#0288d1";
+    default:
+      return "#757575";
+  }
+}
 
 export default function ActionCenter({
+  actions = [],
   tasks = [],
   onComplete,
 }) {
-  const navigate = useNavigate();
+  // Support both new `actions` prop and legacy `tasks` prop
+  const items = actions.length > 0 ? actions : tasks.map((t) => ({
+    priority: "medium",
+    icon: "📋",
+    title: t.title,
+    description: t.module || "General",
+    source: t.module || "Planner",
+    id: t.id,
+    _task: t,
+  }));
 
-  const todayTasks = tasks.slice(0, 5);
+  const displayItems = items.slice(0, 5);
 
   return (
-    <Card
-      elevation={3}
-      sx={{
-        borderRadius: 4,
-      }}
-    >
-      <CardContent>
+    <Card elevation={2} sx={{ borderRadius: 3 }}>
+      <CardContent sx={{ p: 2.5 }}>
 
-        <Typography
-          variant="h5"
-          fontWeight={700}
-          gutterBottom
-        >
-          ⚡ Today's Action Centre
-        </Typography>
-
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          mb={3}
-        >
-          Complete today's most important farm tasks.
-        </Typography>
-
-        <Stack spacing={2}>
-
-          {todayTasks.length === 0 && (
-            <Paper
-              elevation={0}
-              sx={{
-                p: 4,
-                textAlign: "center",
-                borderRadius: 3,
-                bgcolor: "#f7faf7",
-              }}
-            >
-              <Typography variant="h6">
-                🎉 You're all caught up!
-              </Typography>
-
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 1 }}
-              >
-                No urgent tasks for today.
-              </Typography>
-            </Paper>
-          )}
-
-          {todayTasks.map((task) => (
-            <Paper
-              key={task.id}
-              elevation={1}
-              sx={{
-                p: 2,
-                borderRadius: 3,
-                transition: ".2s",
-                "&:hover": {
-                  boxShadow: 4,
-                },
-              }}
-            >
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Stack spacing={1}>
-
-                  <Typography
-                    fontWeight={700}
-                  >
-                    {task.title}
-                  </Typography>
-
-                  <Chip
-                    size="small"
-                    color="warning"
-                    icon={<Warning />}
-                    label={
-                      task.module ||
-                      "General"
-                    }
-                  />
-
-                </Stack>
-
-                <Stack
-                  direction="row"
-                  spacing={1}
-                >
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={
-                      <CheckCircle />
-                    }
-                    onClick={() =>
-                      onComplete?.(task)
-                    }
-                  >
-                    Complete
-                  </Button>
-
-                  <Button
-                    variant="outlined"
-                    endIcon={
-                      <ArrowForward />
-                    }
-                    onClick={() =>
-                      navigate("/planner")
-                    }
-                  >
-                    Open
-                  </Button>
-
-                </Stack>
-
-              </Stack>
-
-            </Paper>
-          ))}
-
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+          <Bolt sx={{ fontSize: 22, color: "#ed6c02" }} />
+          <Typography variant="subtitle1" fontWeight={700}>
+            Action Centre
+          </Typography>
         </Stack>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ mb: 1.5 }} />
 
-        <Button
-          fullWidth
-          variant="contained"
-          color="success"
-          endIcon={<ArrowForward />}
-          onClick={() =>
-            navigate("/planner")
-          }
-        >
-          View All Planner Tasks
-        </Button>
+        {/* Empty state */}
+        {displayItems.length === 0 && (
+          <Box sx={{ py: 3, textAlign: "center" }}>
+            <CheckCircle sx={{ fontSize: 36, color: "#2e7d32", mb: 1 }} />
+            <Typography variant="body2" fontWeight={600}>
+              Everything looks good.
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              No urgent farm actions at the moment.
+            </Typography>
+          </Box>
+        )}
+
+        {/* Action items */}
+        <Stack spacing={1.5}>
+          {displayItems.map((item, index) => (
+            <Card key={item.id || index} variant="outlined" sx={{ borderRadius: 2 }}>
+              <CardContent sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}>
+                <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                  <Typography sx={{ fontSize: "1.1rem", mt: 0.2 }}>
+                    {item.icon || "⚡"}
+                  </Typography>
+
+                  <Box sx={{ flex: 1 }}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                      {getPriorityChip(item.priority)}
+                      <Typography variant="body2" fontWeight={700}>
+                        {item.title}
+                      </Typography>
+                    </Stack>
+
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.75 }}>
+                      {item.description}
+                    </Typography>
+
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      {item.source && (
+                        <Chip
+                          label={item.source}
+                          size="small"
+                          sx={{
+                            height: 18,
+                            fontSize: "0.6rem",
+                            fontWeight: 600,
+                            bgcolor: `${getSourceColor(item.source)}14`,
+                            color: getSourceColor(item.source),
+                            border: `1px solid ${getSourceColor(item.source)}40`,
+                          }}
+                        />
+                      )}
+
+                      {item.daysRemaining !== undefined && (
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Schedule sx={{ fontSize: 13, color: "text.disabled" }} />
+                          <Typography variant="caption" color="text.disabled">
+                            {item.daysRemaining === 0
+                              ? "Today"
+                              : `${item.daysRemaining} day${item.daysRemaining === 1 ? "" : "s"}`}
+                          </Typography>
+                        </Stack>
+                      )}
+
+                      {item.due_date && !item.daysRemaining && (
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Schedule sx={{ fontSize: 13, color: "text.disabled" }} />
+                          <Typography variant="caption" color="text.disabled">
+                            {item.due_date}
+                          </Typography>
+                        </Stack>
+                      )}
+                    </Stack>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
 
       </CardContent>
     </Card>

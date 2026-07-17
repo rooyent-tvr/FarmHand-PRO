@@ -5,6 +5,7 @@ export default function HeroBanner({
   totalCrops = 0,
   pregnantBreeding = 0,
   healthDue = 0,
+  weather = null,
 }) {
   const now = new Date();
 
@@ -167,16 +168,51 @@ export default function HeroBanner({
                 marginBottom: 8,
               }}
             >
-              ☀ Weather
+              {weather?.available ? (weather.current?.icon || "☀") : "☀"} Weather
             </div>
 
-            <div
-              style={{
-                opacity: 0.9,
-              }}
-            >
-              Weather integration coming soon.
-            </div>
+            {weather?.available ? (
+              <div>
+                <div
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 700,
+                    marginBottom: 4,
+                  }}
+                >
+                  {weather.current?.temperature}°C
+                </div>
+                <div style={{ opacity: 0.95, marginBottom: 4 }}>
+                  {weather.current?.condition}
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.85 }}>
+                  Wind: {weather.current?.windSpeed} km/h • Humidity: {weather.current?.humidity}%
+                </div>
+                {weather.forecast?.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      paddingTop: 10,
+                      borderTop: "1px solid rgba(255,255,255,.2)",
+                      fontSize: 13,
+                      opacity: 0.85,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600, marginBottom: 2 }}>Tomorrow</div>
+                    <div>
+                      {weather.forecast[0]?.icon} {weather.forecast[0]?.temperature}°C — {weather.forecast[0]?.condition}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ opacity: 0.8, fontSize: 13 }}>
+                <div>Weather unavailable</div>
+                <div style={{ marginTop: 4, opacity: 0.7 }}>
+                  Configure an API key to enable live weather.
+                </div>
+              </div>
+            )}
           </div>
 
           <div

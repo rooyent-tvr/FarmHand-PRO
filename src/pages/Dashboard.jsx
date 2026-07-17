@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 
-import { Box } from "@mui/material";
+import { Box, Grid, Stack } from "@mui/material";
 
 import PageContainer from "../components/layout/PageContainer";
 
 import HeroBanner from "../components/dashboard/HeroBanner";
 import FarmHealthScore from "../components/dashboard/FarmHealthScore";
 import AIInsights from "../components/dashboard/AIInsights";
+import FarmTimeline from "../components/dashboard/FarmTimeline";
+import PredictiveInsights from "../components/dashboard/PredictiveInsights";
 import NotificationCard from "../components/dashboard/NotificationCard";
 import ActionCenter from "../components/dashboard/ActionCenter";
 import TodayPriorities from "../components/dashboard/TodayPriorities";
@@ -22,25 +24,32 @@ import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
 import { getNotifications } from "../services/notificationService";
 import { completeManualTask } from "../services/plannerService";
+import { getWeatherSummary } from "../services/weatherService";
 import { calculateFarmHealthScore } from "../utils/farmHealthScore";
 import { generateAIInsights } from "../utils/aiInsights";
+import { generateFarmTimeline } from "../utils/farmTimeline";
+import { generatePredictiveInsights } from "../utils/predictiveInsights";
+import { generateActionCenter } from "../utils/actionCenter";
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [healthDue, setHealthDue] = useState(0);
   const [notifications, setNotifications] = useState(null);
+  const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
     try {
-      const [dash, health, notifs] = await Promise.all([
+      const [dash, health, notifs, weatherData] = await Promise.all([
         getDashboardStats(),
         getHealthRecords(),
         getNotifications(),
+        getWeatherSummary(),
       ]);
 
       setDashboard(dash);
       setNotifications(notifs);
+      setWeather(weatherData);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -125,6 +134,69 @@ export default function Dashboard() {
     finance: {
       profit: 0,
     },
+
+    weather,
+  });
+
+  const farmTimeline = generateFarmTimeline({
+    planner: {
+      overdue: Number(
+        notifications?.planner?.overdue?.length || 0
+      ),
+    },
+
+    health: {
+      attention: Number(healthDue || 0),
+    },
+
+    machinery: {
+      overdue: Number(
+        notifications?.modules?.machinery || 0
+      ),
+    },
+
+    crops: {
+      harvestSoon: 0,
+    },
+
+    finance: {
+      profit: 0,
+    },
+  });
+
+  const predictions = generatePredictiveInsights({
+    machinery: {},
+    breeding: {},
+    crops: { crops },
+    planner: {
+      upcomingCount: Number(notifications?.planner?.upcoming?.length || 0),
+      overdueCount: Number(notifications?.planner?.overdue?.length || 0),
+    },
+  });
+
+  const actions = generateActionCenter({
+    planner: {
+      overdue: Number(notifications?.planner?.overdue?.length || 0),
+      today: Number(notifications?.planner?.today?.length || 0),
+    },
+    health: {
+      attention: Number(healthDue || 0),
+    },
+    machinery: {
+      overdue: Number(notifications?.modules?.machinery || 0),
+    },
+    breeding: {
+      birthsDue: Number(notifications?.modules?.breeding || 0),
+    },
+    crops: {
+      harvestSoon: 0,
+    },
+    finance: {
+      profit: 0,
+    },
+    weather,
+    predictions,
+    aiInsights,
   });
 
   const growingCrops = crops.filter(
@@ -143,37 +215,48 @@ export default function Dashboard() {
         totalCrops={dashboard.totalCrops}
         pregnantBreeding={dashboard.pregnantBreeding}
         healthDue={healthDue}
+        weather={weather}
       />
 
-      {/* Farm Health Score */}
+      {/* Action Centre */}
 
       <div style={{ marginTop: 24 }}>
-        <FarmHealthScore
-          score={farmHealth.score}
-          status={farmHealth.status}
-        />
+        <ActionCenter actions={actions} />
       </div>
 
-      {/* AI Insights */}
+      {/* Operations Center (2x2 grid) */}
 
-      <div style={{ marginTop: 24 }}>
-        <AIInsights insights={aiInsights} />
-      </div>
+      <Grid container spacing={2} sx={{ mt: 2 }}>
+        {/* Top Left: Farm Health Score */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <FarmHealthScore
+            score={farmHealth.score}
+            status={farmHealth.status}
+            breakdown={farmHealth.breakdown}
+          />
+        </Grid>
+
+        {/* Top Right: AI Assistant */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <AIInsights insights={aiInsights} />
+        </Grid>
+
+        {/* Bottom Left: Predictive Insights */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <PredictiveInsights predictions={predictions} />
+        </Grid>
+
+        {/* Bottom Right: Farm Activity */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <FarmTimeline events={farmTimeline} />
+        </Grid>
+      </Grid>
 
       {/* Notification Card */}
 
       <div style={{ marginTop: 24 }}>
         <NotificationCard
           notifications={notifications}
-        />
-      </div>
-
-      {/* Today's Action Centre */}
-
-      <div style={{ marginTop: 24 }}>
-        <ActionCenter
-          tasks={notifications?.actionCenter || []}
-          onComplete={handleCompleteDashboardTask}
         />
       </div>
 

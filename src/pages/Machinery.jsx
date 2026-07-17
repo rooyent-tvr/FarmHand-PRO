@@ -12,12 +12,17 @@ import AddIcon from "@mui/icons-material/Add";
 
 import MachineForm from "../components/Machinery/MachineForm";
 import MachineCard from "../components/Machinery/MachineCard";
+import MachineryInsights from "../components/Machinery/MachineryInsights";
 
 import {
   getMachines,
   addMachine,
   updateMachine,
+  getMachineServices,
+  getAllMaintenancePlans,
 } from "../services/machineryService";
+
+import { generateMachineryAnalytics } from "../utils/machineryAnalytics";
 
 export default function Machinery() {
   const navigate = useNavigate();
@@ -26,6 +31,8 @@ export default function Machinery() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingMachine, setEditingMachine] = useState(null);
+  const [serviceHistory, setServiceHistory] = useState([]);
+  const [maintenancePlans, setMaintenancePlans] = useState([]);
 
   useEffect(() => {
     loadMachines();
@@ -33,12 +40,32 @@ export default function Machinery() {
 
   async function loadMachines() {
     try {
-      const data = await getMachines();
+      const [data, services, plans] = await Promise.all([
+        getMachines(),
+        loadAllServices(),
+        getAllMaintenancePlans(),
+      ]);
       setMachines(data);
+      setServiceHistory(services);
+      setMaintenancePlans(plans);
     } catch (err) {
-      console.error("Machinery:", err);
+      // Graceful fallback
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadAllServices() {
+    try {
+      const machines = await getMachines();
+      const allServices = [];
+      for (const machine of machines) {
+        const services = await getMachineServices(machine.id);
+        allServices.push(...services);
+      }
+      return allServices;
+    } catch {
+      return [];
     }
   }
 
@@ -170,6 +197,18 @@ export default function Machinery() {
         </Grid>
       </Grid>
 
+      {/* Machinery Insights */}
+
+      <Box sx={{ mt: 3 }}>
+        <MachineryInsights
+          analytics={generateMachineryAnalytics({
+            machines,
+            serviceHistory,
+            maintenancePlans,
+          })}
+        />
+      </Box>
+
       {/* Machine Form */}
 
       {showForm && (
@@ -196,6 +235,9 @@ export default function Machinery() {
                 onView={handleViewMachine}
                 onEdit={handleEditMachine}
                 onService={handleServiceMachine}
+                lastService={serviceHistory.find((s) => s.machine_id === machine.id)}
+                maintenancePlan={maintenancePlans.find((p) => p.machine_id === machine.id)}
+                serviceHistory={serviceHistory.filter((s) => s.machine_id === machine.id)}
               />
             </Grid>
           ))}
