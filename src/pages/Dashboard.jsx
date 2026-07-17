@@ -5,6 +5,8 @@ import { Box } from "@mui/material";
 import PageContainer from "../components/layout/PageContainer";
 
 import HeroBanner from "../components/dashboard/HeroBanner";
+import FarmHealthScore from "../components/dashboard/FarmHealthScore";
+import AIInsights from "../components/dashboard/AIInsights";
 import NotificationCard from "../components/dashboard/NotificationCard";
 import ActionCenter from "../components/dashboard/ActionCenter";
 import TodayPriorities from "../components/dashboard/TodayPriorities";
@@ -20,6 +22,8 @@ import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
 import { getNotifications } from "../services/notificationService";
 import { completeManualTask } from "../services/plannerService";
+import { calculateFarmHealthScore } from "../utils/farmHealthScore";
+import { generateAIInsights } from "../utils/aiInsights";
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
@@ -79,6 +83,50 @@ export default function Dashboard() {
   const crops = dashboard.crops || [];
   const latestBreeding = dashboard.latestBreeding || null;
 
+  const farmHealth = calculateFarmHealthScore({
+    planner: {
+      overdue: Number(notifications?.planner?.overdue?.length || 0),
+    },
+
+    health: {
+      attention: Number(healthDue || 0),
+    },
+
+    machinery: {
+      overdue: Number(notifications?.modules?.machinery || 0),
+    },
+
+    crops: {
+      overdue: 0,
+    },
+
+    finance: {
+      profit: 0,
+    },
+  });
+
+  const aiInsights = generateAIInsights({
+    planner: {
+      overdue: Number(notifications?.planner?.overdue?.length || 0),
+    },
+
+    health: {
+      attention: Number(healthDue || 0),
+    },
+
+    machinery: {
+      overdue: Number(notifications?.modules?.machinery || 0),
+    },
+
+    crops: {
+      harvestSoon: 0,
+    },
+
+    finance: {
+      profit: 0,
+    },
+  });
+
   const growingCrops = crops.filter(
     (crop) => crop.status === "Growing"
   ).length;
@@ -96,6 +144,21 @@ export default function Dashboard() {
         pregnantBreeding={dashboard.pregnantBreeding}
         healthDue={healthDue}
       />
+
+      {/* Farm Health Score */}
+
+      <div style={{ marginTop: 24 }}>
+        <FarmHealthScore
+          score={farmHealth.score}
+          status={farmHealth.status}
+        />
+      </div>
+
+      {/* AI Insights */}
+
+      <div style={{ marginTop: 24 }}>
+        <AIInsights insights={aiInsights} />
+      </div>
 
       {/* Notification Card */}
 
