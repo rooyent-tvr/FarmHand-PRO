@@ -1,3 +1,10 @@
+import {
+  Box,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
+
 export default function StatCard({
   title,
   value,
@@ -6,96 +13,86 @@ export default function StatCard({
   children,
 }) {
   return (
-    <div
-      style={{
-        background: "#FFFFFF",
-        border: "1px solid #E2E8F0",
-        borderRadius: 20,
+    <Paper
+      elevation={1}
+      sx={{
+        bgcolor: "background.paper",
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 5,
         borderLeft: `6px solid ${color}`,
         boxShadow: "0 10px 30px rgba(15,23,42,.08)",
-
-        /* IMPORTANT */
         width: "100%",
         minWidth: 0,
         boxSizing: "border-box",
-
-        padding: 22,
+        p: 2.75,
         minHeight: 130,
-
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-
         transition: "all .25s ease",
         cursor: "default",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow =
-          "0 18px 40px rgba(15,23,42,.12)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow =
-          "0 10px 30px rgba(15,23,42,.08)";
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: "0 18px 40px rgba(15,23,42,.12)",
+        },
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="flex-start"
       >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 13,
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            variant="caption"
+            sx={{
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              color: "#64748B",
-              marginBottom: 10,
+              color: "text.secondary",
+              mb: 1.25,
+              display: "block",
             }}
           >
             {title}
-          </div>
+          </Typography>
 
-          <div
-            style={{
+          <Typography
+            sx={{
               fontSize: 36,
               fontWeight: 800,
-              color: "#0F172A",
+              color: "text.primary",
               lineHeight: 1.1,
             }}
           >
             {value}
-          </div>
-        </div>
+          </Typography>
+        </Box>
 
-        <div
-          style={{
+        <Box
+          sx={{
             width: 58,
             height: 58,
             minWidth: 58,
-            borderRadius: 16,
-            background: `${color}15`,
+            borderRadius: 4,
+            bgcolor: `${color}15`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 28,
-            marginLeft: 16,
+            ml: 2,
           }}
         >
           {icon}
-        </div>
-      </div>
+        </Box>
+      </Stack>
 
       {children && (
-        <div style={{ marginTop: 18 }}>
+        <Box sx={{ mt: 2.25 }}>
           {children}
-        </div>
+        </Box>
       )}
-    </div>
+    </Paper>
   );
 }

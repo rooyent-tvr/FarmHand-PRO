@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { Grid, Stack } from "@mui/material";
+
 import PageContainer from "../../components/layout/PageContainer";
 import StatCard from "../../components/ui/StatCard";
 
@@ -61,62 +63,65 @@ export default function CropPage() {
 
   return (
     <PageContainer
+      fullWidth
       title="🌾 Crop Management"
       subtitle="Manage planting, tracking and harvest information."
     >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit,minmax(240px,1fr))",
-          gap: 20,
-          marginBottom: 30,
-        }}
-      >
-        <StatCard
-          title="Total Crops"
-          value={totalCrops}
-          icon="🌾"
-          color="#2E7D32"
-        />
+      <Stack spacing={3}>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard
+              title="Total Crops"
+              value={totalCrops}
+              icon="🌾"
+              color="success.dark"
+            />
+          </Grid>
 
-        <StatCard
-          title="Growing"
-          value={growing}
-          icon="🌱"
-          color="#43A047"
-        />
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard
+              title="Growing"
+              value={growing}
+              icon="🌱"
+              color="success.main"
+            />
+          </Grid>
 
-        <StatCard
-          title="Harvested"
-          value={harvested}
-          icon="🚜"
-          color="#EF6C00"
-        />
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard
+              title="Harvested"
+              value={harvested}
+              icon="🚜"
+              color="warning.dark"
+            />
+          </Grid>
 
-        <StatCard
-          title="Total Area"
-          value={`${totalArea.toFixed(2)} ha`}
-          icon="📏"
-          color="#1565C0"
-        />
-      </div>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard
+              title="Total Area"
+              value={`${totalArea.toFixed(2)} ha`}
+              icon="📏"
+              color="info.dark"
+            />
+          </Grid>
+        </Grid>
 
-      <CropForm
-        crop={selectedCrop}
-        refreshCrops={loadCrops}
-        onSaved={handleSaved}
-      />
-
-      {loading ? (
-        <p>Loading crops...</p>
-      ) : (
-        <CropTable
-          crops={crops}
-          onEdit={handleEdit}
+        <CropForm
+          crop={selectedCrop}
           refreshCrops={loadCrops}
+          onSaved={handleSaved}
         />
-      )}
+
+        {loading ? (
+          <p>Loading crops...</p>
+        ) : (
+          <CropTable
+            crops={crops}
+            onEdit={handleEdit}
+            refreshCrops={loadCrops}
+          />
+        )}
+      </Stack>
     </PageContainer>
   );
 }

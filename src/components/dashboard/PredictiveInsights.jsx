@@ -24,11 +24,11 @@ function getPriorityChip(priority) {
 
 export default function PredictiveInsights({ predictions = [] }) {
   return (
-    <Card elevation={2} sx={{ borderRadius: 3 }}>
-      <CardContent sx={{ p: 2.5 }}>
+    <Card elevation={1} sx={{ borderRadius: 4, transition: "all 0.2s ease", "&:hover": { boxShadow: 3, transform: "translateY(-2px)" } }}>
+      <CardContent sx={{ p: 3 }}>
 
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <TrendingUp sx={{ fontSize: 22, color: "#1976d2" }} />
+          <TrendingUp sx={{ fontSize: 20, color: "primary.main" }} />
           <Typography variant="subtitle1" fontWeight={700}>
             Predictive Insights
           </Typography>

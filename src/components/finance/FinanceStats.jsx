@@ -1,3 +1,5 @@
+import { Grid } from "@mui/material";
+
 import StatCard from "../ui/StatCard";
 
 export default function FinanceStats({
@@ -36,54 +38,54 @@ export default function FinanceStats({
     }).format(Number(value || 0));
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit,minmax(240px,1fr))",
-        gap: 20,
-        marginBottom: 25,
-      }}
-    >
-      <StatCard
-        title="Total Income"
-        value={formatCurrency(income)}
-        icon="💰"
-        color="#16A34A"
-      />
+    <Grid container spacing={3}>
+      <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <StatCard
+          title="Total Income"
+          value={formatCurrency(income)}
+          icon="💰"
+          color="#16A34A"
+        />
+      </Grid>
 
-      <StatCard
-        title="Total Expenses"
-        value={formatCurrency(expenses)}
-        icon="💸"
-        color="#DC2626"
-      />
+      <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <StatCard
+          title="Total Expenses"
+          value={formatCurrency(expenses)}
+          icon="💸"
+          color="#DC2626"
+        />
+      </Grid>
 
-      <StatCard
-        title="Net Profit"
-        value={formatCurrency(profit)}
-        icon={
-          profit >= 0
-            ? "📈"
-            : profit < 0
-            ? "📉"
-            : "➖"
-        }
-        color={
-          profit > 0
-            ? "#16A34A"
-            : profit < 0
-            ? "#DC2626"
-            : "#64748B"
-        }
-      />
+      <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <StatCard
+          title="Net Profit"
+          value={formatCurrency(profit)}
+          icon={
+            profit >= 0
+              ? "📈"
+              : profit < 0
+              ? "📉"
+              : "➖"
+          }
+          color={
+            profit > 0
+              ? "#16A34A"
+              : profit < 0
+              ? "#DC2626"
+              : "#64748B"
+          }
+        />
+      </Grid>
 
-      <StatCard
-        title="Transactions"
-        value={records.length}
-        icon="🧾"
-        color="#F59E0B"
-      />
-    </div>
+      <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <StatCard
+          title="Transactions"
+          value={records.length}
+          icon="🧾"
+          color="#F59E0B"
+        />
+      </Grid>
+    </Grid>
   );
 }

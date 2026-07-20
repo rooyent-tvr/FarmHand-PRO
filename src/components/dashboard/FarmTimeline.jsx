@@ -47,11 +47,11 @@ export default function FarmTimeline({
   const groupOrder = ["TODAY", "YESTERDAY", "EARLIER"];
 
   return (
-    <Card elevation={2} sx={{ borderRadius: 3, minHeight: 220 }}>
-      <CardContent sx={{ p: 2.5 }}>
+    <Card elevation={1} sx={{ borderRadius: 4, minHeight: 220, transition: "all 0.2s ease", "&:hover": { boxShadow: 3, transform: "translateY(-2px)" } }}>
+      <CardContent sx={{ p: 3 }}>
 
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <Timeline sx={{ fontSize: 22, color: "#2e7d32" }} />
+          <Timeline sx={{ fontSize: 20, color: "success.main" }} />
           <Typography variant="subtitle1" fontWeight={700}>
             Farm Activity
           </Typography>

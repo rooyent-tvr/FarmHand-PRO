@@ -65,20 +65,20 @@ export default function FarmHealthScore({
   const healthMessage = getHealthMessage(score);
 
   return (
-    <Card elevation={2} sx={{ borderRadius: 3, height: "100%" }}>
-      <CardContent sx={{ p: 2.5 }}>
+    <Card elevation={1} sx={{ borderRadius: 4, height: "100%", transition: "all 0.2s ease", "&:hover": { boxShadow: 3, transform: "translateY(-2px)" } }}>
+      <CardContent sx={{ p: 3 }}>
 
         {/* Header */}
         <Stack
           direction="row"
           justifyContent="space-between"
           alignItems="center"
-          sx={{ mb: 2 }}
+          sx={{ mb: 1 }}
         >
           <Typography variant="subtitle1" fontWeight={700}>
             Farm Health Score
           </Typography>
-          <Favorite sx={{ fontSize: 22, color }} />
+          <Favorite sx={{ fontSize: 20, color }} />
         </Stack>
 
         {/* Score Circle */}

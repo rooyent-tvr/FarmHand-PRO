@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Box, Grid, Stack } from "@mui/material";
 
@@ -9,16 +10,13 @@ import FarmHealthScore from "../components/dashboard/FarmHealthScore";
 import AIInsights from "../components/dashboard/AIInsights";
 import FarmTimeline from "../components/dashboard/FarmTimeline";
 import PredictiveInsights from "../components/dashboard/PredictiveInsights";
+import FarmIntelligenceCenter from "../components/dashboard/FarmIntelligenceCenter";
 import NotificationCard from "../components/dashboard/NotificationCard";
 import ActionCenter from "../components/dashboard/ActionCenter";
 import TodayPriorities from "../components/dashboard/TodayPriorities";
-import DashboardKPIs from "../components/dashboard/DashboardKPIs";
-import BreedingAlerts from "../components/dashboard/BreedingAlerts";
 import HeaviestAnimal from "../components/dashboard/HeaviestAnimal";
 import StatusChart from "../components/dashboard/StatusChart";
-import RecentPurchases from "../components/dashboard/RecentPurchases";
-import RecentAnimals from "../components/dashboard/RecentAnimals";
-import RecentCrops from "../components/dashboard/RecentCrops";
+import RecentFarmActivity from "../components/dashboard/RecentFarmActivity";
 
 import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
@@ -30,12 +28,15 @@ import { generateAIInsights } from "../utils/aiInsights";
 import { generateFarmTimeline } from "../utils/farmTimeline";
 import { generatePredictiveInsights } from "../utils/predictiveInsights";
 import { generateActionCenter } from "../utils/actionCenter";
+import { getFarmInsights } from "../services/intelligence";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [healthDue, setHealthDue] = useState(0);
   const [notifications, setNotifications] = useState(null);
   const [weather, setWeather] = useState(null);
+  const [farmInsights, setFarmInsights] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
@@ -56,14 +57,58 @@ export default function Dashboard() {
 
       const due = (health || []).filter((record) => {
         if (!record.next_due) return false;
-
         const dueDate = new Date(record.next_due);
         dueDate.setHours(0, 0, 0, 0);
-
         return dueDate <= today;
       });
 
       setHealthDue(due.length);
+
+      // =====================================================
+      // Farm Intelligence Engine
+      // Build farmData from all loaded datasets
+      // =====================================================
+
+      const farmData = {
+        // Planner data
+        planner: {
+          overdue: notifs?.planner?.overdue || [],
+          today: notifs?.planner?.today || [],
+          upcoming: notifs?.planner?.upcoming || [],
+          completed: notifs?.planner?.completed || [],
+        },
+
+        // Livestock data
+        livestock: {
+          animals: dash?.animals || [],
+          healthRecords: health || [],
+          breedingRecords: dash?.breedingRecords || [],
+          weightRecords: dash?.weightRecords || [],
+        },
+
+        // Crop data
+        crops: dash?.crops || [],
+
+        // Finance data
+        finance: {
+          records: dash?.financeRecords || [],
+        },
+
+        // Machinery data
+        machinery: {
+          machines: dash?.machines || [],
+          maintenancePlans: dash?.maintenancePlans || [],
+          serviceHistory: dash?.serviceHistory || [],
+        },
+
+        // Weather data
+        weather: weatherData,
+
+        // Future providers: Irrigation, Inventory, Market, Sustainability
+      };
+
+      const insights = await getFarmInsights(farmData);
+      setFarmInsights(insights);
     } catch (err) {
       console.error(err);
     } finally {
@@ -90,25 +135,20 @@ export default function Dashboard() {
 
   const animals = dashboard.animals || [];
   const crops = dashboard.crops || [];
-  const latestBreeding = dashboard.latestBreeding || null;
 
   const farmHealth = calculateFarmHealthScore({
     planner: {
       overdue: Number(notifications?.planner?.overdue?.length || 0),
     },
-
     health: {
       attention: Number(healthDue || 0),
     },
-
     machinery: {
       overdue: Number(notifications?.modules?.machinery || 0),
     },
-
     crops: {
       overdue: 0,
     },
-
     finance: {
       profit: 0,
     },
@@ -118,47 +158,34 @@ export default function Dashboard() {
     planner: {
       overdue: Number(notifications?.planner?.overdue?.length || 0),
     },
-
     health: {
       attention: Number(healthDue || 0),
     },
-
     machinery: {
       overdue: Number(notifications?.modules?.machinery || 0),
     },
-
     crops: {
       harvestSoon: 0,
     },
-
     finance: {
       profit: 0,
     },
-
     weather,
   });
 
   const farmTimeline = generateFarmTimeline({
     planner: {
-      overdue: Number(
-        notifications?.planner?.overdue?.length || 0
-      ),
+      overdue: Number(notifications?.planner?.overdue?.length || 0),
     },
-
     health: {
       attention: Number(healthDue || 0),
     },
-
     machinery: {
-      overdue: Number(
-        notifications?.modules?.machinery || 0
-      ),
+      overdue: Number(notifications?.modules?.machinery || 0),
     },
-
     crops: {
       harvestSoon: 0,
     },
-
     finance: {
       profit: 0,
     },
@@ -203,147 +230,116 @@ export default function Dashboard() {
     (crop) => crop.status === "Growing"
   ).length;
 
+  const plannerOverdue = Number(notifications?.planner?.overdue?.length || 0);
+  const plannerToday = Number(notifications?.planner?.today?.length || 0);
+
   return (
     <PageContainer
+      fullWidth
       title="🌾 Farm Dashboard"
       subtitle="Monitor your livestock, crops and daily farm activities from one place."
     >
-      {/* Hero Banner */}
+      <Stack spacing={3}>
 
-      <HeroBanner
-        totalAnimals={dashboard.totalAnimals}
-        totalCrops={dashboard.totalCrops}
-        pregnantBreeding={dashboard.pregnantBreeding}
-        healthDue={healthDue}
-        weather={weather}
-      />
-
-      {/* Action Centre */}
-
-      <div style={{ marginTop: 24 }}>
-        <ActionCenter actions={actions} />
-      </div>
-
-      {/* Operations Center (2x2 grid) */}
-
-      <Grid container spacing={2} sx={{ mt: 2 }}>
-        {/* Top Left: Farm Health Score */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <FarmHealthScore
-            score={farmHealth.score}
-            status={farmHealth.status}
-            breakdown={farmHealth.breakdown}
-          />
-        </Grid>
-
-        {/* Top Right: AI Assistant */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AIInsights insights={aiInsights} />
-        </Grid>
-
-        {/* Bottom Left: Predictive Insights */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <PredictiveInsights predictions={predictions} />
-        </Grid>
-
-        {/* Bottom Right: Farm Activity */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <FarmTimeline events={farmTimeline} />
-        </Grid>
-      </Grid>
-
-      {/* Notification Card */}
-
-      <div style={{ marginTop: 24 }}>
-        <NotificationCard
-          notifications={notifications}
+        {/* Hero Banner */}
+        <HeroBanner
+          totalAnimals={dashboard.totalAnimals}
+          totalCrops={dashboard.totalCrops}
+          pregnantBreeding={dashboard.pregnantBreeding}
+          healthDue={healthDue}
+          weather={weather}
+          machineryCount={Number(notifications?.modules?.machinery || 0)}
+          plannerOverdue={plannerOverdue}
+          plannerToday={plannerToday}
+          farmHealthScore={farmHealth.score}
+          farmHealthStatus={farmHealth.status}
         />
-      </div>
 
-      {/* Health Warning */}
+        {/* Operations Centre */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <AIInsights insights={aiInsights} />
+          </Grid>
 
-      {healthDue > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <div
-            style={{
-              background: "#FFF8E1",
+          <Grid size={{ xs: 12, md: 4 }}>
+            <ActionCenter actions={actions} />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <TodayPriorities
+              healthDue={healthDue}
+              pregnant={dashboard.pregnantBreeding}
+              growing={growingCrops}
+              tasksDue={plannerOverdue + plannerToday}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Intelligence & Analytics */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <FarmHealthScore
+              score={farmHealth.score}
+              status={farmHealth.status}
+              breakdown={farmHealth.breakdown}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <PredictiveInsights predictions={predictions} />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <FarmTimeline events={farmTimeline} />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <FarmIntelligenceCenter
+              insights={farmInsights}
+              onAction={(route, payload) => navigate(route, { state: payload ? { payload } : {} })}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Notifications + Activity */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <NotificationCard notifications={notifications} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <RecentFarmActivity animals={animals} crops={crops} />
+          </Grid>
+        </Grid>
+
+        {/* Health Warning */}
+        {healthDue > 0 && (
+          <Box
+            sx={{
+              bgcolor: "#FFF8E1",
               border: "1px solid #FFCC80",
               color: "#E65100",
-              padding: 16,
-              borderRadius: 12,
-              marginBottom: 24,
+              p: 2,
+              borderRadius: 3,
               fontWeight: 600,
             }}
           >
             ⚠️ {healthDue} treatment
             {healthDue !== 1 ? "s are" : " is"} due today.
             Please review the Animal Health module.
-          </div>
-        </Box>
-      )}
+          </Box>
+        )}
 
-      {/* Today's Priorities */}
+        {/* Analytics */}
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <StatusChart animals={animals} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <HeaviestAnimal animals={animals} />
+          </Grid>
+        </Grid>
 
-      <TodayPriorities
-        healthDue={healthDue}
-        pregnant={dashboard.pregnantBreeding}
-        growing={growingCrops}
-        tasksDue={0}
-      />
-
-      {/* Farm KPIs */}
-
-      <div style={{ marginTop: 24 }}>
-        <DashboardKPIs
-          dashboard={dashboard}
-          healthDue={healthDue}
-        />
-      </div>
-
-      {/* Breeding Alerts */}
-
-      <div style={{ marginTop: 24 }}>
-        <BreedingAlerts
-          pregnant={dashboard.pregnantBreeding}
-          dueSoon={dashboard.dueSoonBreeding}
-          overdue={dashboard.overdueBreeding}
-          latestBreeding={latestBreeding}
-        />
-      </div>
-
-      {/* Heaviest Animal */}
-
-      <div style={{ marginTop: 24 }}>
-        <HeaviestAnimal animals={animals} />
-      </div>
-
-      {/* Analytics */}
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: 20,
-          marginTop: 24,
-        }}
-      >
-        <StatusChart animals={animals} />
-        <RecentPurchases animals={animals} />
-      </div>
-
-      {/* Recent Activity */}
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 20,
-          marginTop: 24,
-        }}
-      >
-        <RecentAnimals animals={animals} />
-        <RecentCrops crops={crops} />
-      </div>
+      </Stack>
     </PageContainer>
   );
 }

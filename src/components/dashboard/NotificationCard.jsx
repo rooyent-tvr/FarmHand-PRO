@@ -140,9 +140,12 @@ export default function NotificationCard({ notifications }) {
 
   return (
     <Card
-      elevation={3}
+      elevation={1}
       sx={{
         borderRadius: 4,
+        height: "100%",
+        transition: "all 0.2s ease",
+        "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
       }}
     >
       <CardContent>

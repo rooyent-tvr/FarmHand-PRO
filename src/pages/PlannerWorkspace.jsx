@@ -25,6 +25,38 @@ import {
 	  getPlannerTasks,
 } from "../services/plannerService";
 
+/**
+ * Builds a pre-filled task object from an intelligence action payload.
+ * Returns null if the payload is invalid or unsupported.
+ */
+function buildTaskFromPayload(payload) {
+  if (!payload || !payload.source) return null;
+
+  const titleMap = {
+    Machinery: "Service Machinery",
+    Livestock: "Health Check",
+    Crops: "Crop Task",
+    Finance: "Finance Follow-up",
+    Planner: "Follow-up Task",
+  };
+
+  const moduleMap = {
+    Machinery: "Livestock",
+    Livestock: "Animal Health",
+    Crops: "Crops",
+    Finance: "Finance",
+    Planner: "General",
+  };
+
+  return {
+    title: titleMap[payload.source] || "New Task",
+    description: "Created from Farm Intelligence",
+    module: moduleMap[payload.source] || "General",
+    priority: payload.priority || "Medium",
+    due_date: new Date().toISOString().split("T")[0],
+  };
+}
+
 export default function PlannerWorkspace() {
 	  const location = useLocation();
 	  const navigate = useNavigate();
@@ -70,14 +102,16 @@ export default function PlannerWorkspace() {
 		    }, [loading, location]);
 
 	  // Apply filter from Dashboard notification card navigation
+	  // Also handle intelligent action payloads from the Farm Intelligence Center
 	  useEffect(() => {
 		      const stateFilter = location.state?.filter;
+		      const payload = location.state?.payload;
+
 		      if (!loading && stateFilter) {
 			            const validFilters = ["overdue", "today", "upcoming"];
 			            if (validFilters.includes(stateFilter)) {
 					            setView("workspace");
 					            setFilter("all");
-					            // Scroll to planner board after a brief delay
 					            setTimeout(() => {
 							              plannerBoardRef.current?.scrollIntoView({
 									                behavior: "smooth",
@@ -85,7 +119,19 @@ export default function PlannerWorkspace() {
 									              });
 							            }, 250);
 					          }
-			            // Clear navigation state to prevent reapplying on refresh
+			          }
+
+		      if (!loading && payload) {
+			            // Build pre-filled task from intelligence payload
+			            const prefilled = buildTaskFromPayload(payload);
+			            if (prefilled) {
+					            setSelectedTask(prefilled);
+					            setTaskModalOpen(true);
+					          }
+			          }
+
+		      // Clear navigation state to prevent reapplying on refresh
+		      if (!loading && (stateFilter || payload)) {
 			            navigate(location.pathname, {
 					            replace: true,
 					            state: {},

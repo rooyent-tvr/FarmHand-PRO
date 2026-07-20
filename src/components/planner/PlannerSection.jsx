@@ -20,11 +20,10 @@ export default function PlannerSection({
 
   return (
     <Paper
-      elevation={3}
+      elevation={1}
       sx={{
         borderRadius: 4,
         overflow: "hidden",
-        mb: 4,
       }}
     >
       <Box
@@ -59,7 +58,7 @@ export default function PlannerSection({
       <Box
         sx={{
           p: 3,
-          bgcolor: "#fafafa",
+          bgcolor: "grey.50",
         }}
       >
         {tasks.length === 0 ? (
@@ -100,13 +99,8 @@ export default function PlannerSection({
             <Grid container spacing={2.5}>
               {tasks.map((task) => (
                 <Grid
-                  item
-                  xs={12}
-                  sm={12}
-                  md={6}
-                  lg={4}
-                  xl={3}
                   key={task.id}
+                  size={{ xs: 12, sm: 12, md: 6, lg: 4, xl: 3 }}
                 >
                   <TaskCard
                     task={task}
@@ -122,4 +116,3 @@ export default function PlannerSection({
     </Paper>
   );
 }
-

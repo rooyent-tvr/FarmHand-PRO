@@ -17,7 +17,11 @@ export default function PageContainer({
       disableGutters={fullWidth}
       sx={{
         py: 4,
-        px: fullWidth ? 4 : 2,
+        px: {
+          xs: 2,
+          sm: 3,
+          lg: fullWidth ? 4 : 2,
+        },
       }}
     >
       {(title || subtitle) && (
@@ -29,6 +33,7 @@ export default function PageContainer({
               gutterBottom
               sx={{
                 letterSpacing: "-0.5px",
+                typography: { xs: "h4", md: "h3" },
               }}
             >
               {title}
@@ -42,6 +47,7 @@ export default function PageContainer({
               sx={{
                 mb: 2,
                 maxWidth: fullWidth ? "100%" : 900,
+                typography: { xs: "body1", md: "h6" },
               }}
             >
               {subtitle}

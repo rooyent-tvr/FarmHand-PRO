@@ -1,4 +1,14 @@
-import Card from "../ui/Card";
+import {
+  Box,
+  Card,
+  CardContent,
+  Divider,
+  Grid,
+  Stack,
+  Typography,
+} from "@mui/material";
+
+import { PriorityHigh } from "@mui/icons-material";
 
 export default function TodayPriorities({
   healthDue = 0,
@@ -9,111 +19,80 @@ export default function TodayPriorities({
   const items = [
     {
       icon: "💉",
-      title: "Health Treatments",
+      label: "Health",
       value: healthDue,
-      text:
-        healthDue === 0
-          ? "No treatments due."
-          : `${healthDue} treatment${healthDue > 1 ? "s" : ""} due today.`,
-      color: "#DC2626",
+      color: "error.main",
     },
     {
       icon: "🐂",
-      title: "Pregnancies",
+      label: "Breeding",
       value: pregnant,
-      text:
-        pregnant === 0
-          ? "No active pregnancies."
-          : `${pregnant} active pregnanc${pregnant === 1 ? "y" : "ies"}.`,
-      color: "#F59E0B",
+      color: "warning.main",
     },
     {
       icon: "🌱",
-      title: "Growing Crops",
+      label: "Crops",
       value: growing,
-      text:
-        growing === 0
-          ? "No crops currently growing."
-          : `${growing} crop${growing > 1 ? "s are" : " is"} growing.`,
-      color: "#16A34A",
+      color: "success.main",
     },
     {
       icon: "📋",
-      title: "Outstanding Tasks",
+      label: "Tasks",
       value: tasksDue,
-      text:
-        tasksDue === 0
-          ? "No overdue tasks."
-          : `${tasksDue} task${tasksDue > 1 ? "s" : ""} require attention.`,
-      color: "#2563EB",
+      color: "primary.main",
     },
   ];
 
   return (
     <Card
-      title="⚠ Today's Priorities"
-      subtitle="Items that need your attention today."
+      elevation={1}
+      sx={{
+        borderRadius: 4,
+        height: "100%",
+        transition: "all 0.2s ease",
+        "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
+      }}
     >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
-          gap: 18,
-        }}
-      >
-        {items.map((item) => (
-          <div
-            key={item.title}
-            style={{
-              borderLeft: `5px solid ${item.color}`,
-              background: "#F8FAFC",
-              borderRadius: 14,
-              padding: 18,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 30,
-                marginBottom: 10,
-              }}
-            >
-              {item.icon}
-            </div>
+      <CardContent sx={{ p: 3 }}>
 
-            <div
-              style={{
-                fontWeight: 700,
-                color: "#0F172A",
-                fontSize: 16,
-              }}
-            >
-              {item.title}
-            </div>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+          <PriorityHigh sx={{ fontSize: 20, color: "error.main" }} />
+          <Typography variant="subtitle1" fontWeight={700}>
+            Smart Planner
+          </Typography>
+        </Stack>
 
-            <div
-              style={{
-                fontSize: 34,
-                fontWeight: 800,
-                color: item.color,
-                marginTop: 8,
-              }}
-            >
-              {item.value}
-            </div>
+        <Divider sx={{ mb: 2 }} />
 
-            <div
-              style={{
-                marginTop: 10,
-                color: "#64748B",
-                lineHeight: 1.5,
-                fontSize: 14,
-              }}
-            >
-              {item.text}
-            </div>
-          </div>
-        ))}
-      </div>
+        <Grid container spacing={1.5}>
+          {items.map((item) => (
+            <Grid key={item.label} size={{ xs: 6 }}>
+              <Box
+                sx={{
+                  borderLeft: 4,
+                  borderColor: item.color,
+                  bgcolor: "grey.50",
+                  borderRadius: 2.5,
+                  p: 1.5,
+                  transition: "background 0.15s ease",
+                  "&:hover": { bgcolor: "grey.100" },
+                }}
+              >
+                <Typography sx={{ fontSize: "1.2rem", mb: 0.5 }}>
+                  {item.icon}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                  {item.label}
+                </Typography>
+                <Typography variant="h5" fontWeight={800} sx={{ color: item.color, lineHeight: 1.2 }}>
+                  {item.value}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+
+      </CardContent>
     </Card>
   );
 }
