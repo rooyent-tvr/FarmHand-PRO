@@ -1,5 +1,3 @@
-import QuickActions from "./QuickActions";
-
 export default function HeroBanner({
   totalAnimals = 0,
   totalCrops = 0,
@@ -19,198 +17,114 @@ export default function HeroBanner({
   if (hour < 12) greeting = "Good Morning";
   else if (hour < 18) greeting = "Good Afternoon";
 
-  const today = now.toLocaleDateString("en-ZA", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  const currentTime = now.toLocaleTimeString("en-ZA", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%)",
-        color: "#fff",
-        borderRadius: 20,
-        padding: "28px 32px",
-        boxShadow: "0 8px 32px rgba(27,94,32,.2)",
         position: "relative",
+        borderRadius: 16,
         overflow: "hidden",
+        color: "#fff",
+        boxShadow: "0 6px 28px rgba(0,0,0,.12)",
       }}
     >
-      {/* Subtle overlay pattern */}
+      {/* Background — farm landscape image */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "radial-gradient(circle at 80% 20%, rgba(255,255,255,.06) 0%, transparent 50%)",
-          pointerEvents: "none",
+          backgroundImage: "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1400&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center 40%",
+          zIndex: 0,
+        }}
+      />
+      {/* 70% dark green overlay — branded feel */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(135deg, rgba(15,45,10,.78) 0%, rgba(25,60,18,.72) 50%, rgba(20,55,15,.68) 100%)",
+          zIndex: 1,
         }}
       />
 
-      {/* Top: Greeting + Date */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 20,
-          position: "relative",
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 14, opacity: 0.85, letterSpacing: "0.02em" }}>
-            {greeting} 👋
-          </div>
-          <h1 style={{ margin: "6px 0 0", fontSize: 32, fontWeight: 800, letterSpacing: "-0.5px" }}>
-            🚜 FarmHand PRO
-          </h1>
-        </div>
+      {/* Content */}
+      <div style={{ position: "relative", zIndex: 2, padding: "22px 26px 18px" }}>
 
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 12, opacity: 0.8 }}>
-            {today}
-          </div>
-          <div style={{ marginTop: 4, fontSize: 16, fontWeight: 700 }}>
-            {currentTime}
-          </div>
-        </div>
-      </div>
-
-      {/* KPI Row */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))",
-          gap: 10,
-          marginBottom: 20,
-          position: "relative",
-        }}
-      >
-        <KPICard
-          emoji="🐄"
-          label="Livestock"
-          value={totalAnimals}
-          sub={healthDue > 0 ? `${healthDue} health due` : `${pregnantBreeding} pregnant`}
-        />
-        <KPICard
-          emoji="🌾"
-          label="Crops"
-          value={totalCrops}
-          sub="Active"
-        />
-        <KPICard
-          emoji="🚜"
-          label="Machinery"
-          value={machineryCount > 0 ? `${machineryCount}` : "✓"}
-          sub={machineryCount > 0 ? "Service due" : "On schedule"}
-        />
-        <KPICard
-          emoji="📋"
-          label="Planner"
-          value={plannerOverdue + plannerToday}
-          sub={plannerOverdue > 0 ? `${plannerOverdue} overdue` : "Today"}
-        />
-        <KPICard
-          emoji="❤️"
-          label="Health"
-          value={farmHealthScore}
-          sub={farmHealthStatus || "/100"}
-        />
-      </div>
-
-      {/* Bottom: Weather + Quick Actions */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12,
-          position: "relative",
-        }}
-      >
-        {/* Weather */}
-        <div
-          style={{
-            background: "rgba(255,255,255,.1)",
-            backdropFilter: "blur(4px)",
-            borderRadius: 14,
-            padding: "14px 16px",
-            border: "1px solid rgba(255,255,255,.12)",
-          }}
-        >
-          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
-            {weather?.available ? (weather.current?.icon || "☀️") : "☀️"} Weather
+        {/* Top: Branding + Weather */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 600, opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 2 }}>
+              🚜 FarmHand PRO — Smart Farm Operations
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700 }}>
+              {greeting} 👋
+            </div>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 3 }}>
+              Your farm is looking great today.
+            </div>
           </div>
 
+          {/* Weather compact — top right */}
           {weather?.available ? (
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 2 }}>
-                {weather.current?.temperature}°C — {weather.current?.condition}
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1 }}>
+                {weather.current?.temperature}°
               </div>
-              <div style={{ fontSize: 11, opacity: 0.8 }}>
-                Wind: {weather.current?.windSpeed} km/h · Humidity: {weather.current?.humidity}%
+              <div style={{ fontSize: 11, opacity: 0.85, marginTop: 3 }}>
+                {weather.current?.condition}
               </div>
-              {weather.forecast?.length > 0 && (
-                <div style={{ marginTop: 6, fontSize: 11, opacity: 0.75 }}>
-                  Tomorrow: {weather.forecast[0]?.icon} {weather.forecast[0]?.temperature}°C — {weather.forecast[0]?.condition}
-                </div>
-              )}
+              <div style={{ fontSize: 10, opacity: 0.65, marginTop: 1 }}>
+                Wind {weather.current?.windSpeed} km/h
+              </div>
             </div>
           ) : (
-            <div style={{ opacity: 0.7, fontSize: 12 }}>
-              Weather unavailable. Configure API key.
+            <div style={{ fontSize: 11, opacity: 0.5, textAlign: "right" }}>
+              Weather<br />unavailable
             </div>
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div
-          style={{
-            background: "rgba(255,255,255,.1)",
-            backdropFilter: "blur(4px)",
-            borderRadius: 14,
-            padding: "14px 16px",
-            border: "1px solid rgba(255,255,255,.12)",
-          }}
-        >
-          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
-            ⚡ Quick Actions
-          </div>
-          <QuickActions />
+        {/* KPI Cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
+          <KPICard icon="🐄" label="Livestock" value={totalAnimals} sub="Total Animals" />
+          <KPICard icon="🌾" label="Crops" value={totalCrops} sub="Active Fields" />
+          <KPICard icon="🚜" label="Machinery" value={machineryCount > 0 ? machineryCount : "✓"} sub={machineryCount > 0 ? "Service Due" : "Active Machines"} />
+          <KPICard icon="📋" label="Planner" value={plannerOverdue + plannerToday} sub="Items Today" />
+          <KPICard icon="💰" label="Finance" value={`R ${farmHealthScore.toLocaleString()}`} sub={farmHealthStatus || "Health Score"} accent />
         </div>
       </div>
     </div>
   );
 }
 
-function KPICard({ emoji, label, value, sub }) {
+function KPICard({ icon, label, value, sub, accent }) {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,.12)",
+        background: accent ? "rgba(255,255,255,.24)" : "rgba(255,255,255,.16)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         borderRadius: 12,
-        padding: "12px 10px",
-        textAlign: "center",
-        border: "1px solid rgba(255,255,255,.08)",
-        transition: "background .2s ease",
+        padding: "12px 14px",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        border: "1px solid rgba(255,255,255,.2)",
+        boxShadow: "0 2px 12px rgba(0,0,0,.08)",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
       }}
     >
-      <div style={{ fontSize: 11, opacity: 0.8, marginBottom: 3, fontWeight: 500 }}>
-        {emoji} {label}
-      </div>
-      <div style={{ fontSize: 22, fontWeight: 800, lineHeight: 1.1 }}>
-        {value}
-      </div>
-      {sub && (
-        <div style={{ fontSize: 10, opacity: 0.7, marginTop: 3 }}>
-          {sub}
+      <div style={{ fontSize: 26 }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 9, opacity: 0.75, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>
+          {label}
         </div>
-      )}
+        <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.1, marginTop: 2 }}>
+          {value}
+        </div>
+        <div style={{ fontSize: 9, opacity: 0.6, marginTop: 2 }}>{sub}</div>
+      </div>
     </div>
   );
 }

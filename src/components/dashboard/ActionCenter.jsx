@@ -1,162 +1,74 @@
 import {
-  Box,
+  Button,
   Card,
   CardContent,
   Chip,
-  Divider,
   Stack,
   Typography,
 } from "@mui/material";
 
-import {
-  Bolt,
-  CheckCircle,
-  Schedule,
-} from "@mui/icons-material";
+import { Bolt } from "@mui/icons-material";
 
-function getPriorityChip(priority) {
-  switch (priority) {
-    case "high":
-      return <Chip label="HIGH" size="small" color="error" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
-    case "medium":
-      return <Chip label="MEDIUM" size="small" color="warning" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
-    case "low":
-      return <Chip label="LOW" size="small" color="info" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
-    default:
-      return <Chip label="INFO" size="small" color="success" sx={{ fontWeight: 700, fontSize: "0.6rem", height: 18 }} />;
-  }
-}
-
-function getSourceColor(source) {
-  switch (source?.toLowerCase()) {
-    case "planner":
-      return "#ed6c02";
-    case "health":
-      return "#d32f2f";
-    case "machinery":
-      return "#1976d2";
-    case "crops":
-      return "#2e7d32";
-    case "finance":
-      return "#7b1fa2";
-    case "breeding":
-      return "#e91e63";
-    case "weather":
-      return "#0288d1";
-    default:
-      return "#757575";
-  }
-}
-
-export default function ActionCenter({
-  actions = [],
-  tasks = [],
-  onComplete,
-}) {
-  const items = actions.length > 0 ? actions : tasks.map((t) => ({
-    priority: "medium",
-    icon: "📋",
-    title: t.title,
-    description: t.module || "General",
-    source: t.module || "Planner",
-    id: t.id,
-    _task: t,
-  }));
-
-  const displayItems = items.slice(0, 5);
+export default function ActionCenter({ actions = [], onViewAll }) {
+  const display = actions.slice(0, 3);
 
   return (
     <Card
-      elevation={1}
+      elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: "divider",
         height: "100%",
-        transition: "all 0.2s ease",
-        "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <CardContent sx={{ p: 3 }}>
+      <CardContent sx={{ p: 2.5, flex: 1, display: "flex", flexDirection: "column" }}>
 
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <Bolt sx={{ fontSize: 20, color: "warning.main" }} />
-          <Typography variant="subtitle1" fontWeight={700}>
+        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25 }}>
+          <Bolt sx={{ fontSize: 16, color: "warning.main" }} />
+          <Typography variant="subtitle2" fontWeight={700} sx={{ fontSize: "0.8rem" }}>
             Action Centre
           </Typography>
         </Stack>
 
-        <Divider sx={{ mb: 2 }} />
+        <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, fontSize: "0.65rem" }}>
+          Top actions for your attention.
+        </Typography>
 
-        {displayItems.length === 0 ? (
-          <Box sx={{ py: 4, textAlign: "center" }}>
-            <CheckCircle sx={{ fontSize: 32, color: "success.main", mb: 1 }} />
-            <Typography variant="body2" fontWeight={600}>
-              Everything looks good.
+        <Stack spacing={1.25} sx={{ flex: 1 }}>
+          {display.length === 0 ? (
+            <Typography variant="caption" color="text.disabled">
+              No urgent actions right now.
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              No urgent farm actions at the moment.
-            </Typography>
-          </Box>
-        ) : (
-          <Stack spacing={1.5}>
-            {displayItems.map((item, index) => (
-              <Card
-                key={item.id || index}
-                variant="outlined"
-                sx={{
-                  borderRadius: 2.5,
-                  transition: "box-shadow 0.15s ease",
-                  "&:hover": { boxShadow: 1 },
-                }}
-              >
-                <CardContent sx={{ py: 1.25, px: 1.5, "&:last-child": { pb: 1.25 } }}>
-                  <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                    <Typography sx={{ fontSize: "1rem", mt: 0.2 }}>
-                      {item.icon || "⚡"}
-                    </Typography>
+          ) : (
+            display.map((item, i) => (
+              <Stack key={item.id || i} direction="row" spacing={1} alignItems="center">
+                <Typography sx={{ fontSize: 13 }}>{item.icon || "⚡"}</Typography>
+                <Typography variant="caption" sx={{ flex: 1, fontSize: "0.7rem" }} noWrap>
+                  {item.title}
+                </Typography>
+                <Chip
+                  label="Do now"
+                  size="small"
+                  color="primary"
+                  sx={{ height: 18, fontSize: "0.55rem", fontWeight: 700, borderRadius: 1 }}
+                />
+              </Stack>
+            ))
+          )}
+        </Stack>
 
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.25 }}>
-                        {getPriorityChip(item.priority)}
-                        <Typography variant="body2" fontWeight={700} noWrap>
-                          {item.title}
-                        </Typography>
-                      </Stack>
-
-                      <Typography variant="caption" color="text.secondary" noWrap sx={{ display: "block" }}>
-                        {item.description}
-                      </Typography>
-
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                        {item.source && (
-                          <Chip
-                            label={item.source}
-                            size="small"
-                            sx={{
-                              height: 16,
-                              fontSize: "0.55rem",
-                              fontWeight: 600,
-                              bgcolor: `${getSourceColor(item.source)}14`,
-                              color: getSourceColor(item.source),
-                              border: `1px solid ${getSourceColor(item.source)}30`,
-                            }}
-                          />
-                        )}
-                        {item.daysRemaining !== undefined && (
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Schedule sx={{ fontSize: 11, color: "text.disabled" }} />
-                            <Typography variant="caption" color="text.disabled" sx={{ fontSize: "0.65rem" }}>
-                              {item.daysRemaining === 0 ? "Today" : `${item.daysRemaining}d`}
-                            </Typography>
-                          </Stack>
-                        )}
-                      </Stack>
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            ))}
-          </Stack>
-        )}
+        <Button
+          variant="contained"
+          size="small"
+          color="success"
+          onClick={onViewAll}
+          sx={{ mt: 2, textTransform: "none", fontSize: "0.7rem", fontWeight: 600, borderRadius: 1.5, alignSelf: "flex-start" }}
+        >
+          View all actions
+        </Button>
 
       </CardContent>
     </Card>
