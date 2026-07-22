@@ -14,6 +14,7 @@ import DashboardQuickActions from "../components/dashboard/DashboardQuickActions
 import FarmHealthScore from "../components/dashboard/FarmHealthScore";
 import WeatherSummary from "../components/dashboard/WeatherSummary";
 import FarmTimeline from "../components/dashboard/FarmTimeline";
+import NotificationCenter from "../components/dashboard/NotificationCenter";
 
 import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
@@ -25,6 +26,7 @@ import { generateAIInsights } from "../utils/aiInsights";
 import { generateFarmTimeline } from "../utils/farmTimeline";
 import { generateActionCenter } from "../utils/actionCenter";
 import { getFarmInsights } from "../services/intelligence";
+import { getNotifications as getEngineNotifications } from "../services/notificationEngine";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ export default function Dashboard() {
   const [notifications, setNotifications] = useState(null);
   const [weather, setWeather] = useState(null);
   const [farmInsights, setFarmInsights] = useState([]);
+  const [engineNotifications, setEngineNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
@@ -86,6 +89,9 @@ export default function Dashboard() {
 
       const insights = await getFarmInsights(farmData);
       setFarmInsights(insights);
+
+      const engineNotifs = getEngineNotifications(farmData);
+      setEngineNotifications(engineNotifs);
     } catch (err) {
       // Graceful fallback
     } finally {
@@ -205,6 +211,15 @@ export default function Dashboard() {
             <FarmTimeline events={farmTimeline} />
           </Grid>
         </Grid>
+
+        {/* NOTIFICATION CENTER */}
+        <NotificationCenter
+          notifications={engineNotifications}
+          loading={false}
+          onNotificationClick={(n) => navigate(n.route || "/dashboard")}
+          onMarkAsRead={() => {}}
+          onClear={() => {}}
+        />
 
         {/* VIEW ANALYTICS */}
         <Stack direction="row" justifyContent="center" sx={{ pt: 1, pb: 2 }}>
