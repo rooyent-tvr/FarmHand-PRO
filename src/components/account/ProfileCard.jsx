@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getSubscription } from "../../services/subscriptionService";
 import {
   Avatar,
   Box,
@@ -21,6 +22,7 @@ import { createProfile } from "../../services/profileService";
 export default function ProfileCard() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
     loadProfile();
@@ -30,6 +32,8 @@ export default function ProfileCard() {
     try {
       const data = await createProfile();
       setProfile(data);
+      const sub = await getSubscription();
+      setSubscription(sub);
     } catch (error) {
       console.error("Failed to load profile:", error);
     } finally {
@@ -45,6 +49,9 @@ export default function ProfileCard() {
         .substring(0, 2)
         .toUpperCase()
     : "";
+
+  const plan = subscription?.plan || "Starter";
+  const isPro = String(plan).toLowerCase() === "pro";
 
   const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString(undefined, {
@@ -143,7 +150,7 @@ export default function ProfileCard() {
           <Stack spacing={1.5}>
             <Chip
               icon={<WorkspacePremiumIcon />}
-              label="Starter Plan"
+              label={isPro ? "Pro Plan" : "Starter Plan"}
               sx={{
                 bgcolor: "rgba(255,255,255,0.18)",
                 color: "white",
@@ -219,7 +226,7 @@ export default function ProfileCard() {
               variant="h6"
               fontWeight={600}
             >
-              Starter
+              {plan}
             </Typography>
           </Box>
         </Stack>

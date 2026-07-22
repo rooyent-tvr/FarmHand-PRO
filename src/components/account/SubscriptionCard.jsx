@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -15,9 +15,32 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import UpgradeDialog from "./UpgradeDialog";
+import { getSubscription, upgradeToPro } from "../../services/subscriptionService";
 
-export default function SubscriptionCard() {
+export default function SubscriptionCard({ subscription: subscriptionProp, onSubscriptionChanged }) {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [subscription, setSubscription] = useState(subscriptionProp);
+  const [loading, setLoading] = useState(!subscriptionProp);
+
+  useEffect(() => {
+    if (subscriptionProp) {
+      setSubscription(subscriptionProp);
+      setLoading(false);
+      return;
+    }
+    loadSubscription();
+  }, [subscriptionProp]);
+
+  async function loadSubscription() {
+    setLoading(true);
+    try {
+      const data = await getSubscription();
+      setSubscription(data);
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
   const features = [
     "Dashboard & Analytics",
@@ -35,15 +58,21 @@ export default function SubscriptionCard() {
     setUpgradeOpen(false);
   };
 
-  const handleUpgrade = () => {
-    // TODO:
-    // Integrate your payment provider here
-    // (PayFast, Stripe, Peach Payments, etc.)
-
-    console.log("Upgrade to PRO clicked");
-
-    setUpgradeOpen(false);
+  const handleUpgrade = async () => {
+    try {
+      await upgradeToPro();
+      const updated = await getSubscription();
+      setSubscription(updated);
+      if (onSubscriptionChanged) onSubscriptionChanged();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUpgradeOpen(false);
+    }
   };
+
+  const plan = subscription?.plan || "Starter";
+  const isPro = String(plan).toLowerCase() === "pro";
 
   return (
     <>
@@ -77,7 +106,7 @@ export default function SubscriptionCard() {
             </Stack>
 
             <Chip
-              label="Starter"
+              label={plan}
               color="success"
             />
           </Stack>
@@ -94,7 +123,7 @@ export default function SubscriptionCard() {
             fontWeight={700}
             sx={{ mb: 2 }}
           >
-            Starter Plan
+            {isPro ? "Pro Plan" : "Starter Plan"}
           </Typography>
 
           <Typography
@@ -153,8 +182,9 @@ export default function SubscriptionCard() {
             fullWidth
             size="large"
             onClick={handleOpenUpgrade}
+            disabled={isPro}
           >
-            Upgrade to Pro
+            {isPro ? "PRO Active" : "Upgrade to Pro"}
           </Button>
         </CardContent>
       </Card>

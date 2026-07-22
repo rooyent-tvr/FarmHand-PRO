@@ -18,6 +18,7 @@ import {
 } from "@mui/icons-material";
 
 import { getInsightActions } from "../../services/intelligence/actions";
+import FeatureGate from "../subscription/FeatureGate";
 
 const MAX_INSIGHTS = 5;
 
@@ -88,7 +89,12 @@ export default function FarmIntelligenceCenter({
   }, [insights, filter]);
 
   return (
-    <Card elevation={1} sx={{ borderRadius: 4, transition: "all 0.2s ease", "&:hover": { boxShadow: 3, transform: "translateY(-2px)" } }}>
+    <FeatureGate
+      feature="farm_intelligence"
+      title="Farm Intelligence Centre"
+      description="Upgrade to FarmHand PRO to unlock AI-powered farm intelligence, cross-module insights and predictive recommendations."
+    >
+      <Card elevation={1} sx={{ borderRadius: 4, transition: "all 0.2s ease", "&:hover": { boxShadow: 3, transform: "translateY(-2px)" } }}>
       <CardContent sx={{ p: 3 }}>
 
         {/* Header */}
@@ -260,6 +266,7 @@ export default function FarmIntelligenceCenter({
         </Stack>
 
       </CardContent>
-    </Card>
+      </Card>
+    </FeatureGate>
   );
 }
