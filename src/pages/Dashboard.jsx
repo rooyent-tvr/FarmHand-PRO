@@ -19,7 +19,6 @@ import NotificationCenter from "../components/dashboard/NotificationCenter";
 import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
 import { getNotifications } from "../services/notificationService";
-import { completeManualTask } from "../services/plannerService";
 import { getWeatherSummary } from "../services/weatherService";
 import { calculateFarmHealthScore } from "../utils/farmHealthScore";
 import { generateAIInsights } from "../utils/aiInsights";
@@ -27,16 +26,21 @@ import { generateFarmTimeline } from "../utils/farmTimeline";
 import { generateActionCenter } from "../utils/actionCenter";
 import { getFarmInsights } from "../services/intelligence";
 import { getNotifications as getEngineNotifications } from "../services/notificationEngine";
+import { getSmartDashboardCards } from "../services/dashboard/smartCards";
+import { getDailyFarmBriefing } from "../services/dashboard/dailyBriefing";
+import { useNotificationBadge } from "../context/NotificationContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { setUnreadCount } = useNotificationBadge();
 
   const [dashboard, setDashboard] = useState(null);
   const [healthDue, setHealthDue] = useState(0);
   const [notifications, setNotifications] = useState(null);
   const [weather, setWeather] = useState(null);
-  const [farmInsights, setFarmInsights] = useState([]);
   const [engineNotifications, setEngineNotifications] = useState([]);
+  const [smartCards, setSmartCards] = useState([]);
+  const [dailyBriefing, setDailyBriefing] = useState(null);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
@@ -64,12 +68,18 @@ export default function Dashboard() {
 
       setHealthDue(due.length);
 
+      // Assemble unified farm data object for all engines
       const farmData = {
         planner: {
           overdue: notifs?.planner?.overdue || [],
           today: notifs?.planner?.today || [],
           upcoming: notifs?.planner?.upcoming || [],
           completed: notifs?.planner?.completed || [],
+          tasks: [
+            ...(notifs?.planner?.overdue || []),
+            ...(notifs?.planner?.today || []),
+            ...(notifs?.planner?.upcoming || []),
+          ],
         },
         livestock: {
           animals: dash?.animals || [],
@@ -77,7 +87,9 @@ export default function Dashboard() {
           breedingRecords: dash?.breedingRecords || [],
           weightRecords: dash?.weightRecords || [],
         },
-        crops: dash?.crops || [],
+        crops: {
+          crops: dash?.crops || [],
+        },
         finance: { records: dash?.financeRecords || [] },
         machinery: {
           machines: dash?.machines || [],
@@ -85,14 +97,29 @@ export default function Dashboard() {
           serviceHistory: dash?.serviceHistory || [],
         },
         weather: weatherData,
+        intelligence: { insights: [] },
+        system: { events: [] },
       };
 
+      // Intelligence Engine
       const insights = await getFarmInsights(farmData);
-      setFarmInsights(insights);
+      farmData.intelligence.insights = insights;
 
+      // Notification Engine
       const engineNotifs = getEngineNotifications(farmData);
       setEngineNotifications(engineNotifs);
-    } catch (err) {
+      setUnreadCount(engineNotifs.filter((n) => !n.read).length);
+
+      // Smart Card Engine
+      setSmartCards(getSmartDashboardCards(farmData));
+
+      // Daily Briefing Engine
+      const briefing = getDailyFarmBriefing({
+        ...farmData,
+        notifications: engineNotifs,
+      });
+      setDailyBriefing(briefing);
+    } catch {
       // Graceful fallback
     } finally {
       setLoading(false);
@@ -107,10 +134,10 @@ export default function Dashboard() {
     return <h2>Loading dashboard...</h2>;
   }
 
-  const crops = dashboard.crops || [];
+  // Derived values for presentation engines
   const plannerOverdue = Number(notifications?.planner?.overdue?.length || 0);
   const plannerToday = Number(notifications?.planner?.today?.length || 0);
-  const growingCrops = crops.filter((c) => c.status === "Growing").length;
+  const growingCrops = (dashboard.crops || []).filter((c) => c.status === "Growing").length;
 
   const farmHealth = calculateFarmHealthScore({
     planner: { overdue: plannerOverdue },
@@ -155,16 +182,12 @@ export default function Dashboard() {
 
         {/* HERO BANNER */}
         <HeroBanner
-          totalAnimals={dashboard.totalAnimals}
-          totalCrops={dashboard.totalCrops}
-          pregnantBreeding={dashboard.pregnantBreeding}
-          healthDue={healthDue}
           weather={weather}
-          machineryCount={Number(notifications?.modules?.machinery || 0)}
-          plannerOverdue={plannerOverdue}
-          plannerToday={plannerToday}
           farmHealthScore={farmHealth.score}
           farmHealthStatus={farmHealth.status}
+          smartCards={smartCards}
+          onCardClick={(route) => navigate(route)}
+          dailyBriefing={dailyBriefing}
         />
 
         {/* OPERATIONS CENTRE */}
@@ -215,7 +238,6 @@ export default function Dashboard() {
         {/* NOTIFICATION CENTER */}
         <NotificationCenter
           notifications={engineNotifications}
-          loading={false}
           onNotificationClick={(n) => navigate(n.route || "/dashboard")}
           onMarkAsRead={() => {}}
           onClear={() => {}}

@@ -1,7 +1,10 @@
 import { Badge, IconButton, Stack, Typography } from "@mui/material";
 import { Notifications } from "@mui/icons-material";
+import { useNotificationBadge } from "../../context/NotificationContext";
 
-export default function TopBar({ unreadCount = 0, onNotificationClick }) {
+export default function TopBar({ onNotificationClick }) {
+  const { unreadCount } = useNotificationBadge();
+
   return (
     <header
       style={{
@@ -23,7 +26,7 @@ export default function TopBar({ unreadCount = 0, onNotificationClick }) {
           onClick={onNotificationClick}
           aria-label="Notifications"
         >
-          <Badge badgeContent={unreadCount} color="error" max={99}>
+          <Badge badgeContent={unreadCount > 0 ? unreadCount : 0} color="error" max={99} invisible={unreadCount === 0}>
             <Notifications sx={{ fontSize: 22, color: "text.secondary" }} />
           </Badge>
         </IconButton>
