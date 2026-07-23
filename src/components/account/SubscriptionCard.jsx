@@ -1,199 +1,244 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { format } from "date-fns";
+
 import {
+  Alert,
+  Box,
   Button,
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Divider,
-  LinearProgress,
   Stack,
   Typography,
 } from "@mui/material";
 
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import {
+  getSubscription,
+  cancelSubscription,
+} from "../../services/subscriptionService";
 
-import UpgradeDialog from "./UpgradeDialog";
-import { getSubscription, upgradeToPro } from "../../services/subscriptionService";
+import CancelSubscriptionDialog from "./CancelSubscriptionDialog";
 
-export default function SubscriptionCard({ subscription: subscriptionProp, onSubscriptionChanged }) {
-  const [upgradeOpen, setUpgradeOpen] = useState(false);
-  const [subscription, setSubscription] = useState(subscriptionProp);
-  const [loading, setLoading] = useState(!subscriptionProp);
+const PRO_FEATURES = [
+  "AI Farm Intelligence",
+  "Advanced Reports",
+  "Unlimited Livestock",
+  "Unlimited Crops",
+  "Priority Support",
+];
 
-  useEffect(() => {
-    if (subscriptionProp) {
-      setSubscription(subscriptionProp);
-      setLoading(false);
-      return;
-    }
-    loadSubscription();
-  }, [subscriptionProp]);
+const STARTER_FEATURES = [
+  "Basic Dashboard",
+  "Up to 20 Animals",
+  "Up to 5 Crops",
+  "Community Support",
+];
+
+function getStatusChip(status) {
+  if (status === "Active") {
+    return <Chip label="Active" size="small" color="success" sx={{ fontWeight: 700 }} />;
+  }
+  if (status === "Pending Cancellation") {
+    return <Chip label="Pending Cancellation" size="small" color="warning" sx={{ fontWeight: 700 }} />;
+  }
+  return <Chip label="Starter" size="small" sx={{ fontWeight: 700 }} />;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "—";
+  try {
+    return format(new Date(dateStr), "dd MMM yyyy");
+  } catch {
+    return "—";
+  }
+}
+
+function formatPrice(price, billingCycle) {
+  if (!price || price === 0) return "Free";
+  const cycle = billingCycle === "Yearly" ? "Year" : "Month";
+  return `R${price} / ${cycle}`;
+}
+
+export default function SubscriptionCard() {
+  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   async function loadSubscription() {
-    setLoading(true);
     try {
+      setLoading(true);
+      setError(false);
       const data = await getSubscription();
       setSubscription(data);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    loadSubscription();
+  }, []);
 
-  const features = [
-    "Dashboard & Analytics",
-    "Livestock Management",
-    "Crop Management",
-    "Machinery Management",
-    "Reports Centre",
-  ];
-
-  const handleOpenUpgrade = () => {
-    setUpgradeOpen(true);
-  };
-
-  const handleCloseUpgrade = () => {
-    setUpgradeOpen(false);
-  };
-
-  const handleUpgrade = async () => {
+  async function handleCancelConfirm() {
     try {
-      await upgradeToPro();
-      const updated = await getSubscription();
-      setSubscription(updated);
-      if (onSubscriptionChanged) onSubscriptionChanged();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUpgradeOpen(false);
+      await cancelSubscription();
+      toast.success("Subscription scheduled for cancellation.");
+      setDialogOpen(false);
+      await loadSubscription();
+    } catch {
+      toast.error("Unable to cancel subscription.");
     }
-  };
+  }
 
-  const plan = subscription?.plan || "Starter";
-  const isPro = String(plan).toLowerCase() === "pro";
+  if (loading) {
+    return (
+      <Card elevation={1} sx={{ borderRadius: 3 }}>
+        <CardContent sx={{ p: 4, display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
+          <CircularProgress color="success" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !subscription) {
+    return (
+      <Card elevation={1} sx={{ borderRadius: 3 }}>
+        <CardContent sx={{ p: 4 }}>
+          <Alert severity="warning">No subscription found.</Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const isPro = subscription.plan === "Pro";
+  const features = isPro ? PRO_FEATURES : STARTER_FEATURES;
 
   return (
-    <>
-      <Card
-        elevation={2}
-        sx={{
-          height: "100%",
-          borderRadius: 3,
-        }}
-      >
-        <CardContent>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-          >
-            <Stack
-              direction="row"
-              spacing={1.5}
-              alignItems="center"
-            >
-              <WorkspacePremiumIcon color="warning" />
+    <Card elevation={1} sx={{ borderRadius: 3 }}>
+      <CardContent sx={{ p: 4 }}>
 
-              <Typography
-                variant="h6"
-                fontWeight={700}
-              >
-                Subscription
-              </Typography>
-            </Stack>
+        {/* Header */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={700}>
+              Subscription Management
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Manage your FarmHand PRO subscription
+            </Typography>
+          </Box>
+          {getStatusChip(subscription.status)}
+        </Box>
 
-            <Chip
-              label={plan}
-              color="success"
-            />
-          </Stack>
+        {/* Plan + Price */}
+        <Typography variant="h5" fontWeight={800} sx={{ mt: 2 }}>
+          {subscription.plan || "Starter"} Plan
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          {formatPrice(subscription.price, subscription.billing_cycle)}
+        </Typography>
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-          >
-            Current Plan
-          </Typography>
+        <Divider sx={{ my: 3 }} />
 
-          <Typography
-            variant="h4"
-            fontWeight={700}
-            sx={{ mb: 2 }}
-          >
-            {isPro ? "Pro Plan" : "Starter Plan"}
-          </Typography>
+        {/* Information rows */}
+        <Stack spacing={2} sx={{ mb: 3 }}>
+          <InfoRow label="Billing Cycle" value={subscription.billing_cycle || "Monthly"} />
+          <InfoRow label="Price" value={formatPrice(subscription.price, subscription.billing_cycle)} />
+          <InfoRow label="Renewal Date" value={formatDate(subscription.renewal_date)} />
+          <InfoRow label="Member Since" value={formatDate(subscription.created_at)} />
+        </Stack>
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-          >
-            Account Usage
-          </Typography>
+        <Divider sx={{ my: 3 }} />
 
-          <LinearProgress
-            variant="determinate"
-            value={35}
+        {/* Features */}
+        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 2 }}>
+          Included Features
+        </Typography>
+
+        <Stack spacing={1.5} sx={{ mb: 3 }}>
+          {features.map((feature) => (
+            <Box key={feature} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Typography sx={{ color: "success.main", fontSize: 16, lineHeight: 1 }}>✓</Typography>
+              <Typography variant="body2">{feature}</Typography>
+            </Box>
+          ))}
+        </Stack>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Actions */}
+        <Stack spacing={1.5}>
+          <Button
+            variant="contained"
+            fullWidth
+            disabled
             sx={{
-              height: 10,
-              borderRadius: 5,
-              mt: 1,
-              mb: 3,
+              textTransform: "none",
+              fontWeight: 600,
+              height: 48,
+              borderRadius: 2,
             }}
-          />
-
-          <Divider sx={{ mb: 3 }} />
-
-          <Typography
-            fontWeight={700}
-            mb={2}
           >
-            Included Features
-          </Typography>
+            Manage Payment — Coming Soon
+          </Button>
 
-          <Stack spacing={1.5}>
-            {features.map((feature) => (
-              <Stack
-                key={feature}
-                direction="row"
-                spacing={1}
-                alignItems="center"
-              >
-                <CheckCircleIcon
-                  color="success"
-                  fontSize="small"
-                />
-
-                <Typography variant="body2">
-                  {feature}
-                </Typography>
-              </Stack>
-            ))}
-          </Stack>
-
-          <Divider sx={{ my: 3 }} />
+          <Button
+            variant="outlined"
+            fullWidth
+            disabled
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              height: 48,
+              borderRadius: 2,
+            }}
+          >
+            Billing History
+          </Button>
 
           <Button
             variant="contained"
-            color="warning"
-            startIcon={<AutoAwesomeIcon />}
+            color="error"
             fullWidth
-            size="large"
-            onClick={handleOpenUpgrade}
-            disabled={isPro}
+            disabled={!isPro}
+            onClick={() => setDialogOpen(true)}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              height: 48,
+              borderRadius: 2,
+            }}
           >
-            {isPro ? "PRO Active" : "Upgrade to Pro"}
+            Cancel Subscription
           </Button>
-        </CardContent>
-      </Card>
+        </Stack>
 
-      <UpgradeDialog
-        open={upgradeOpen}
-        onClose={handleCloseUpgrade}
-        onUpgrade={handleUpgrade}
+      </CardContent>
+
+      <CancelSubscriptionDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onConfirm={handleCancelConfirm}
       />
-    </>
+    </Card>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+      <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 700, textAlign: "right", minWidth: 140 }}>
+        {value}
+      </Typography>
+    </Box>
   );
 }

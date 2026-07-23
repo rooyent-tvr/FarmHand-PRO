@@ -149,7 +149,7 @@ export async function downgradeToStarter() {
 
 export async function cancelSubscription() {
   return updateSubscription({
-    status: "Cancelled",
+    status: "Pending Cancellation",
   });
 }
 
