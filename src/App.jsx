@@ -19,6 +19,9 @@ import Account from "./pages/Account";
 import Machinery from "./pages/Machinery";
 import MachineProfile from "./pages/MachineProfile";
 
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancelled from "./pages/PaymentCancelled";
+
 export default function App() {
   return (
     <Routes>
@@ -42,7 +45,10 @@ export default function App() {
         <Route path="/finance" element={<Finance />} />
 
         <Route path="/machinery" element={<Machinery />} />
-        <Route path="/machinery/:id" element={<MachineProfile />} />
+        <Route
+          path="/machinery/:id"
+          element={<MachineProfile />}
+        />
 
         <Route path="/tasks" element={<Tasks />} />
 
@@ -53,6 +59,16 @@ export default function App() {
 
         <Route path="/reports" element={<Reports />} />
         <Route path="/account" element={<Account />} />
+
+        <Route
+          path="/account/payment-success"
+          element={<PaymentSuccess />}
+        />
+
+        <Route
+          path="/account/payment-cancelled"
+          element={<PaymentCancelled />}
+        />
       </Route>
     </Routes>
   );

@@ -1,7 +1,10 @@
+import { useState } from "react";
+
 import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -16,11 +19,17 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
+import toast from "react-hot-toast";
+
+import { startUpgradePayment } from "../../services/paymentService";
+
 export default function UpgradeDialog({
   open,
   onClose,
   onUpgrade,
 }) {
+  const [loading, setLoading] = useState(false);
+
   const starterFeatures = [
     "Dashboard",
     "Livestock Management",
@@ -43,10 +52,43 @@ export default function UpgradeDialog({
     "Priority Support",
   ];
 
+  async function handleUpgrade() {
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+      // Allow the existing upgrade flow to continue if one exists.
+      if (onUpgrade) {
+        await onUpgrade();
+      }
+
+      // Placeholder customer data.
+      // This will be replaced with the authenticated user
+      // in the next payment phase.
+      await startUpgradePayment({
+        customer: {
+          firstName: "FarmHand",
+          lastName: "User",
+          email: "customer@example.com",
+        },
+        subscriptionId: crypto.randomUUID(),
+      });
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        error.message || "Unable to start payment."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={!loading ? onClose : undefined}
       maxWidth="md"
       fullWidth
     >
@@ -195,6 +237,7 @@ export default function UpgradeDialog({
         <Button
           onClick={onClose}
           variant="outlined"
+          disabled={loading}
         >
           Maybe Later
         </Button>
@@ -202,10 +245,20 @@ export default function UpgradeDialog({
         <Button
           variant="contained"
           color="warning"
-          startIcon={<AutoAwesomeIcon />}
-          onClick={onUpgrade}
+          startIcon={
+            loading ? (
+              <CircularProgress
+                size={18}
+                color="inherit"
+              />
+            ) : (
+              <AutoAwesomeIcon />
+            )
+          }
+          disabled={loading}
+          onClick={handleUpgrade}
         >
-          Upgrade Now
+          {loading ? "Preparing Payment..." : "Upgrade Now"}
         </Button>
       </DialogActions>
     </Dialog>
