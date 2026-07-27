@@ -26,7 +26,6 @@ import { startUpgradePayment } from "../../services/paymentService";
 export default function UpgradeDialog({
   open,
   onClose,
-  onUpgrade,
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -58,14 +57,6 @@ export default function UpgradeDialog({
     setLoading(true);
 
     try {
-      // Allow the existing upgrade flow to continue if one exists.
-      if (onUpgrade) {
-        await onUpgrade();
-      }
-
-      // Placeholder customer data.
-      // This will be replaced with the authenticated user
-      // in the next payment phase.
       await startUpgradePayment({
         customer: {
           firstName: "FarmHand",
@@ -93,10 +84,7 @@ export default function UpgradeDialog({
       fullWidth
     >
       <DialogTitle sx={{ pb: 1 }}>
-        <Stack
-          spacing={1}
-          alignItems="center"
-        >
+        <Stack spacing={1} alignItems="center">
           <WorkspacePremiumIcon
             color="warning"
             sx={{ fontSize: 42 }}
@@ -113,8 +101,9 @@ export default function UpgradeDialog({
             color="text.secondary"
             textAlign="center"
           >
-            Unlock AI-powered farming tools, predictive
-            insights and advanced reporting.
+            Unlock AI-powered farming tools,
+            predictive insights and advanced
+            reporting.
           </Typography>
 
           <Typography
@@ -139,10 +128,7 @@ export default function UpgradeDialog({
                 height: "100%",
               }}
             >
-              <Stack
-                spacing={2}
-                alignItems="center"
-              >
+              <Stack spacing={2} alignItems="center">
                 <Chip
                   label="Starter"
                   color="success"
@@ -188,10 +174,7 @@ export default function UpgradeDialog({
                 height: "100%",
               }}
             >
-              <Stack
-                spacing={2}
-                alignItems="center"
-              >
+              <Stack spacing={2} alignItems="center">
                 <Chip
                   label="PRO"
                   color="warning"
@@ -258,7 +241,9 @@ export default function UpgradeDialog({
           disabled={loading}
           onClick={handleUpgrade}
         >
-          {loading ? "Preparing Payment..." : "Upgrade Now"}
+          {loading
+            ? "Redirecting to PayFast..."
+            : "Continue to Secure Payment"}
         </Button>
       </DialogActions>
     </Dialog>

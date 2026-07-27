@@ -39,6 +39,32 @@ export async function getLatestPayment(userId) {
 }
 
 /**
+ * Find a payment by transaction ID
+ */
+export async function findPaymentByTransactionId(transactionId) {
+  if (!transactionId) return null;
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("transaction_id", transactionId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}
+
+/**
+ * Check whether a payment already exists
+ */
+export async function paymentExists(transactionId) {
+  const payment = await findPaymentByTransactionId(transactionId);
+
+  return !!payment;
+}
+
+/**
  * Create a payment record
  */
 export async function createPayment(payment) {
@@ -85,9 +111,6 @@ export async function getTotalPaid(userId) {
 
 /**
  * Generate the next invoice number
- *
- * Format:
- * FHP-YYYY-XXXXXX
  */
 export function generateInvoiceNumber() {
   const year = new Date().getFullYear();
@@ -117,6 +140,8 @@ export async function createDemoPayment(userId) {
 export default {
   getPaymentHistory,
   getLatestPayment,
+  findPaymentByTransactionId,
+  paymentExists,
   createPayment,
   getPaymentsByStatus,
   getTotalPaid,

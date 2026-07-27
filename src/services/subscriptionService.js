@@ -64,18 +64,18 @@ export async function getSubscription() {
     .from("subscriptions")
     .select("*")
     .eq("user_id", user.id)
-    .single();
+    .order("created_at", { ascending: false })
+    .limit(1);
 
   if (error) {
-    // First login - create Starter subscription
-    if (error.code === "PGRST116") {
-      return await createSubscription();
-    }
-
     throw error;
   }
 
-  return data;
+  if (!data || data.length === 0) {
+    return await createSubscription();
+  }
+
+  return data[0];
 }
 
 export async function createSubscription() {
@@ -111,10 +111,14 @@ export async function updateSubscription(values) {
 
   if (!user) return null;
 
+  const subscription = await getSubscription();
+
+  if (!subscription) return null;
+
   const { data, error } = await supabase
     .from("subscriptions")
     .update(values)
-    .eq("user_id", user.id)
+    .eq("id", subscription.id)
     .select()
     .single();
 
@@ -152,7 +156,6 @@ export async function cancelSubscription() {
     status: "Pending Cancellation",
   });
 }
-
 export async function reactivateSubscription() {
   return updateSubscription({
     status: "Active",

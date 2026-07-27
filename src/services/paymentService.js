@@ -1,82 +1,105 @@
 /**
  * ============================================
- * FarmHand PRO
+ * Feldrix
  * Payment Service
- * Sprint 40 - Phase 2.1
+ * Server-side PayFast integration via Supabase Edge Function
  * ============================================
+ *
+ * Flow:
+ * 1. Frontend calls startUpgradePayment() with customer + subscriptionId
+ * 2. This service invokes the "bright-service" edge function
+ * 3. Edge function builds the payload, signs it server-side using the
+ *    official PayFast SDK algorithm, and returns { payfastUrl, payload }
+ * 4. This service builds a hidden HTML form and submits it to PayFast
+ *
+ * No signatures are generated on the frontend.
  */
 
-import {
-  createUpgradePayment,
-  buildFormFields,
-  getPayFastUrl,
-  validateConfiguration,
-} from "./payfastService";
-
-import { attachSignature } from "../utils/payfastSignature";
+import { supabase } from "../supabaseClient";
 
 /**
- * Creates and submits a PayFast payment.
+ * Creates and submits a PayFast payment via the server-side edge function.
+ *
+ * @param {object} options
+ * @param {object} options.customer - { firstName, lastName, email, cellNumber }
+ * @param {string} options.subscriptionId - Optional subscription reference
+ * @returns {Promise<{ success: boolean }>}
  */
-export async function startUpgradePayment({
-  customer,
-  subscriptionId,
-}) {
-  const config = validateConfiguration();
-
-  if (!config.valid) {
-    throw new Error(config.errors.join("\n"));
-  }
-
-  // Create payment payload
-  const payload = createUpgradePayment({
-    customer,
-    subscriptionId,
+export async function startUpgradePayment({ customer, subscriptionId }) {
+  // Call the Supabase edge function to get a signed payload
+  const { data, error } = await supabase.functions.invoke("bright-service", {
+    body: {
+      amount: 99,
+      itemName: "Feldrix PRO Subscription",
+      itemDescription: "Feldrix PRO Monthly Subscription",
+      customer: {
+        firstName: customer?.firstName || "",
+        lastName: customer?.lastName || "",
+        email: customer?.email || "",
+        cellNumber: customer?.cellNumber || "",
+      },
+      subscriptionId: subscriptionId || "",
+    },
   });
 
-  // Attach signature
-  const signedPayload = await attachSignature(payload);
+  // Handle invocation error (network, auth, etc.)
+  if (error) {
+    throw new Error(
+      `Payment service error: ${error.message || "Failed to invoke payment function"}`
+    );
+  }
 
-  // Build form fields
-  const fields = buildFormFields(signedPayload);
+  // Handle application-level error from the edge function
+  if (!data || !data.success) {
+    throw new Error(
+      `Payment failed: ${data?.error || "Unknown error from payment service"}`
+    );
+  }
 
-  // Submit hidden form
-  submitForm(fields);
+  const { payfastUrl, payload } = data;
 
-  return {
-    success: true,
-  };
+  if (!payfastUrl || !payload) {
+    throw new Error("Invalid response from payment service: missing URL or payload");
+  }
+
+  // Build and submit the HTML form to PayFast
+  submitForm(payfastUrl, payload);
+
+  return { success: true };
 }
 
 /**
  * Creates a hidden HTML form and submits it to PayFast.
+ * This performs the browser redirect to PayFast's hosted payment page.
+ *
+ * @param {string} actionUrl - PayFast process URL (sandbox or production)
+ * @param {object} fields - Signed payload fields including signature
  */
-function submitForm(fields) {
+function submitForm(actionUrl, fields) {
   const form = document.createElement("form");
 
   form.method = "POST";
-  form.action = getPayFastUrl();
+  form.action = actionUrl;
   form.style.display = "none";
 
   Object.entries(fields).forEach(([key, value]) => {
-    const input = document.createElement("input");
+    if (value !== undefined && value !== null && value !== "") {
+      const input = document.createElement("input");
 
-    input.type = "hidden";
-    input.name = key;
-    input.value = value;
+      input.type = "hidden";
+      input.name = key;
+      input.value = String(value);
 
-    form.appendChild(input);
+      form.appendChild(input);
+    }
   });
 
   document.body.appendChild(form);
-
   form.submit();
-
-  document.body.removeChild(form);
 }
 
 /**
- * Placeholder for future payment verification.
+ * Placeholder for future payment verification (ITN callback validation).
  */
 export async function verifyPayment() {
   return {

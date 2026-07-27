@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FarmHand PRO Payment Receipt</title>
+<style>
+body{margin:0;padding:0;background:#eef3ed;font-family:Arial,Helvetica,sans-serif;color:#2d3748;}
+.wrapper{padding:40px 16px;}
+.container{max-width:680px;margin:auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.12);}
+.header{background:linear-gradient(135deg,#1E4D2B,#2E7D32);padding:36px;text-align:center;color:#fff;}
+.logo{max-width:240px;width:100%;height:auto;margin-bottom:14px;}
+.tag{opacity:.9;font-size:15px;}
+.content{padding:40px;}
+.badge{display:inline-block;background:#e8f5e9;color:#1E4D2B;font-weight:bold;padding:10px 18px;border-radius:999px;}
+h2{margin:22px 0 10px;font-size:28px;color:#1E4D2B;}
+p{line-height:1.7;}
+.card{margin:28px 0;border:1px solid #d9e8d8;border-radius:14px;overflow:hidden;}
+.card-header{background:#f7fbf7;padding:16px 22px;font-weight:bold;color:#1E4D2B;border-bottom:1px solid #d9e8d8;}
+.row{display:flex;justify-content:space-between;padding:15px 22px;border-bottom:1px solid #edf2ed;}
+.row:last-child{border-bottom:none;}
+.label{font-weight:bold;color:#4a5568;}
+.value{font-weight:600;}
+.amount{color:#2E7D32;font-size:20px;font-weight:bold;}
+.status{color:#2E7D32;font-weight:bold;}
+.button{display:inline-block;margin-top:28px;background:#2E7D32;color:#fff!important;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:bold;}
+.footer{background:#f6f8f6;padding:30px;text-align:center;color:#666;font-size:14px;}
+.footer strong{color:#1E4D2B;}
+@media(max-width:600px){
+.row{flex-direction:column;gap:6px;}
+.content{padding:28px;}
+.header{padding:28px;}
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+<div class="container">
+
+<div class="header">
+<img class="logo" src="{{LOGO_URL}}" alt="FarmHand PRO Logo">
+<div class="tag">Smart Farm Operations</div>
+</div>
+
+<div class="content">
+
+<span class="badge">✓ PAYMENT SUCCESSFUL</span>
+
+<h2>Thank you for upgrading!</h2>
+
+<p>Hello <strong>{{CUSTOMER_NAME}}</strong>,</p>
+
+<p>Your FarmHand PRO subscription has been activated successfully. Your payment has been received and your account is now ready to use.</p>
+
+<div class="card">
+<div class="card-header">PAYMENT SUMMARY</div>
+
+<div class="row">
+<div class="label">Invoice Number</div>
+<div class="value">{{INVOICE_NUMBER}}</div>
+</div>
+
+<div class="row">
+<div class="label">Plan</div>
+<div class="value">FarmHand PRO</div>
+</div>
+
+<div class="row">
+<div class="label">Amount Paid</div>
+<div class="amount">R{{AMOUNT}}</div>
+</div>
+
+<div class="row">
+<div class="label">Payment Status</div>
+<div class="status">Paid</div>
+</div>
+
+<div class="row">
+<div class="label">Payment Reference</div>
+<div class="value">{{PAYMENT_REFERENCE}}</div>
+</div>
+
+<div class="row">
+<div class="label">Renewal Date</div>
+<div class="value">{{RENEWAL_DATE}}</div>
+</div>
+</div>
+
+<p>Thank you for supporting FarmHand PRO. Every subscription helps us build better tools for farmers across South Africa.</p>
+
+<a class="button" href="{{APP_URL}}">Open FarmHand PRO</a>
+
+</div>
+
+<div class="footer">
+<strong>FarmHand PRO</strong><br>
+Smart Farm Operations<br><br>
+Need help? Contact us at <strong>{{SUPPORT_EMAIL}}</strong><br><br>
+© 2026 FarmHand PRO. All rights reserved.
+</div>
+
+</div>
+</div>
+</body>
+</html>
