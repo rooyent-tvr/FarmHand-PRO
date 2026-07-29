@@ -15,6 +15,7 @@ import FarmHealthScore from "../components/dashboard/FarmHealthScore";
 import WeatherSummary from "../components/dashboard/WeatherSummary";
 import FarmTimeline from "../components/dashboard/FarmTimeline";
 import NotificationCenter from "../components/dashboard/NotificationCenter";
+import FarmIntelligenceCenter from "../components/dashboard/FarmIntelligenceCenter";
 
 import { getDashboardStats } from "../services/dashboardService";
 import { getHealthRecords } from "../services/healthService";
@@ -41,6 +42,7 @@ export default function Dashboard() {
   const [engineNotifications, setEngineNotifications] = useState([]);
   const [smartCards, setSmartCards] = useState([]);
   const [dailyBriefing, setDailyBriefing] = useState(null);
+  const [farmInsights, setFarmInsights] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
@@ -104,6 +106,7 @@ export default function Dashboard() {
       // Intelligence Engine
       const insights = await getFarmInsights(farmData);
       farmData.intelligence.insights = insights;
+      setFarmInsights(insights);
 
       // Notification Engine
       const engineNotifs = getEngineNotifications(farmData);
@@ -214,6 +217,12 @@ export default function Dashboard() {
             />
           </Grid>
         </Grid>
+
+        {/* FARM INTELLIGENCE */}
+        <FarmIntelligenceCenter
+          insights={farmInsights}
+          onAction={(route) => navigate(route)}
+        />
 
         {/* QUICK ACTIONS */}
         <DashboardQuickActions />

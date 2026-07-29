@@ -28,7 +28,6 @@ const PLAN_FEATURES = {
     "finance",
     "reports",
     "weather",
-
     "ai",
     "farm_intelligence",
     "predictive_analytics",
@@ -66,9 +65,7 @@ export async function getSubscription() {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   if (!data) {
     return await createSubscription();
@@ -82,29 +79,18 @@ export async function createSubscription() {
 
   if (!user) return null;
 
-  // ---------------------------------------
-  // Check if a subscription already exists
-  // ---------------------------------------
-
+  // Check whether a subscription already exists
   const { data: existing, error: existingError } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (existingError) {
-    throw existingError;
-  }
+  if (existingError) throw existingError;
 
-  // Already exists? Return it.
-  if (existing) {
-    return existing;
-  }
+  if (existing) return existing;
 
-  // ---------------------------------------
   // Create Starter subscription
-  // ---------------------------------------
-
   const subscription = {
     user_id: user.id,
     plan: "Starter",
@@ -112,8 +98,7 @@ export async function createSubscription() {
     billing_cycle: "Monthly",
     price: 0,
     payment_provider: null,
-    customer_reference: null,
-    trial_ends_at: null,
+    payment_reference: null,
     renewal_date: null,
   };
 
@@ -123,9 +108,7 @@ export async function createSubscription() {
     .select()
     .single();
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   return data;
 }

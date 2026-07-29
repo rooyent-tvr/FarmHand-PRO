@@ -120,7 +120,21 @@ export default function SubscriptionCard() {
 
       setSubscription(data);
     } catch (err) {
-      console.error(err);
+      console.error("Subscription Error:", err);
+
+      alert(
+        JSON.stringify(
+          {
+            message: err?.message,
+            code: err?.code,
+            details: err?.details,
+            hint: err?.hint,
+          },
+          null,
+          2
+        )
+      );
+
       setError(true);
     } finally {
       setLoading(false);
@@ -213,12 +227,8 @@ export default function SubscriptionCard() {
     );
   }
 
-  const plan =
-    subscription?.plan ?? "Starter";
-
-  const status =
-    subscription?.status ?? "Active";
-
+  const plan = subscription?.plan ?? "Starter";
+  const status = subscription?.status ?? "Active";
   const billingCycle =
     subscription?.billing_cycle ?? "Monthly";
 
@@ -234,173 +244,117 @@ export default function SubscriptionCard() {
   const features = isPro
     ? PRO_FEATURES
     : STARTER_FEATURES;
+
   return (
     <>
       <Card elevation={1} sx={{ borderRadius: 3 }}>
         <CardContent sx={{ p: 4 }}>
+          <Stack spacing={3}>
+            {/* Header */}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <WorkspacePremiumIcon
+                  color={isPro ? "warning" : "action"}
+                />
+                <Typography variant="h6" fontWeight={700}>
+                  Subscription
+                </Typography>
+              </Stack>
 
-          {/* Header */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 1,
-            }}
-          >
+              {getStatusChip(status)}
+            </Stack>
+
+            <Divider />
+
+            {/* Plan Info */}
+            <Stack spacing={1.5}>
+              <InfoRow label="Plan" value={plan} />
+              <InfoRow
+                label="Price"
+                value={formatPrice(subscription.price, billingCycle)}
+              />
+              <InfoRow label="Billing Cycle" value={billingCycle} />
+              <InfoRow
+                label="Renewal Date"
+                value={formatDate(subscription.renewal_date)}
+              />
+              {subscription.payment_provider && (
+                <InfoRow
+                  label="Payment Provider"
+                  value={subscription.payment_provider}
+                />
+              )}
+            </Stack>
+
+            <Divider />
+
+            {/* Feature List */}
             <Box>
-              <Typography variant="subtitle1" fontWeight={700}>
-                Feldrix Subscription Management
-              </Typography>
-
               <Typography
                 variant="caption"
+                fontWeight={700}
                 color="text.secondary"
+                sx={{ mb: 1, display: "block" }}
               >
-                Manage your Feldrix subscription
+                {isPro ? "PRO FEATURES" : "STARTER FEATURES"}
               </Typography>
+
+              <Stack spacing={0.5}>
+                {features.map((feature) => (
+                  <Typography
+                    key={feature}
+                    variant="body2"
+                    sx={{ pl: 1 }}
+                  >
+                    • {feature}
+                  </Typography>
+                ))}
+              </Stack>
             </Box>
 
-            {getStatusChip(status)}
-          </Box>
+            <Divider />
 
-          {/* Plan */}
-          <Typography
-            variant="h5"
-            fontWeight={800}
-            sx={{ mt: 2 }}
-          >
-            {plan} Plan
-          </Typography>
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
-            {formatPrice(
-              subscription.price,
-              billingCycle
-            )}
-          </Typography>
-
-          <Divider sx={{ my: 3 }} />
-
-          <Stack spacing={2} sx={{ mb: 3 }}>
-            <InfoRow
-              label="Billing Cycle"
-              value={billingCycle}
-            />
-
-            <InfoRow
-              label="Price"
-              value={formatPrice(
-                subscription.price,
-                billingCycle
-              )}
-            />
-
-            <InfoRow
-              label="Renewal Date"
-              value={formatDate(
-                subscription.renewal_date
-              )}
-            />
-
-            <InfoRow
-              label="Member Since"
-              value={formatDate(
-                subscription.created_at
-              )}
-            />
-          </Stack>
-
-          <Divider sx={{ my: 3 }} />
-
-          <Typography
-            variant="subtitle2"
-            fontWeight={700}
-            sx={{ mb: 2 }}
-          >
-            Included Features
-          </Typography>
-
-          <Stack spacing={1.5} sx={{ mb: 3 }}>
-            {features.map((feature) => (
-              <Box
-                key={feature}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: "success.main",
-                    fontSize: 16,
-                  }}
-                >
-                  ✓
-                </Typography>
-
-                <Typography variant="body2">
-                  {feature}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-
-          <Divider sx={{ my: 3 }} />
-
-          <Stack spacing={1.5}>
-
+            {/* Actions */}
             {isStarter && (
               <Button
                 fullWidth
                 variant="contained"
+                color="warning"
                 startIcon={<WorkspacePremiumIcon />}
                 onClick={() => setUpgradeOpen(true)}
-                sx={{
-                  height: 48,
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: 700,
-                }}
+                sx={{ textTransform: "none", fontWeight: 700 }}
               >
                 Upgrade to PRO
               </Button>
             )}
 
             {isPro && !isPending && (
-              <>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  disabled
-                  startIcon={<CreditCardIcon />}
-                  sx={{
-                    height: 48,
-                    borderRadius: 2,
-                    textTransform: "none",
-                  }}
-                >
-                  Manage Payment (Coming Soon)
-                </Button>
+              <Stack spacing={1.5}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<CreditCardIcon />}
+                    disabled
+                    sx={{ textTransform: "none" }}
+                  >
+                    Manage Payment
+                  </Button>
 
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  disabled
-                  startIcon={<ReceiptLongIcon />}
-                  sx={{
-                    height: 48,
-                    borderRadius: 2,
-                    textTransform: "none",
-                  }}
-                >
-                  Billing History
-                </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<ReceiptLongIcon />}
+                    disabled
+                    sx={{ textTransform: "none" }}
+                  >
+                    Billing History
+                  </Button>
+                </Stack>
 
                 <Button
                   fullWidth
@@ -408,15 +362,11 @@ export default function SubscriptionCard() {
                   variant="outlined"
                   startIcon={<CancelIcon />}
                   onClick={() => setCancelOpen(true)}
-                  sx={{
-                    height: 48,
-                    borderRadius: 2,
-                    textTransform: "none",
-                  }}
+                  sx={{ textTransform: "none" }}
                 >
                   Cancel Subscription
                 </Button>
-              </>
+              </Stack>
             )}
 
             {isPending && (
@@ -424,24 +374,21 @@ export default function SubscriptionCard() {
                 fullWidth
                 color="success"
                 variant="contained"
+                startIcon={<WorkspacePremiumIcon />}
                 onClick={handleReactivate}
-                sx={{
-                  height: 48,
-                  borderRadius: 2,
-                  textTransform: "none",
-                }}
+                sx={{ textTransform: "none", fontWeight: 700 }}
               >
                 Reactivate Subscription
               </Button>
             )}
-
           </Stack>
         </CardContent>
       </Card>
-	        <UpgradeDialog
+
+      {/* Dialogs */}
+      <UpgradeDialog
         open={upgradeOpen}
         onClose={() => setUpgradeOpen(false)}
-        onUpgrade={handleUpgrade}
       />
 
       <CancelSubscriptionDialog
