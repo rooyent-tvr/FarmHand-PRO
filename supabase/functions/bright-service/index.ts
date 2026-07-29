@@ -252,7 +252,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       name_last: body.customer?.lastName ?? "",
       email_address: body.customer?.email ?? "",
       cell_number: body.customer?.cellNumber ?? "",
-      m_payment_id: crypto.randomUUID(),
+      m_payment_id: body.subscriptionId ?? crypto.randomUUID(),
       amount: Number(body.amount).toFixed(2),
       item_name: body.itemName,
       item_description: body.itemDescription ?? "",

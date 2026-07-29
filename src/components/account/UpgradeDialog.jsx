@@ -22,6 +22,8 @@ import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import toast from "react-hot-toast";
 
 import { startUpgradePayment } from "../../services/paymentService";
+import { getSubscription } from "../../services/subscriptionService";
+import { getCurrentUser } from "../../services/profileService";
 
 export default function UpgradeDialog({
   open,
@@ -57,13 +59,31 @@ export default function UpgradeDialog({
     setLoading(true);
 
     try {
+      // Load current user profile
+      const user = await getCurrentUser();
+
+      if (!user) {
+        toast.error("Please log in to continue.");
+        setLoading(false);
+        return;
+      }
+
+      // Load subscription to get the real ID
+      const subscription = await getSubscription();
+
+      if (!subscription || !subscription.id) {
+        toast.error("Unable to load your subscription. Please try again.");
+        setLoading(false);
+        return;
+      }
+
       await startUpgradePayment({
         customer: {
-          firstName: "FarmHand",
-          lastName: "User",
-          email: "customer@example.com",
+          firstName: user.user_metadata?.full_name?.split(" ")[0] || user.user_metadata?.name?.split(" ")[0] || "",
+          lastName: user.user_metadata?.full_name?.split(" ").slice(1).join(" ") || user.user_metadata?.name?.split(" ").slice(1).join(" ") || "",
+          email: user.email || "",
         },
-        subscriptionId: crypto.randomUUID(),
+        subscriptionId: subscription.id,
       });
     } catch (error) {
       console.error(error);

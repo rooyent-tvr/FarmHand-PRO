@@ -64,24 +64,46 @@ export async function getSubscription() {
     .from("subscriptions")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
+    .maybeSingle();
 
   if (error) {
     throw error;
   }
 
-  if (!data || data.length === 0) {
+  if (!data) {
     return await createSubscription();
   }
 
-  return data[0];
+  return data;
 }
 
 export async function createSubscription() {
   const user = await getCurrentUser();
 
   if (!user) return null;
+
+  // ---------------------------------------
+  // Check if a subscription already exists
+  // ---------------------------------------
+
+  const { data: existing, error: existingError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw existingError;
+  }
+
+  // Already exists? Return it.
+  if (existing) {
+    return existing;
+  }
+
+  // ---------------------------------------
+  // Create Starter subscription
+  // ---------------------------------------
 
   const subscription = {
     user_id: user.id,
@@ -101,7 +123,9 @@ export async function createSubscription() {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   return data;
 }
@@ -156,6 +180,7 @@ export async function cancelSubscription() {
     status: "Pending Cancellation",
   });
 }
+
 export async function reactivateSubscription() {
   return updateSubscription({
     status: "Active",
