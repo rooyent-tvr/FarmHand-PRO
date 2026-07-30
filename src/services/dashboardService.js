@@ -1,35 +1,81 @@
 import { supabase } from "./supabase";
 
 export async function getDashboardStats() {
-  // -------------------------
-  // LIVESTOCK
-  // -------------------------
+  // --------------------------------------------------
+  // AUTHENTICATED USER
+  // --------------------------------------------------
 
-  const { data: livestock, error: livestockError } =
-    await supabase
-      .from("livestock")
-      .select("*");
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw userError;
+
+  if (!user) {
+    return {
+      animals: [],
+      totalAnimals: 0,
+      healthy: 0,
+      pregnant: 0,
+      sick: 0,
+      averageWeight: 0,
+      totalValue: 0,
+      heaviestAnimal: null,
+
+      crops: [],
+      totalCrops: 0,
+      growing: 0,
+      harvested: 0,
+      totalArea: 0,
+      expectedYield: 0,
+      recentCrops: [],
+
+      breedingRecords: [],
+      totalBreeding: 0,
+      pregnantBreeding: 0,
+      completedBreeding: 0,
+      dueSoonBreeding: 0,
+      overdueBreeding: 0,
+      latestBreeding: null,
+    };
+  }
+
+  // --------------------------------------------------
+  // LIVESTOCK
+  // --------------------------------------------------
+
+  const {
+    data: livestock,
+    error: livestockError,
+  } = await supabase
+    .from("livestock")
+    .select("*")
+    .eq("user_id", user.id);
 
   if (livestockError) throw livestockError;
 
   const animals = livestock || [];
 
-  // -------------------------
+  // --------------------------------------------------
   // CROPS
-  // -------------------------
+  // --------------------------------------------------
 
-  const { data: crops, error: cropError } =
-    await supabase
-      .from("crops")
-      .select("*");
+  const {
+    data: crops,
+    error: cropError,
+  } = await supabase
+    .from("crops")
+    .select("*")
+    .eq("user_id", user.id);
 
   if (cropError) throw cropError;
 
   const cropList = crops || [];
 
-  // -------------------------
+  // --------------------------------------------------
   // BREEDING
-  // -------------------------
+  // --------------------------------------------------
 
   const {
     data: breeding,
@@ -40,15 +86,16 @@ export async function getDashboardStats() {
       *,
       female:female_id(tag),
       male:male_id(tag)
-    `);
+    `)
+    .eq("user_id", user.id);
 
   if (breedingError) throw breedingError;
 
   const breedingRecords = breeding || [];
 
-  // -------------------------
+  // --------------------------------------------------
   // LIVESTOCK STATS
-  // -------------------------
+  // --------------------------------------------------
 
   const totalAnimals = animals.length;
 
@@ -86,9 +133,9 @@ export async function getDashboardStats() {
         )[0]
       : null;
 
-  // -------------------------
+  // --------------------------------------------------
   // CROP STATS
-  // -------------------------
+  // --------------------------------------------------
 
   const totalCrops = cropList.length;
 
@@ -118,9 +165,9 @@ export async function getDashboardStats() {
     )
     .slice(0, 5);
 
-  // -------------------------
+  // --------------------------------------------------
   // BREEDING STATS
-  // -------------------------
+  // --------------------------------------------------
 
   const totalBreeding = breedingRecords.length;
 
@@ -166,9 +213,9 @@ export async function getDashboardStats() {
           )[0]
       : null;
 
-  // -------------------------
+  // --------------------------------------------------
   // RETURN
-  // -------------------------
+  // --------------------------------------------------
 
   return {
     // Livestock
@@ -200,4 +247,3 @@ export async function getDashboardStats() {
     latestBreeding,
   };
 }
-

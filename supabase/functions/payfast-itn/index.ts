@@ -267,6 +267,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // -----------------------------------------------------------------------
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    console.log("Supabase URL present:", !!supabaseUrl);
+    console.log("Service role key present:", !!supabaseServiceKey);
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // -----------------------------------------------------------------------
@@ -274,11 +278,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // -----------------------------------------------------------------------
     const pfPaymentId = payment.pf_payment_id;
 
-    const { data: existingPayment } = await supabase
+    const { data: existingPayment, error: dupCheckError } = await supabase
       .from("subscription_payments")
       .select("id")
       .eq("transaction_id", pfPaymentId)
       .maybeSingle();
+
+    if (dupCheckError) {
+      console.error("Duplicate check query failed:", dupCheckError.message);
+    }
 
     if (existingPayment) {
       console.log(
