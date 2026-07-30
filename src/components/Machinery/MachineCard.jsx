@@ -148,7 +148,7 @@ export default function MachineCard({
               🔧 Services: <strong>{serviceHistory.length}</strong>
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              💰 Total: <strong>R{serviceHistory.reduce((sum, s) => sum + (Number(s.cost) || 0), 0).toLocaleString()}</strong>
+              💳 Total: <strong>R{serviceHistory.reduce((sum, s) => sum + (Number(s.cost) || 0), 0).toLocaleString()}</strong>
             </Typography>
           </Stack>
         ) : !lastService && (

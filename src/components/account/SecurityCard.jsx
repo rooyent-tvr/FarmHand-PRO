@@ -19,9 +19,11 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 import { getSecurityInfo } from "../../services/securityService";
+import ChangePasswordDialog from "./ChangePasswordDialog";
 
 export default function SecurityCard() {
   const [loading, setLoading] = useState(true);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [security, setSecurity] = useState({
     email: "",
     emailVerified: false,
@@ -208,6 +210,7 @@ export default function SecurityCard() {
                 variant="contained"
                 startIcon={<LockIcon />}
                 fullWidth
+                onClick={() => setPasswordDialogOpen(true)}
               >
                 Change Password
               </Button>
@@ -215,6 +218,11 @@ export default function SecurityCard() {
           </>
         )}
       </CardContent>
+
+      <ChangePasswordDialog
+        open={passwordDialogOpen}
+        onClose={() => setPasswordDialogOpen(false)}
+      />
     </Card>
   );
 }

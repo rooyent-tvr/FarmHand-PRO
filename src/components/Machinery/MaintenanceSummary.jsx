@@ -15,7 +15,7 @@ import {
   Speed,
   Store,
   Receipt,
-  AttachMoney,
+  Payments,
   Notes as NotesIcon,
 } from "@mui/icons-material";
 
@@ -128,7 +128,7 @@ export default function MaintenanceSummary({
 
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <AttachMoney fontSize="small" color="action" />
+                    <Payments fontSize="small" color="action" />
                     <Typography variant="body2">
                       <strong>Cost:</strong>{" "}
                       R{Number(lastService.cost || 0).toLocaleString()}

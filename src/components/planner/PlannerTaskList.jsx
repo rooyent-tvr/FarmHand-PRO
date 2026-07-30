@@ -1,4 +1,4 @@
-import { Grid } from "@mui/material";
+import { Box } from "@mui/material";
 import PlannerSection from "./PlannerSection";
 
 export default function PlannerTaskList({
@@ -31,9 +31,7 @@ export default function PlannerTaskList({
     const dueDate = new Date(task.originalDate);
     dueDate.setHours(0, 0, 0, 0);
 
-    const diff =
-      (dueDate - todayDate) /
-      (1000 * 60 * 60 * 24);
+    const diff = (dueDate - todayDate) / (1000 * 60 * 60 * 24);
 
     if (diff <= 7) {
       thisWeek.push(task);
@@ -43,69 +41,61 @@ export default function PlannerTaskList({
   });
 
   return (
-    <Grid container spacing={4}>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          md: "repeat(auto-fit, minmax(300px, 1fr))",
+        },
+        gap: 2.5,
+        alignItems: "start",
+      }}
+    >
+      <PlannerSection
+        title="Overdue"
+        color="error"
+        tasks={overdue}
+        emptyMessage="No overdue tasks."
+        onComplete={onComplete}
+        onEdit={onEdit}
+      />
 
-      {/* Overdue */}
-      <Grid item xs={12}>
-        <PlannerSection
-          title="🔴 Overdue"
-          color="error"
-          tasks={overdue}
-          emptyMessage="Great job! No overdue tasks."
-          onComplete={onComplete}
-          onEdit={onEdit}
-        />
-      </Grid>
+      <PlannerSection
+        title="Today's Tasks"
+        color="warning"
+        tasks={today}
+        emptyMessage="Nothing scheduled today."
+        onComplete={onComplete}
+        onEdit={onEdit}
+      />
 
-      {/* Today */}
-      <Grid item xs={12}>
-        <PlannerSection
-          title="🟠 Today's Tasks"
-          color="warning"
-          tasks={today}
-          emptyMessage="Nothing scheduled for today."
-          onComplete={onComplete}
-          onEdit={onEdit}
-        />
-      </Grid>
+      <PlannerSection
+        title="This Week"
+        color="success"
+        tasks={thisWeek}
+        emptyMessage="Nothing this week."
+        onComplete={onComplete}
+        onEdit={onEdit}
+      />
 
-      {/* This Week */}
-      <Grid item xs={12}>
-        <PlannerSection
-          title="🟢 This Week"
-          color="success"
-          tasks={thisWeek}
-          emptyMessage="Nothing planned this week."
-          onComplete={onComplete}
-          onEdit={onEdit}
-        />
-      </Grid>
+      <PlannerSection
+        title="Future"
+        color="info"
+        tasks={future}
+        emptyMessage="No future tasks."
+        onComplete={onComplete}
+        onEdit={onEdit}
+      />
 
-      {/* Future */}
-      <Grid item xs={12}>
-        <PlannerSection
-          title="🔵 Future"
-          color="info"
-          tasks={future}
-          emptyMessage="No future reminders."
-          onComplete={onComplete}
-          onEdit={onEdit}
-        />
-      </Grid>
-
-      {/* Completed */}
-      <Grid item xs={12}>
-        <PlannerSection
-          title="✅ Completed"
-          color="secondary"
-          tasks={completed}
-          emptyMessage="No completed tasks yet."
-          onComplete={onComplete}
-          onEdit={onEdit}
-        />
-      </Grid>
-
-    </Grid>
+      <PlannerSection
+        title="Completed"
+        color="secondary"
+        tasks={completed}
+        emptyMessage="No completed tasks."
+        onComplete={onComplete}
+        onEdit={onEdit}
+      />
+    </Box>
   );
 }
-

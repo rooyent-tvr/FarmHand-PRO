@@ -1,12 +1,13 @@
 import {
   Box,
   Chip,
-  Grid,
   Paper,
+  Stack,
   Typography,
 } from "@mui/material";
 
 import TaskCard from "../tasks/TaskCard";
+import { PremiumEmptyState } from "../../design";
 
 export default function PlannerSection({
   title,
@@ -16,7 +17,7 @@ export default function PlannerSection({
   onComplete,
   onEdit,
 }) {
-  const enableScroll = tasks.length > 6;
+  const enableScroll = tasks.length > 5;
 
   return (
     <Paper
@@ -24,23 +25,28 @@ export default function PlannerSection({
       sx={{
         borderRadius: 4,
         overflow: "hidden",
+        border: "1px solid",
+        borderColor: "divider",
+        transition: "box-shadow 0.2s ease",
+        "&:hover": { boxShadow: 3 },
+        display: "flex",
+        flexDirection: "column",
       }}
     >
+      {/* Section Header */}
       <Box
         sx={{
           bgcolor: `${color}.main`,
           color: "white",
-          px: 3,
-          py: 1.5,
+          px: 2.5,
+          py: 1,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexShrink: 0,
         }}
       >
-        <Typography
-          variant="h6"
-          fontWeight={700}
-        >
+        <Typography variant="subtitle2" fontWeight={700} sx={{ letterSpacing: 0.3 }}>
           {title}
         </Typography>
 
@@ -51,66 +57,37 @@ export default function PlannerSection({
             bgcolor: "rgba(255,255,255,.20)",
             color: "white",
             fontWeight: 700,
+            height: 20,
+            fontSize: "0.7rem",
           }}
         />
       </Box>
 
+      {/* Content — single column, full-width cards */}
       <Box
         sx={{
-          p: 3,
-          bgcolor: "grey.50",
+          p: 2,
+          bgcolor: "background.paper",
+          flex: 1,
+          maxHeight: enableScroll ? 520 : "auto",
+          overflowY: enableScroll ? "auto" : "visible",
         }}
       >
         {tasks.length === 0 ? (
-          <Box
-            sx={{
-              py: 6,
-              textAlign: "center",
-              color: "text.secondary",
-            }}
-          >
-            <Typography variant="h3">
-              ✅
-            </Typography>
-
-            <Typography
-              variant="h6"
-              fontWeight={600}
-              mt={2}
-            >
-              {emptyMessage}
-            </Typography>
-
-            <Typography
-              variant="body2"
-              mt={1}
-            >
-              You're all caught up.
-            </Typography>
+          <Box sx={{ py: 3 }}>
+            <PremiumEmptyState title="All Clear" message={emptyMessage} />
           </Box>
         ) : (
-          <Box
-            sx={{
-              maxHeight: enableScroll ? 430 : "auto",
-              overflowY: enableScroll ? "auto" : "visible",
-              pr: enableScroll ? 1 : 0,
-            }}
-          >
-            <Grid container spacing={2.5}>
-              {tasks.map((task) => (
-                <Grid
-                  key={task.id}
-                  size={{ xs: 12, sm: 12, md: 6, lg: 4, xl: 3 }}
-                >
-                  <TaskCard
-                    task={task}
-                    onComplete={onComplete}
-                    onEdit={onEdit}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
+          <Stack spacing={1.5}>
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onComplete={onComplete}
+                onEdit={onEdit}
+              />
+            ))}
+          </Stack>
         )}
       </Box>
     </Paper>

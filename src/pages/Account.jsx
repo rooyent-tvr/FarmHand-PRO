@@ -7,6 +7,7 @@ import SecurityCard from "../components/account/SecurityCard";
 import StatisticsCard from "../components/account/StatisticsCard";
 import SubscriptionCard from "../components/account/SubscriptionCard";
 import QuickActionsCard from "../components/account/QuickActionsCard";
+import EmailNotificationPreferences from "../components/account/EmailNotificationPreferences";
 
 export default function Account() {
   return (
@@ -56,6 +57,9 @@ export default function Account() {
             </Stack>
           </Grid>
         </Grid>
+
+        {/* Email Notification Preferences — full width */}
+        <EmailNotificationPreferences />
       </Stack>
     </Box>
   );

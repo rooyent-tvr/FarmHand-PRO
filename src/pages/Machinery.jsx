@@ -1,14 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import {
-  Box,
-  Button,
-  Grid,
-  Typography,
-} from "@mui/material";
-
+import { Grid, Stack } from "@mui/material";
+import BuildIcon from "@mui/icons-material/Build";
 import AddIcon from "@mui/icons-material/Add";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import SpeedIcon from "@mui/icons-material/Speed";
+
+import {
+  PremiumPageLayout,
+  PremiumKPIGrid,
+  PremiumStatCard,
+  PremiumDashboardSection,
+  PremiumActionButton,
+  PremiumWorkspaceToolbar,
+  PremiumLoadingState,
+  PremiumEmptyState,
+  spacing,
+} from "../design";
 
 import MachineForm from "../components/Machinery/MachineForm";
 import MachineCard from "../components/Machinery/MachineCard";
@@ -40,34 +51,33 @@ export default function Machinery() {
 
   async function loadMachines() {
     try {
-      const [data, services, plans] = await Promise.all([
+      const [data, plans] = await Promise.all([
         getMachines(),
-        loadAllServices(),
         getAllMaintenancePlans(),
       ]);
-      setMachines(data);
-      setServiceHistory(services);
-      setMaintenancePlans(plans);
-    } catch (err) {
+      setMachines(data || []);
+      setMaintenancePlans(plans || []);
+
+      // Load service history for all machines
+      const allServices = [];
+      for (const machine of (data || [])) {
+        try {
+          const services = await getMachineServices(machine.id);
+          allServices.push(...services);
+        } catch { /* skip */ }
+      }
+      setServiceHistory(allServices);
+    } catch {
       // Graceful fallback
     } finally {
       setLoading(false);
     }
   }
 
-  async function loadAllServices() {
-    try {
-      const machines = await getMachines();
-      const allServices = [];
-      for (const machine of machines) {
-        const services = await getMachineServices(machine.id);
-        allServices.push(...services);
-      }
-      return allServices;
-    } catch {
-      return [];
-    }
-  }
+  const analytics = useMemo(
+    () => generateMachineryAnalytics({ machines, serviceHistory, maintenancePlans }),
+    [machines, serviceHistory, maintenancePlans]
+  );
 
   async function handleSaveMachine(machine) {
     try {
@@ -97,224 +107,125 @@ export default function Machinery() {
     navigate(`/machinery/${machine.id}`);
   }
 
+  // Derived KPIs
+  const totalMachines = machines.length;
+  const active = machines.filter((m) => m.status === "Active").length;
+  const inService = machines.filter((m) => m.status === "In Service").length;
+  const fleetValue = machines.reduce((sum, m) => sum + (Number(m.purchase_price) || 0), 0);
+
   if (loading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h5">Loading machinery...</Typography>
-      </Box>
+      <PremiumPageLayout
+        title="Machinery"
+        subtitle="Manage your fleet, maintenance schedules and operational performance."
+        icon={<BuildIcon sx={{ fontSize: 28 }} />}
+      >
+        <PremiumLoadingState message="Loading fleet data..." size={40} />
+      </PremiumPageLayout>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <PremiumPageLayout
+      title="Machinery"
+      subtitle="Manage your fleet, maintenance schedules and operational performance."
+      icon={<BuildIcon sx={{ fontSize: 28 }} />}
+    >
+      <Stack spacing={4}>
+        {/* KPI Cards */}
+        <PremiumKPIGrid gap={3.5}>
+          <PremiumStatCard
+            label="Total Machines"
+            value={totalMachines}
+            subtitle="In your fleet"
+            icon={<BuildIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(46,125,50,0.12)"
+            iconColor="#2E7D32"
+          />
+          <PremiumStatCard
+            label="Operational"
+            value={active}
+            subtitle="Active machines"
+            icon={<CheckCircleIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(25,118,210,0.12)"
+            iconColor="#1976D2"
+          />
+          <PremiumStatCard
+            label="In Service"
+            value={inService}
+            subtitle="Currently servicing"
+            icon={<SpeedIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(237,108,2,0.12)"
+            iconColor="#ED6C02"
+          />
+          <PremiumStatCard
+            label="Fleet Value"
+            value={`R ${fleetValue.toLocaleString("en-ZA")}`}
+            subtitle="Total asset value"
+            icon={<AccountBalanceWalletIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(106,27,154,0.12)"
+            iconColor="#6A1B9A"
+          />
+        </PremiumKPIGrid>
 
-      {/* Header */}
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        <Box>
-
-          <Typography
-            variant="h4"
-            fontWeight={700}
-          >
-            🚜 Machinery Management
-          </Typography>
-
-          <Typography
-            color="text.secondary"
-          >
-            Manage your farm equipment,
-            maintenance and servicing.
-          </Typography>
-
-        </Box>
-
-        <Button
-          variant="contained"
-          color="success"
-          startIcon={<AddIcon />}
-          onClick={() => {
-            setEditingMachine(null);
-            setShowForm(true);
-          }}
+        {/* Fleet Intelligence */}
+        <PremiumDashboardSection
+          title="Fleet Intelligence"
+          description="AI-powered maintenance monitoring and cost recommendations."
         >
-          Add Machine
-        </Button>
+          <MachineryInsights analytics={analytics} />
+        </PremiumDashboardSection>
 
-      </Box>
-
-      {/* Dashboard Cards */}
-
-      <Grid
-        container
-        spacing={3}
-      >
-        <Grid size={{ xs: 12, md: 2 }}>
-          <MachineStatCard
-            title="Machines"
-            value={machines.length}
-            color="#2e7d32"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 2 }}>
-          <MachineStatCard
-            title="Active"
-            value={machines.filter((m) => m.status === "Active").length}
-            color="#1976d2"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 2 }}>
-          <MachineStatCard
-            title="In Service"
-            value={machines.filter((m) => m.status === "In Service").length}
-            color="#ed6c02"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
-          <MachineStatCard
-            title="Services Due"
-            value="0"
-            color="#d32f2f"
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
-          <MachineStatCard
-            title="Fleet Value"
-            value={`R${machines.reduce((sum, m) => sum + (Number(m.purchase_price) || 0), 0).toLocaleString()}`}
-            color="#6a1b9a"
-          />
-        </Grid>
-      </Grid>
-
-      {/* Machinery Insights */}
-
-      <Box sx={{ mt: 3 }}>
-        <MachineryInsights
-          analytics={generateMachineryAnalytics({
-            machines,
-            serviceHistory,
-            maintenancePlans,
-          })}
-        />
-      </Box>
-
-      {/* Machine Form */}
-
-      {showForm && (
-        <Box sx={{ mt: 4 }}>
+        {/* Machine Form (toggle) */}
+        {showForm && (
           <MachineForm
             onSave={handleSaveMachine}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingMachine(null);
-            }}
+            onCancel={() => { setShowForm(false); setEditingMachine(null); }}
             initialValues={editingMachine || {}}
           />
-        </Box>
-      )}
+        )}
 
-      {/* Machine Grid */}
-
-      {machines.length > 0 && (
-        <Grid container spacing={3} sx={{ mt: 4 }}>
-          {machines.map((machine) => (
-            <Grid key={machine.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <MachineCard
-                machine={machine}
-                onView={handleViewMachine}
-                onEdit={handleEditMachine}
-                onService={handleServiceMachine}
-                lastService={serviceHistory.find((s) => s.machine_id === machine.id)}
-                maintenancePlan={maintenancePlans.find((p) => p.machine_id === machine.id)}
-                serviceHistory={serviceHistory.filter((s) => s.machine_id === machine.id)}
-              />
-            </Grid>
-          ))}
-        </Grid>
-      )}
-
-      {/* Empty State */}
-
-      {machines.length === 0 && !showForm && (
-        <Box
-          sx={{
-            mt: 5,
-            border: "2px dashed #ddd",
-            borderRadius: 4,
-            p: 8,
-            textAlign: "center",
-          }}
+        {/* Fleet Registry */}
+        <PremiumDashboardSection
+          title="Fleet Registry"
+          description={`${totalMachines} machine${totalMachines !== 1 ? "s" : ""} in your fleet.`}
         >
-          <Typography
-            variant="h5"
-            gutterBottom
-          >
-            🚜 No Machinery Added Yet
-          </Typography>
+          <PremiumWorkspaceToolbar
+            primaryAction={
+              <PremiumActionButton
+                label="Add Machine"
+                variant="contained"
+                color="success"
+                startIcon={<AddIcon />}
+                onClick={() => { setEditingMachine(null); setShowForm((prev) => !prev); }}
+              />
+            }
+          />
 
-          <Typography
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
-            Add your first tractor,
-            vehicle or implement
-            to start tracking
-            maintenance and costs.
-          </Typography>
-
-          <Button
-            variant="contained"
-            color="success"
-            startIcon={<AddIcon />}
-            onClick={() => setShowForm(true)}
-          >
-            Add Your First Machine
-          </Button>
-
-        </Box>
-      )}
-
-    </Box>
-  );
-}
-
-function MachineStatCard({
-  title,
-  value,
-  color,
-}) {
-  return (
-    <Box
-      sx={{
-        bgcolor: color,
-        color: "#fff",
-        borderRadius: 3,
-        p: 3,
-      }}
-    >
-      <Typography
-        variant="body2"
-      >
-        {title}
-      </Typography>
-
-      <Typography
-        variant="h4"
-        fontWeight={700}
-      >
-        {value}
-      </Typography>
-    </Box>
+          {machines.length === 0 ? (
+            <PremiumEmptyState
+              title="No Machines Yet"
+              message="Add your first tractor, vehicle or implement to start tracking maintenance and costs."
+            />
+          ) : (
+            <Grid container spacing={3}>
+              {machines.map((machine) => (
+                <Grid key={machine.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <MachineCard
+                    machine={machine}
+                    onView={handleViewMachine}
+                    onEdit={handleEditMachine}
+                    onService={handleServiceMachine}
+                    lastService={serviceHistory.find((s) => s.machine_id === machine.id)}
+                    maintenancePlan={maintenancePlans.find((p) => p.machine_id === machine.id)}
+                    serviceHistory={serviceHistory.filter((s) => s.machine_id === machine.id)}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </PremiumDashboardSection>
+      </Stack>
+    </PremiumPageLayout>
   );
 }

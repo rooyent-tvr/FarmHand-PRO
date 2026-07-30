@@ -6,7 +6,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { AttachMoney } from "@mui/icons-material";
+import { AccountBalanceWallet } from "@mui/icons-material";
 
 function CostCard({ title, value }) {
   return (
@@ -40,7 +40,7 @@ export default function RunningCosts({ serviceHistory = [] }) {
       <CardContent>
 
         <Typography variant="h6" fontWeight={700} gutterBottom>
-          💰 Running Costs
+          💳 Running Costs
         </Typography>
 
         <Typography color="text.secondary" sx={{ mb: 3 }}>
@@ -54,7 +54,7 @@ export default function RunningCosts({ serviceHistory = [] }) {
             variant="outlined"
             sx={{ borderRadius: 3, p: 3, textAlign: "center" }}
           >
-            <AttachMoney sx={{ fontSize: 40, color: "text.disabled", mb: 1 }} />
+            <AccountBalanceWallet sx={{ fontSize: 40, color: "text.disabled", mb: 1 }} />
             <Typography color="text.secondary">
               No service records to calculate costs from.
             </Typography>
