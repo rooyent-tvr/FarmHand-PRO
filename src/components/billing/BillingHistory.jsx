@@ -43,21 +43,17 @@ export default function BillingHistory() {
   }, []);
 
   function handleDownload(invoice) {
-    try {
-      generateInvoicePdf(invoice);
-    } catch (err) {
+    generateInvoicePdf(invoice).catch((err) => {
       console.error("PDF generation failed:", err);
       alert("Unable to generate invoice.");
-    }
+    });
   }
 
   function handleDownloadReceipt(invoice) {
-    try {
-      generateReceiptPdf(invoice);
-    } catch (err) {
+    generateReceiptPdf(invoice).catch((err) => {
       console.error("Receipt generation failed:", err);
       alert("Unable to generate receipt.");
-    }
+    });
   }
 
   return (

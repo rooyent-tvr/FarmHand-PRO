@@ -39,14 +39,20 @@ export async function addFinanceRecord(record) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Clean up animal_id — set to null if not an animal-specific transaction
+  const cleanRecord = { ...record, user_id: user.id };
+
+  if (!cleanRecord.applies_to) {
+    cleanRecord.applies_to = cleanRecord.animal_id ? "animal" : "farm";
+  }
+
+  if (cleanRecord.applies_to !== "animal") {
+    cleanRecord.animal_id = null;
+  }
+
   const { data, error } = await supabase
     .from("finance_records")
-    .insert([
-      {
-        ...record,
-        user_id: user.id,
-      },
-    ])
+    .insert([cleanRecord])
     .select()
     .single();
 
@@ -55,13 +61,20 @@ export async function addFinanceRecord(record) {
   return data;
 }
 
-export async function updateFinanceRecord(
-  id,
-  updates
-) {
+export async function updateFinanceRecord(id, updates) {
+  const cleanUpdates = { ...updates };
+
+  if (!cleanUpdates.applies_to) {
+    cleanUpdates.applies_to = cleanUpdates.animal_id ? "animal" : "farm";
+  }
+
+  if (cleanUpdates.applies_to !== "animal") {
+    cleanUpdates.animal_id = null;
+  }
+
   const { data, error } = await supabase
     .from("finance_records")
-    .update(updates)
+    .update(cleanUpdates)
     .eq("id", id)
     .select()
     .single();
@@ -84,24 +97,12 @@ export async function getFinanceSummary() {
   const records = await getFinanceRecords();
 
   const income = records
-    .filter(
-      (r) => r.category === "Income"
-    )
-    .reduce(
-      (sum, r) =>
-        sum + Number(r.amount || 0),
-      0
-    );
+    .filter((r) => r.category === "Income")
+    .reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
   const expenses = records
-    .filter(
-      (r) => r.category === "Expense"
-    )
-    .reduce(
-      (sum, r) =>
-        sum + Number(r.amount || 0),
-      0
-    );
+    .filter((r) => r.category === "Expense")
+    .reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
   return {
     income,

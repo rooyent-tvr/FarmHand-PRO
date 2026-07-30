@@ -3,10 +3,10 @@ import { jsPDF } from "jspdf";
 /**
  * ============================================================
  * Invoice PDF Generator
- * Sprint 42.6 — Phase 5
+ * Sprint 42.6 — Phase 5 + Sprint 42.7 Branding
  *
  * Generates a professional downloadable PDF invoice using jsPDF.
- * Accepts a complete invoice object from invoiceService.
+ * Includes Feldrix branding, logo, and professional footer.
  * ============================================================
  */
 
@@ -27,13 +27,59 @@ function formatCurrency(amount) {
   return `R${Number(amount || 0).toFixed(2)}`;
 }
 
+function displayStatus(status) {
+  if (status === "Completed") return "Paid";
+  return status || "Paid";
+}
+
+async function loadLogoAsBase64() {
+  try {
+    const response = await fetch("/branding/feldrix-logo-green.png");
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function drawFooter(doc, pageWidth, margin) {
+  const secondaryColor = [100, 116, 139];
+  const dividerColor = [226, 232, 240];
+  let y = doc.internal.pageSize.getHeight() - 32;
+
+  doc.setDrawColor(...dividerColor);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageWidth - margin, y);
+
+  y += 5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(...secondaryColor);
+  doc.text("Smart Farm Management Platform", pageWidth / 2, y, { align: "center" });
+
+  y += 3.5;
+  doc.text("www.feldrix.com", pageWidth / 2, y, { align: "center" });
+
+  y += 3.5;
+  doc.text("support@feldrix.com", pageWidth / 2, y, { align: "center" });
+
+  y += 4;
+  doc.setFontSize(6);
+  doc.text("\u00A9 2026 Feldrix. All rights reserved.", pageWidth / 2, y, { align: "center" });
+}
+
 /**
  * Generates and downloads a professional PDF invoice.
  *
  * @param {object} invoice - Complete invoice object from generateInvoice()
  * @throws {Error} If PDF generation fails
  */
-export function generateInvoicePdf(invoice) {
+export async function generateInvoicePdf(invoice) {
   if (!invoice) {
     throw new Error("No invoice data provided.");
   }
@@ -47,28 +93,34 @@ export function generateInvoicePdf(invoice) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
   const contentWidth = pageWidth - margin * 2;
-  let y = 25;
+  let y = 15;
 
   // Colors
-  const primaryColor = [15, 23, 42]; // slate-900
-  const secondaryColor = [100, 116, 139]; // slate-500
-  const accentColor = [99, 102, 241]; // indigo-500
-  const dividerColor = [226, 232, 240]; // slate-200
+  const primaryColor = [15, 23, 42];
+  const secondaryColor = [100, 116, 139];
+  const accentColor = [99, 102, 241];
+  const dividerColor = [226, 232, 240];
 
   // -----------------------------------------------------------------------
-  // Header: FELDRIX + TAX INVOICE
+  // Logo
+  // -----------------------------------------------------------------------
+  const logoData = await loadLogoAsBase64();
+  if (logoData) {
+    const logoWidth = 45;
+    const logoHeight = 15;
+    doc.addImage(logoData, "PNG", (pageWidth - logoWidth) / 2, y, logoWidth, logoHeight);
+    y += logoHeight + 6;
+  }
+
+  // -----------------------------------------------------------------------
+  // Header: TAX INVOICE
   // -----------------------------------------------------------------------
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(28);
-  doc.setTextColor(...primaryColor);
-  doc.text("FELDRIX", pageWidth / 2, y, { align: "center" });
-
-  y += 10;
   doc.setFontSize(12);
   doc.setTextColor(...accentColor);
   doc.text("TAX INVOICE", pageWidth / 2, y, { align: "center" });
 
-  y += 12;
+  y += 10;
   doc.setDrawColor(...dividerColor);
   doc.setLineWidth(0.5);
   doc.line(margin, y, pageWidth - margin, y);
@@ -76,7 +128,7 @@ export function generateInvoicePdf(invoice) {
   // -----------------------------------------------------------------------
   // Invoice Meta
   // -----------------------------------------------------------------------
-  y += 10;
+  y += 8;
   doc.setFontSize(9);
   doc.setTextColor(...secondaryColor);
   doc.setFont("helvetica", "normal");
@@ -92,22 +144,22 @@ export function generateInvoicePdf(invoice) {
 
   doc.text(invoice.invoiceNumber || "\u2014", margin, y);
   doc.text(formatDate(invoice.invoiceDate), margin + 60, y);
-  doc.text(invoice.status || "Completed", margin + 120, y);
+  doc.text(displayStatus(invoice.status), margin + 120, y);
 
-  y += 12;
+  y += 10;
   doc.setDrawColor(...dividerColor);
   doc.line(margin, y, pageWidth - margin, y);
 
   // -----------------------------------------------------------------------
   // Bill To
   // -----------------------------------------------------------------------
-  y += 10;
+  y += 8;
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...accentColor);
   doc.text("BILL TO", margin, y);
 
-  y += 7;
+  y += 6;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(...primaryColor);
@@ -123,21 +175,19 @@ export function generateInvoicePdf(invoice) {
     y += 5.5;
   }
 
-  y += 6;
+  y += 5;
   doc.setDrawColor(...dividerColor);
   doc.line(margin, y, pageWidth - margin, y);
 
   // -----------------------------------------------------------------------
   // Subscription Details
   // -----------------------------------------------------------------------
-  y += 10;
+  y += 8;
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...accentColor);
   doc.text("SUBSCRIPTION", margin, y);
 
-  y += 8;
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...secondaryColor);
+  y += 7;
   doc.setFontSize(9);
 
   const subDetails = [
@@ -150,28 +200,26 @@ export function generateInvoicePdf(invoice) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...secondaryColor);
     doc.text(item.label, margin, y);
-
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...primaryColor);
     doc.text(item.value, margin + 50, y);
-
     y += 6;
   }
 
-  y += 6;
+  y += 5;
   doc.setDrawColor(...dividerColor);
   doc.line(margin, y, pageWidth - margin, y);
 
   // -----------------------------------------------------------------------
   // Payment Details
   // -----------------------------------------------------------------------
-  y += 10;
+  y += 8;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(...accentColor);
   doc.text("PAYMENT DETAILS", margin, y);
 
-  y += 8;
+  y += 7;
   doc.setFontSize(9);
 
   const payDetails = [
@@ -184,19 +232,17 @@ export function generateInvoicePdf(invoice) {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...secondaryColor);
     doc.text(item.label, margin, y);
-
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...primaryColor);
     doc.text(item.value, margin + 50, y);
-
     y += 6;
   }
 
   // -----------------------------------------------------------------------
   // Amount Highlight
   // -----------------------------------------------------------------------
-  y += 10;
-  doc.setFillColor(248, 250, 252); // slate-50
+  y += 8;
+  doc.setFillColor(248, 250, 252);
   doc.roundedRect(margin, y, contentWidth, 18, 3, 3, "F");
 
   doc.setFont("helvetica", "bold");
@@ -211,19 +257,7 @@ export function generateInvoicePdf(invoice) {
   // -----------------------------------------------------------------------
   // Footer
   // -----------------------------------------------------------------------
-  y = doc.internal.pageSize.getHeight() - 30;
-
-  doc.setDrawColor(...dividerColor);
-  doc.line(margin, y, pageWidth - margin, y);
-
-  y += 7;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(...secondaryColor);
-  doc.text("Thank you for choosing Feldrix.", pageWidth / 2, y, { align: "center" });
-
-  y += 4.5;
-  doc.text("www.feldrix.com", pageWidth / 2, y, { align: "center" });
+  drawFooter(doc, pageWidth, margin);
 
   // -----------------------------------------------------------------------
   // Download

@@ -1,25 +1,14 @@
 import StatCard from "../ui/StatCard";
 
-export default function LivestockStatsGrid({ animals = [] }) {
-  const totalAnimals = animals.length;
-
-  const healthyAnimals = animals.filter(
-    (animal) => animal.status === "Healthy"
-  ).length;
-
-  const pregnantAnimals = animals.filter(
-    (animal) => animal.status === "Pregnant"
-  ).length;
-
-  const averageWeight =
-    totalAnimals > 0
-      ? (
-          animals.reduce(
-            (sum, animal) => sum + Number(animal.weight || 0),
-            0
-          ) / totalAnimals
-        ).toFixed(0)
-      : 0;
+/**
+ * Livestock KPI cards.
+ * Consumes the unified analytics object — no independent calculations.
+ */
+export default function LivestockStatsGrid({ analytics }) {
+  const totalAnimals = analytics?.totalAnimals ?? 0;
+  const healthyAnimals = analytics?.healthyAnimals ?? 0;
+  const pregnantAnimals = analytics?.pregnantAnimals ?? 0;
+  const averageWeight = analytics?.averageWeight ?? 0;
 
   return (
     <div

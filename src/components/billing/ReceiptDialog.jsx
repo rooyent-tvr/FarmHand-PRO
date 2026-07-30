@@ -1,17 +1,16 @@
 import {
+  Box,
   Button,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   Divider,
   Grid,
   Stack,
   Typography,
 } from "@mui/material";
 
-import ReceiptIcon from "@mui/icons-material/Receipt";
 import DownloadIcon from "@mui/icons-material/Download";
 
 import { buildReceipt, generateReceiptPdf } from "../../utils/receiptPdfGenerator";
@@ -29,6 +28,11 @@ function formatDate(date) {
   }
 }
 
+function displayStatus(status) {
+  if (status === "Completed") return "Paid";
+  return status || "Paid";
+}
+
 export default function ReceiptDialog({ open, invoice, onClose }) {
   if (!invoice) return null;
 
@@ -39,25 +43,27 @@ export default function ReceiptDialog({ open, invoice, onClose }) {
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="sm"
+      maxWidth="md"
       PaperProps={{ sx: { borderRadius: 4 } }}
     >
-      <DialogTitle sx={{ pt: 4, px: 4, pb: 1 }}>
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          <ReceiptIcon sx={{ color: "#16a34a", fontSize: 28 }} />
-          <Stack spacing={0}>
-            <Typography variant="h6" fontWeight={700}>
-              Payment Receipt
+      <DialogContent sx={{ px: { xs: 3, md: 5 }, pt: 5, pb: 2 }}>
+        <Stack spacing={4}>
+          {/* Logo + Title */}
+          <Stack alignItems="center" spacing={1.5}>
+            <Box
+              component="img"
+              src="/branding/feldrix-logo-green.png"
+              alt="Feldrix"
+              sx={{ width: 140, height: "auto" }}
+            />
+            <Typography variant="h6" fontWeight={700} sx={{ letterSpacing: 1 }}>
+              PAYMENT RECEIPT
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {receipt.receiptNumber}
             </Typography>
           </Stack>
-        </Stack>
-      </DialogTitle>
 
-      <DialogContent sx={{ px: 4, pt: 3, pb: 2 }}>
-        <Stack spacing={3}>
           {/* Amount + Status */}
           <Stack
             direction="row"
@@ -81,7 +87,7 @@ export default function ReceiptDialog({ open, invoice, onClose }) {
               </Typography>
             </Stack>
             <Chip
-              label={receipt.status}
+              label={displayStatus(receipt.status)}
               color={receipt.status === "Completed" ? "success" : "default"}
               sx={{ fontWeight: 700 }}
             />
@@ -89,43 +95,70 @@ export default function ReceiptDialog({ open, invoice, onClose }) {
 
           <Divider />
 
-          {/* Details grid */}
-          <Grid container spacing={2.5}>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Receipt Number" value={receipt.receiptNumber} />
+          {/* Receipt Information */}
+          <Stack spacing={1.5}>
+            <Typography variant="caption" fontWeight={700} color="text.disabled" sx={{ textTransform: "uppercase", letterSpacing: 1 }}>
+              Receipt Information
+            </Typography>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Receipt Number" value={receipt.receiptNumber} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Linked Invoice" value={receipt.linkedInvoice} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Payment Date" value={formatDate(receipt.paymentDate)} />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Linked Invoice" value={receipt.linkedInvoice} />
+          </Stack>
+
+          <Divider />
+
+          {/* Customer Information */}
+          <Stack spacing={1.5}>
+            <Typography variant="caption" fontWeight={700} color="text.disabled" sx={{ textTransform: "uppercase", letterSpacing: 1 }}>
+              Customer Information
+            </Typography>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Customer Name" value={receipt.customerName} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Farm Name" value={receipt.farmName || "\u2014"} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Email" value={receipt.email || "\u2014"} />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Payment Date" value={formatDate(receipt.paymentDate)} />
+          </Stack>
+
+          <Divider />
+
+          {/* Payment Information */}
+          <Stack spacing={1.5}>
+            <Typography variant="caption" fontWeight={700} color="text.disabled" sx={{ textTransform: "uppercase", letterSpacing: 1 }}>
+              Payment Information
+            </Typography>
+            <Grid container spacing={2.5}>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Plan" value={receipt.plan} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Billing Cycle" value={receipt.billingCycle} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Payment Provider" value={receipt.paymentProvider} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <ReceiptField label="Payment Reference" value={receipt.paymentReference || "\u2014"} wrap />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Payment Provider" value={receipt.paymentProvider} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Customer Name" value={receipt.customerName} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Farm Name" value={receipt.farmName || "\u2014"} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Email" value={receipt.email || "\u2014"} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Plan" value={receipt.plan} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Billing Cycle" value={receipt.billingCycle} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <ReceiptField label="Payment Reference" value={receipt.paymentReference || "\u2014"} />
-            </Grid>
-          </Grid>
+          </Stack>
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ px: 4, pb: 4, pt: 2, gap: 1 }}>
+      <DialogActions sx={{ px: { xs: 3, md: 5 }, pb: 4, pt: 2, gap: 1 }}>
         <Button
           variant="outlined"
           onClick={onClose}
@@ -138,11 +171,7 @@ export default function ReceiptDialog({ open, invoice, onClose }) {
           color="success"
           startIcon={<DownloadIcon />}
           onClick={() => {
-            try {
-              generateReceiptPdf(invoice);
-            } catch {
-              alert("Unable to generate receipt.");
-            }
+            generateReceiptPdf(invoice).catch(() => alert("Unable to generate receipt."));
           }}
           sx={{ textTransform: "none", fontWeight: 600, borderRadius: 2.5, px: 3 }}
         >
@@ -153,13 +182,13 @@ export default function ReceiptDialog({ open, invoice, onClose }) {
   );
 }
 
-function ReceiptField({ label, value }) {
+function ReceiptField({ label, value, wrap }) {
   return (
     <Stack spacing={0.25}>
       <Typography variant="caption" color="text.disabled" sx={{ textTransform: "uppercase", letterSpacing: 0.8, fontSize: "0.6rem", fontWeight: 700 }}>
         {label}
       </Typography>
-      <Typography variant="body2" fontWeight={600}>
+      <Typography variant="body2" fontWeight={600} sx={wrap ? { wordBreak: "break-all" } : undefined}>
         {value}
       </Typography>
     </Stack>

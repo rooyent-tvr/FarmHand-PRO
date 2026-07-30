@@ -4,6 +4,22 @@ import {
   deleteFinanceRecord,
 } from "../../services/financeService";
 
+function getAppliesToLabel(record) {
+  const scope = record.applies_to || (record.animal_id ? "animal" : "farm");
+
+  if (scope === "farm") return "\uD83C\uDF3E Entire Farm";
+  if (scope === "livestock") return "\uD83D\uDC04 Livestock";
+
+  if (scope === "animal") {
+    if (record.animal?.tag) {
+      return `\uD83D\uDC04 Animal \u2022 ${record.animal.tag}`;
+    }
+    return "\uD83D\uDC04 Deleted Animal";
+  }
+
+  return "\uD83C\uDF3E Entire Farm";
+}
+
 export default function FinanceTable({
   records = [],
   onEdit,
@@ -26,28 +42,16 @@ export default function FinanceTable({
     const term = search.toLowerCase();
 
     return (
-      (record.animal?.tag || "")
-        .toLowerCase()
-        .includes(term) ||
-      (record.transaction_type || "")
-        .toLowerCase()
-        .includes(term) ||
-      (record.category || "")
-        .toLowerCase()
-        .includes(term) ||
-      (record.description || "")
-        .toLowerCase()
-        .includes(term)
+      getAppliesToLabel(record).toLowerCase().includes(term) ||
+      (record.animal?.tag || "").toLowerCase().includes(term) ||
+      (record.transaction_type || "").toLowerCase().includes(term) ||
+      (record.category || "").toLowerCase().includes(term) ||
+      (record.description || "").toLowerCase().includes(term)
     );
   });
 
   async function handleDelete(id) {
-    if (
-      !window.confirm(
-        "Delete this finance record?"
-      )
-    )
-      return;
+    if (!window.confirm("Delete this finance record?")) return;
 
     try {
       await deleteFinanceRecord(id);
@@ -63,8 +67,7 @@ export default function FinanceTable({
         background: "#FFFFFF",
         padding: 24,
         borderRadius: 16,
-        boxShadow:
-          "0 8px 20px rgba(15,23,42,.08)",
+        boxShadow: "0 8px 20px rgba(15,23,42,.08)",
       }}
     >
       <div
@@ -78,25 +81,14 @@ export default function FinanceTable({
         }}
       >
         <div>
-          <h2 style={{ margin: 0 }}>
-            💰 Finance Records
-          </h2>
-
-          <p
-            style={{
-              color: "#64748B",
-            }}
-          >
-            {filtered.length} Records
-          </p>
+          <h2 style={{ margin: 0 }}>💰 Finance Records</h2>
+          <p style={{ color: "#64748B" }}>{filtered.length} Records</p>
         </div>
 
         <input
-          placeholder="🔍 Search finance records..."
+          placeholder="🔍 Search records..."
           value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
+          onChange={(e) => setSearch(e.target.value)}
           style={{
             padding: 12,
             width: 320,
@@ -106,25 +98,11 @@ export default function FinanceTable({
         />
       </div>
 
-      <div
-        style={{
-          overflowX: "auto",
-        }}
-      >
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
-            <tr
-              style={{
-                background: "#16A34A",
-                color: "#FFFFFF",
-              }}
-            >
-              <th style={header}>Animal</th>
+            <tr style={{ background: "#16A34A", color: "#FFFFFF" }}>
+              <th style={header}>Applies To</th>
               <th style={header}>Category</th>
               <th style={header}>Type</th>
               <th style={header}>Amount</th>
@@ -137,111 +115,64 @@ export default function FinanceTable({
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td
-                  colSpan="7"
-                  style={{
-                    padding: 30,
-                    textAlign: "center",
-                  }}
-                >
+                <td colSpan="7" style={{ padding: 30, textAlign: "center" }}>
                   No finance records found.
                 </td>
               </tr>
             ) : (
-              filtered.map(
-                (record, index) => (
-                  <tr
-                    key={record.id}
-                    style={{
-                      background:
-                        index % 2
-                          ? "#FCFCFC"
-                          : "#FFFFFF",
-                      borderBottom:
-                        "1px solid #E5E7EB",
-                    }}
-                  >
-                    <td style={cell}>
-                      🐄{" "}
-                      {record.animal?.tag || "-"}
-                    </td>
+              filtered.map((record, index) => (
+                <tr
+                  key={record.id}
+                  style={{
+                    background: index % 2 ? "#FCFCFC" : "#FFFFFF",
+                    borderBottom: "1px solid #E5E7EB",
+                  }}
+                >
+                  <td style={cell}>
+                    {getAppliesToLabel(record)}
+                  </td>
 
-                    <td style={cell}>
-                      <span
-                        style={{
-                          background:
-                            record.category === "Income"
-                              ? "#DCFCE7"
-                              : "#FEE2E2",
-                          color:
-                            record.category === "Income"
-                              ? "#166534"
-                              : "#991B1B",
-                          padding: "6px 12px",
-                          borderRadius: 20,
-                          fontWeight: 700,
-                          fontSize: 13,
-                        }}
-                      >
-                        {record.category === "Income"
-                          ? "💰 Income"
-                          : "💸 Expense"}
-                      </span>
-                    </td>
-
-                    <td style={cell}>
-                      {record.transaction_type}
-                    </td>
-
-                    <td
+                  <td style={cell}>
+                    <span
                       style={{
-                        ...cell,
+                        background: record.category === "Income" ? "#DCFCE7" : "#FEE2E2",
+                        color: record.category === "Income" ? "#166534" : "#991B1B",
+                        padding: "6px 12px",
+                        borderRadius: 20,
                         fontWeight: 700,
-                        color:
-                          record.category === "Income"
-                            ? "#16A34A"
-                            : "#DC2626",
+                        fontSize: 13,
                       }}
                     >
-                      {formatCurrency(
-                        record.amount
-                      )}
-                    </td>
+                      {record.category === "Income" ? "💰 Income" : "💸 Expense"}
+                    </span>
+                  </td>
 
-                    <td style={cell}>
-                      {formatDate(
-                        record.transaction_date
-                      )}
-                    </td>
+                  <td style={cell}>{record.transaction_type}</td>
 
-                    <td style={cell}>
-                      {record.description || "-"}
-                    </td>
+                  <td
+                    style={{
+                      ...cell,
+                      fontWeight: 700,
+                      color: record.category === "Income" ? "#16A34A" : "#DC2626",
+                    }}
+                  >
+                    {formatCurrency(record.amount)}
+                  </td>
 
-                    <td style={cell}>
-                      <button
-                        onClick={() =>
-                          onEdit(record)
-                        }
-                        style={editButton}
-                      >
-                        ✏️ Edit
-                      </button>
+                  <td style={cell}>{formatDate(record.transaction_date)}</td>
 
-                      <button
-                        onClick={() =>
-                          handleDelete(
-                            record.id
-                          )
-                        }
-                        style={deleteButton}
-                      >
-                        🗑 Delete
-                      </button>
-                    </td>
-                  </tr>
-                )
-              )
+                  <td style={cell}>{record.description || "-"}</td>
+
+                  <td style={cell}>
+                    <button onClick={() => onEdit(record)} style={editButton}>
+                      ✏️ Edit
+                    </button>
+                    <button onClick={() => handleDelete(record.id)} style={deleteButton}>
+                      🗑 Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>

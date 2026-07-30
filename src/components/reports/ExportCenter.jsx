@@ -57,7 +57,7 @@ export default function ExportCenter({
           marginBottom: 24,
         }}
       >
-        📄 Export Centre
+        📄 Reports Centre
       </h2>
 
       <p
@@ -66,10 +66,7 @@ export default function ExportCenter({
           marginBottom: 24,
         }}
       >
-        Export your complete farm records in
-        professional formats for accountants,
-        veterinarians, banks, insurance companies
-        or your own archives.
+        Generate, export and manage your farm reports, invoices and payment documents.
       </p>
 
       <div

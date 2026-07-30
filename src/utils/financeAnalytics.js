@@ -1,11 +1,12 @@
 /**
  * FarmHand PRO — Finance Analytics Engine
- * Sprint 30
+ * Sprint 30 + Finance Module 2.0 Fix
  *
- * Generates financial analytics from recorded transactions.
+ * Generates financial analytics from ALL recorded transactions
+ * regardless of applies_to scope (farm, livestock, animal).
  *
  * @param {object} params
- * @param {Array} params.financeRecords - Finance records with type, category, amount, date
+ * @param {Array} params.financeRecords - Finance records from Supabase
  *
  * @returns {object} Analytics object for FinanceInsights component
  */
@@ -15,12 +16,12 @@ export function generateFinanceAnalytics({ financeRecords = [] } = {}) {
     return { available: false };
   }
 
-  // Separate income and expenses
+  // Separate income and expenses using the `category` field
   const incomeRecords = financeRecords.filter(
-    (r) => r.type === "Income" || r.type === "income"
+    (r) => r.category === "Income" || r.category === "income"
   );
   const expenseRecords = financeRecords.filter(
-    (r) => r.type === "Expense" || r.type === "expense"
+    (r) => r.category === "Expense" || r.category === "expense"
   );
 
   const totalIncome = incomeRecords.reduce(
@@ -37,22 +38,22 @@ export function generateFinanceAnalytics({ financeRecords = [] } = {}) {
     ? (netProfit / totalIncome) * 100
     : 0;
 
-  // Largest expense category
-  const expenseByCategory = {};
+  // Largest expense by transaction_type
+  const expenseByType = {};
   for (const r of expenseRecords) {
-    const cat = r.category || "Other";
-    expenseByCategory[cat] = (expenseByCategory[cat] || 0) + (Number(r.amount) || 0);
+    const type = r.transaction_type || "Other";
+    expenseByType[type] = (expenseByType[type] || 0) + (Number(r.amount) || 0);
   }
-  const largestExpenseCategory = Object.entries(expenseByCategory)
+  const largestExpenseCategory = Object.entries(expenseByType)
     .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
-  // Largest income source
-  const incomeByCategory = {};
+  // Largest income by transaction_type
+  const incomeByType = {};
   for (const r of incomeRecords) {
-    const cat = r.category || "Other";
-    incomeByCategory[cat] = (incomeByCategory[cat] || 0) + (Number(r.amount) || 0);
+    const type = r.transaction_type || "Other";
+    incomeByType[type] = (incomeByType[type] || 0) + (Number(r.amount) || 0);
   }
-  const largestIncomeSource = Object.entries(incomeByCategory)
+  const largestIncomeSource = Object.entries(incomeByType)
     .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 
   // Monthly trend (compare last 2 months of net)
@@ -65,16 +66,16 @@ export function generateFinanceAnalytics({ financeRecords = [] } = {}) {
   function getMonthNet(month, year) {
     const income = financeRecords
       .filter((r) => {
-        if (r.type !== "Income" && r.type !== "income") return false;
-        const d = new Date(r.date || r.created_at);
+        if (r.category !== "Income" && r.category !== "income") return false;
+        const d = new Date(r.transaction_date || r.created_at);
         return d.getMonth() === month && d.getFullYear() === year;
       })
       .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
     const expenses = financeRecords
       .filter((r) => {
-        if (r.type !== "Expense" && r.type !== "expense") return false;
-        const d = new Date(r.date || r.created_at);
+        if (r.category !== "Expense" && r.category !== "expense") return false;
+        const d = new Date(r.transaction_date || r.created_at);
         return d.getMonth() === month && d.getFullYear() === year;
       })
       .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
@@ -110,7 +111,7 @@ export function generateFinanceAnalytics({ financeRecords = [] } = {}) {
   }
 
   if (largestExpenseCategory) {
-    const topExpenseAmount = expenseByCategory[largestExpenseCategory] || 0;
+    const topExpenseAmount = expenseByType[largestExpenseCategory] || 0;
     const expensePercentage = totalExpenses > 0
       ? Math.round((topExpenseAmount / totalExpenses) * 100)
       : 0;

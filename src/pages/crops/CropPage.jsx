@@ -7,11 +7,16 @@ import StatCard from "../../components/ui/StatCard";
 
 import CropForm from "../../components/crops/CropForm";
 import CropTable from "../../components/crops/CropTable";
+import CropHealthScore from "../../components/crops/CropHealthScore";
+import CropInsights from "../../components/crops/CropInsights";
 
 import { getCrops } from "../../services/cropService";
+import { getWeatherSummary } from "../../services/weatherService";
+import { generateCropAnalytics } from "../../utils/cropAnalytics";
 
 export default function CropPage() {
   const [crops, setCrops] = useState([]);
+  const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCrop, setSelectedCrop] = useState(null);
 
@@ -19,8 +24,12 @@ export default function CropPage() {
     setLoading(true);
 
     try {
-      const data = await getCrops();
+      const [data, weatherData] = await Promise.all([
+        getCrops(),
+        getWeatherSummary().catch(() => null),
+      ]);
       setCrops(data || []);
+      setWeather(weatherData);
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -60,6 +69,8 @@ export default function CropPage() {
     (sum, crop) => sum + Number(crop.area || 0),
     0
   );
+
+  const analytics = generateCropAnalytics({ crops, weather });
 
   return (
     <PageContainer
@@ -103,6 +114,15 @@ export default function CropPage() {
               icon="📏"
               color="info.dark"
             />
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <CropHealthScore analytics={analytics} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <CropInsights analytics={analytics} />
           </Grid>
         </Grid>
 

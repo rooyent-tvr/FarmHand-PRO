@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { Box, Divider, Stack, Typography } from "@mui/material";
+import DescriptionIcon from "@mui/icons-material/Description";
+
 import PageContainer from "../components/layout/PageContainer";
 
 import ReportStats from "../components/reports/ReportStats";
@@ -8,6 +11,9 @@ import LivestockChart from "../components/reports/LivestockChart";
 import BreedingOverview from "../components/reports/BreedingOverview";
 import HealthOverview from "../components/reports/HealthOverview";
 import ExportCenter from "../components/reports/ExportCenter";
+
+import BillingHistory from "../components/billing/BillingHistory";
+import SubscriptionTimeline from "../components/billing/SubscriptionTimeline";
 
 import { getFarmReport } from "../services/reportService";
 
@@ -64,71 +70,29 @@ export default function Reports() {
         report={report}
       />
 
-      <div
-        style={{
-          background: "#FFFFFF",
-          borderRadius: 16,
-          padding: 40,
-          marginTop: 30,
-          boxShadow:
-            "0 8px 20px rgba(15,23,42,.08)",
-        }}
-      >
-        <h2
-          style={{
-            textAlign: "center",
-            marginTop: 0,
-          }}
-        >
-          🚀 Coming Soon
-        </h2>
+      {/* ================================================================
+          BILLING DOCUMENTS
+          ================================================================ */}
+      <Box sx={{ mt: 4 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
+          <DescriptionIcon sx={{ color: "#6366f1", fontSize: 28 }} />
+          <Stack spacing={0}>
+            <Typography variant="h5" fontWeight={700}>
+              Billing Documents
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Invoices, receipts and subscription payment history
+            </Typography>
+          </Stack>
+        </Stack>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(220px,1fr))",
-            gap: 24,
-            marginTop: 30,
-          }}
-        >
-          <div>
-            <h3>📈 Financial Analytics</h3>
-            <ul>
-              <li>Monthly Profit Trends</li>
-              <li>Expense Breakdown</li>
-              <li>Income Analysis</li>
-            </ul>
-          </div>
+        <Divider sx={{ mb: 3 }} />
 
-          <div>
-            <h3>🐄 Livestock Reports</h3>
-            <ul>
-              <li>Weight Growth</li>
-              <li>Breeding Performance</li>
-              <li>Health Summary</li>
-            </ul>
-          </div>
-
-          <div>
-            <h3>📄 Export Reports</h3>
-            <ul>
-              <li>PDF Export</li>
-              <li>Excel Export</li>
-              <li>CSV Export</li>
-            </ul>
-          </div>
-
-          <div>
-            <h3>📊 Business Intelligence</h3>
-            <ul>
-              <li>Most Profitable Animal</li>
-              <li>Highest Expenses</li>
-              <li>Farm KPIs</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+        <Stack spacing={3}>
+          <BillingHistory />
+          <SubscriptionTimeline />
+        </Stack>
+      </Box>
     </PageContainer>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 import PageContainer from "../components/layout/PageContainer";
 
@@ -30,6 +30,7 @@ import { getBreedingHistory } from "../services/breedingService";
 
 export default function AnimalProfile() {
   const { id } = useParams();
+  const location = useLocation();
 
   const [animal, setAnimal] = useState(null);
 
@@ -41,11 +42,23 @@ export default function AnimalProfile() {
   const [showHealthModal, setShowHealthModal] = useState(false);
   const [showBreedingModal, setShowBreedingModal] = useState(false);
 
-  const [activeTab, setActiveTab] = useState("weight");
+  // Determine initial tab from navigation state or default to "weight"
+  const sectionFromState = location.state?.section;
+  const validTabs = ["weight", "health", "breeding", "finance", "notes"];
+  const initialTab = validTabs.includes(sectionFromState) ? sectionFromState : "weight";
+
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
     loadAnimal();
   }, [id]);
+
+  // Update active tab when navigation state changes
+  useEffect(() => {
+    if (sectionFromState && validTabs.includes(sectionFromState)) {
+      setActiveTab(sectionFromState);
+    }
+  }, [location.state]);
 
   async function loadAnimal() {
     try {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { differenceInDays, format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import {
@@ -17,8 +18,7 @@ import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import PaymentsIcon from "@mui/icons-material/Payments";
-import DownloadIcon from "@mui/icons-material/Download";
-import HistoryIcon from "@mui/icons-material/History";
+import DescriptionIcon from "@mui/icons-material/Description";
 import CancelIcon from "@mui/icons-material/Cancel";
 import RestoreIcon from "@mui/icons-material/Restore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -30,9 +30,6 @@ import {
 } from "../../services/subscriptionLifecycleService";
 import { startUpgradePayment } from "../../services/paymentService";
 import { getCurrentUser } from "../../services/profileService";
-
-import BillingHistory from "../billing/BillingHistory";
-import SubscriptionTimeline from "../billing/SubscriptionTimeline";
 
 function formatDate(date) {
   if (!date) return "\u2014";
@@ -52,6 +49,8 @@ export default function BillingDashboard({
   onCancel,
   onReactivate,
 }) {
+  const navigate = useNavigate();
+
   if (!subscription) {
     return (
       <Alert severity="warning">
@@ -242,38 +241,17 @@ export default function BillingDashboard({
           <Divider sx={{ mx: 3.5 }} />
 
           <ActionRow
-            icon={<HistoryIcon sx={{ fontSize: 24 }} />}
-            iconBg="rgba(14,165,233,0.1)"
-            iconColor="#0ea5e9"
-            title="Billing History"
-            description="View invoices and payment history"
-            onClick={onBillingHistory}
-          />
-
-          <Divider sx={{ mx: 3.5 }} />
-
-          <ActionRow
-            icon={<DownloadIcon sx={{ fontSize: 24 }} />}
+            icon={<DescriptionIcon sx={{ fontSize: 24 }} />}
             iconBg="rgba(34,197,94,0.1)"
             iconColor="#16a34a"
-            title="Download Latest Invoice"
-            description="Download your latest invoice as PDF"
-            onClick={onDownloadInvoice}
+            title="Billing Documents"
+            description="View invoices, receipts and payment history"
+            onClick={() => navigate("/reports")}
           />
 
           <Box sx={{ height: 8 }} />
         </CardContent>
       </Card>
-
-      {/* ================================================================
-          BILLING HISTORY
-          ================================================================ */}
-      <BillingHistory />
-
-      {/* ================================================================
-          SUBSCRIPTION TIMELINE
-          ================================================================ */}
-      <SubscriptionTimeline />
 
       <ReactivateSubscriptionDialog
         open={reactivateOpen}

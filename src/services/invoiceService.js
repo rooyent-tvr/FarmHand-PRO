@@ -102,8 +102,6 @@ export async function getInvoiceData(userId) {
     return [];
   }
 
-  if (!payments || payments.length === 0) return [];
-
   // Fetch subscription
   const subscription = await getSubscription();
 
@@ -115,8 +113,37 @@ export async function getInvoiceData(userId) {
     // Profile may not exist — proceed without it
   }
 
-  // Generate invoice objects
-  return payments.map((payment) => generateInvoice(payment, subscription, profile));
+  // If payments exist, generate invoices from them
+  if (payments && payments.length > 0) {
+    return payments.map((payment) => generateInvoice(payment, subscription, profile));
+  }
+
+  // Fallback: if no payment rows but subscription is paid, generate
+  // an invoice from the subscription record itself
+  if (
+    subscription &&
+    subscription.payment_provider &&
+    subscription.plan?.toLowerCase() !== "starter"
+  ) {
+    const syntheticPayment = {
+      id: subscription.id,
+      user_id: subscription.user_id,
+      provider: subscription.payment_provider,
+      amount: subscription.price || 99,
+      currency: "ZAR",
+      status: "Completed",
+      subscription_plan: subscription.plan,
+      payment_reference: subscription.payment_reference || null,
+      transaction_id: subscription.payment_reference || subscription.id,
+      paid_at: subscription.updated_at || subscription.created_at,
+      created_at: subscription.created_at,
+    };
+
+    const invoice = generateInvoice(syntheticPayment, subscription, profile);
+    return invoice ? [invoice] : [];
+  }
+
+  return [];
 }
 
 export default {

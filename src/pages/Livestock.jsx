@@ -1,16 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import { Grid, Stack } from "@mui/material";
 
 import PageContainer from "../components/layout/PageContainer";
 import LivestockStatsGrid from "../components/livestock/LivestockStatsGrid";
+import LivestockHealthScore from "../components/livestock/LivestockHealthScore";
+import LivestockInsights from "../components/livestock/LivestockInsights";
 import AnimalForm from "../components/livestock/AnimalForm";
 import AnimalModal from "../components/livestock/AnimalModal";
 import ViewToggle from "../components/livestock/ViewToggle";
 import LivestockView from "../components/livestock/LivestockView";
 
 import { getAnimals } from "../services/livestockService";
+import { getHealthRecords } from "../services/healthService";
+import { getBreedingRecords } from "../services/breedingService";
+import { generateLivestockAnalytics } from "../utils/livestockAnalytics";
 
 export default function Livestock() {
   const [animals, setAnimals] = useState([]);
+  const [healthRecords, setHealthRecords] = useState([]);
+  const [breedingRecords, setBreedingRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [view, setView] = useState("table");
@@ -22,8 +31,14 @@ export default function Livestock() {
     setLoading(true);
 
     try {
-      const data = await getAnimals();
+      const [data, health, breeding] = await Promise.all([
+        getAnimals(),
+        getHealthRecords().catch(() => []),
+        getBreedingRecords().catch(() => []),
+      ]);
       setAnimals(data || []);
+      setHealthRecords(health || []);
+      setBreedingRecords(breeding || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -34,6 +49,12 @@ export default function Livestock() {
   useEffect(() => {
     loadAnimals();
   }, []);
+
+  // Single analytics computation — consumed by ALL widgets
+  const analytics = useMemo(
+    () => generateLivestockAnalytics({ animals, healthRecords, breedingRecords }),
+    [animals, healthRecords, breedingRecords]
+  );
 
   function handleEdit(animal) {
     setSelectedAnimal(animal);
@@ -50,25 +71,36 @@ export default function Livestock() {
       title="🐄 Livestock Management"
       subtitle="Manage all livestock on your farm."
     >
-      <LivestockStatsGrid animals={animals} />
+      <Stack spacing={3}>
+        <LivestockStatsGrid analytics={analytics} />
 
-      <AnimalForm refreshAnimals={loadAnimals} />
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <LivestockHealthScore analytics={analytics} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <LivestockInsights analytics={analytics} />
+          </Grid>
+        </Grid>
 
-      <ViewToggle
-        view={view}
-        setView={setView}
-      />
+        <AnimalForm refreshAnimals={loadAnimals} />
 
-      {loading ? (
-        <p>Loading livestock...</p>
-      ) : (
-        <LivestockView
+        <ViewToggle
           view={view}
-          animals={animals}
-          onEdit={handleEdit}
-          refreshAnimals={loadAnimals}
+          setView={setView}
         />
-      )}
+
+        {loading ? (
+          <p>Loading livestock...</p>
+        ) : (
+          <LivestockView
+            view={view}
+            animals={animals}
+            onEdit={handleEdit}
+            refreshAnimals={loadAnimals}
+          />
+        )}
+      </Stack>
 
       <AnimalModal
         open={showModal}
