@@ -1,5 +1,6 @@
 import {
   alpha,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -11,9 +12,11 @@ import {
 
 import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AddTaskIcon from "@mui/icons-material/AddTask";
 import GrassIcon from "@mui/icons-material/Grass";
 import AgricultureIcon from "@mui/icons-material/Agriculture";
 import WaterDropIcon from "@mui/icons-material/WaterDrop";
+import { useNavigate } from "react-router-dom";
 
 function getSeverityColor(severity) {
   switch (severity) {
@@ -26,7 +29,7 @@ function getSeverityColor(severity) {
 
 function getSeverityLabel(severity) {
   switch (severity) {
-    case "high": return "High Priority";
+    case "high": return "Critical";
     case "medium": return "Attention";
     case "low": return "Info";
     default: return "Info";
@@ -35,46 +38,22 @@ function getSeverityLabel(severity) {
 
 function getBadgeLabel(insights) {
   if (!insights || insights.length === 0) return "No Issues";
-
   const highCount = insights.filter((i) => i.severity === "high").length;
   if (highCount > 0) return `${highCount} Alert${highCount > 1 ? "s" : ""}`;
-
   return `${insights.length} Insight${insights.length > 1 ? "s" : ""}`;
 }
 
 function getBadgeColor(insights) {
   if (!insights || insights.length === 0) return "success";
-
-  const hasHigh = insights.some((i) => i.severity === "high");
-  if (hasHigh) return "error";
-
-  const hasMedium = insights.some((i) => i.severity === "medium");
-  if (hasMedium) return "warning";
-
+  if (insights.some((i) => i.severity === "high")) return "error";
+  if (insights.some((i) => i.severity === "medium")) return "warning";
   return "success";
-}
-
-function getInsightBg(severity, palette) {
-  switch (severity) {
-    case "high": return alpha(palette.error.main, 0.04);
-    case "medium": return alpha(palette.warning.main, 0.04);
-    case "low": return alpha(palette.success.main, 0.04);
-    default: return alpha(palette.info.main, 0.04);
-  }
-}
-
-function getInsightBorder(severity, palette) {
-  switch (severity) {
-    case "high": return alpha(palette.error.main, 0.12);
-    case "medium": return alpha(palette.warning.main, 0.12);
-    case "low": return alpha(palette.success.main, 0.12);
-    default: return alpha(palette.info.main, 0.12);
-  }
 }
 
 export default function CropInsights({ analytics }) {
   const theme = useTheme();
   const { palette } = theme;
+  const navigate = useNavigate();
 
   if (!analytics || !analytics.available) {
     return (
@@ -97,7 +76,19 @@ export default function CropInsights({ analytics }) {
 
   const { insights = [] } = analytics;
   const allClear = insights.length === 0 || (insights.length === 1 && insights[0].type === "all_good");
-  const actionableInsights = insights.filter((i) => i.type !== "all_good");
+  const actionableInsights = insights
+    .filter((i) => i.type !== "all_good")
+    .sort((a, b) => {
+      const order = { high: 0, medium: 1, low: 2 };
+      return (order[a.severity] ?? 3) - (order[b.severity] ?? 3);
+    })
+    .slice(0, 3);
+
+  function handleCreateTask(taskData) {
+    if (!taskData) return;
+    // Navigate to planner with pre-filled task data
+    navigate("/planner", { state: { newTask: taskData } });
+  }
 
   return (
     <Card elevation={2} sx={{ borderRadius: 3, minHeight: 360, display: "flex", flexDirection: "column", bgcolor: "background.paper" }}>
@@ -120,7 +111,6 @@ export default function CropInsights({ analytics }) {
 
         {allClear ? (
           <Stack spacing={0} sx={{ flex: 1, justifyContent: "center" }}>
-            {/* Success message */}
             <Stack alignItems="center" spacing={1.5} sx={{ pb: 2.5 }}>
               <CheckCircleIcon sx={{ fontSize: 44, color: "success.main" }} />
               <Typography variant="h6" fontWeight={700} color="success.main">
@@ -134,7 +124,6 @@ export default function CropInsights({ analytics }) {
 
             <Divider sx={{ mb: 2.5 }} />
 
-            {/* Today's Summary */}
             <Stack spacing={1.5}>
               <Typography variant="caption" fontWeight={700} color="text.disabled" sx={{ textTransform: "uppercase", letterSpacing: 1 }}>
                 Today&apos;s Summary
@@ -149,30 +138,95 @@ export default function CropInsights({ analytics }) {
         ) : (
           <Stack spacing={0} sx={{ flex: 1 }}>
             {/* Insights list */}
-            <Stack spacing={1.5}>
+            <Stack spacing={2}>
               {actionableInsights.map((insight, idx) => (
                 <Stack
                   key={idx}
-                  direction="row"
-                  spacing={1.5}
-                  alignItems="flex-start"
+                  spacing={1}
                   sx={{
-                    p: 1.5,
+                    p: 2,
                     borderRadius: 2,
-                    bgcolor: getInsightBg(insight.severity, palette),
+                    bgcolor: alpha(
+                      insight.severity === "high" ? palette.error.main
+                        : insight.severity === "medium" ? palette.warning.main
+                        : palette.success.main,
+                      0.04
+                    ),
                     border: "1px solid",
-                    borderColor: getInsightBorder(insight.severity, palette),
+                    borderColor: alpha(
+                      insight.severity === "high" ? palette.error.main
+                        : insight.severity === "medium" ? palette.warning.main
+                        : palette.success.main,
+                      0.12
+                    ),
                   }}
                 >
-                  <Chip
-                    label={getSeverityLabel(insight.severity)}
-                    size="small"
-                    color={getSeverityColor(insight.severity)}
-                    sx={{ fontWeight: 600, fontSize: "0.65rem", height: 22, flexShrink: 0, mt: 0.1 }}
-                  />
-                  <Typography variant="body2" color="text.primary" sx={{ lineHeight: 1.5 }}>
-                    {insight.message}
-                  </Typography>
+                  <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                    <Chip
+                      label={getSeverityLabel(insight.severity)}
+                      size="small"
+                      color={getSeverityColor(insight.severity)}
+                      sx={{ fontWeight: 600, fontSize: "0.65rem", height: 22, flexShrink: 0, mt: 0.1 }}
+                    />
+                    <Stack spacing={0.5} sx={{ flex: 1 }}>
+                      <Typography variant="body2" color="text.primary" fontWeight={600} sx={{ lineHeight: 1.4 }}>
+                        {insight.message}
+                      </Typography>
+                      {insight.reason && (
+                        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
+                          {insight.reason}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Stack>
+
+                  {(insight.action || insight.taskData) && (
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ pl: 0.5, pt: 0.5 }}>
+                      {insight.action && (
+                        <Chip
+                          label={insight.action}
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontWeight: 600, fontSize: "0.65rem", height: 22 }}
+                        />
+                      )}
+                      {insight.taskData && (
+                        <Button
+                          size="small"
+                          variant="text"
+                          startIcon={<AddTaskIcon sx={{ fontSize: 14 }} />}
+                          onClick={() => handleCreateTask(insight.taskData)}
+                          sx={{
+                            textTransform: "none",
+                            fontWeight: 600,
+                            fontSize: "0.72rem",
+                            color: "primary.main",
+                            px: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          Create Task
+                        </Button>
+                      )}
+                      {insight.type && insight.type.startsWith("weather") && (
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => navigate("/dashboard")}
+                          sx={{
+                            textTransform: "none",
+                            fontWeight: 600,
+                            fontSize: "0.72rem",
+                            color: "info.main",
+                            px: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          View Weather
+                        </Button>
+                      )}
+                    </Stack>
+                  )}
                 </Stack>
               ))}
             </Stack>

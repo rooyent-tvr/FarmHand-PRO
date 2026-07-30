@@ -25,16 +25,42 @@ export default function OverdueBirths({ records = [] }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const overdue = records
-    .filter((r) => r.expected_birth && r.status === "Pregnant")
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  // Overdue births: expected_birth is in the past
+  const overdueBirths = records
+    .filter((r) => r.expected_birth && (r.status === "Pregnant" || r.status === "Confirmed"))
     .map((record) => {
       const expected = new Date(record.expected_birth);
       expected.setHours(0, 0, 0, 0);
-      const overdueDays = Math.ceil((today - expected) / (1000 * 60 * 60 * 24));
-      return { ...record, overdueDays };
+      const overdueDays = Math.ceil((today - expected) / 86400000);
+      return { ...record, overdueDays, overdueType: "birth" };
     })
-    .filter((r) => r.overdueDays > 0)
-    .sort((a, b) => b.overdueDays - a.overdueDays);
+    .filter((r) => r.overdueDays > 0);
+
+  // Overdue pregnancy checks: bred 30+ days ago, still pregnant/confirmed/bred
+  const overdueChecks = records
+    .filter((r) => {
+      if (r.status !== "Pregnant" && r.status !== "Confirmed" && r.status !== "Bred") return false;
+      if (!r.breeding_date) return false;
+      const bred = new Date(r.breeding_date);
+      bred.setHours(0, 0, 0, 0);
+      return bred <= thirtyDaysAgo;
+    })
+    .filter((r) => {
+      // Don't double-count: if already in overdue births, skip
+      return !overdueBirths.some((ob) => ob.id === r.id);
+    })
+    .map((record) => {
+      const bred = new Date(record.breeding_date);
+      bred.setHours(0, 0, 0, 0);
+      const daysSinceBred = Math.ceil((today - bred) / 86400000);
+      return { ...record, overdueDays: daysSinceBred - 30, overdueType: "check" };
+    })
+    .filter((r) => r.overdueDays >= 0);
+
+  const allOverdue = [...overdueBirths, ...overdueChecks].sort((a, b) => b.overdueDays - a.overdueDays);
 
   return (
     <Card elevation={2} sx={{ borderRadius: 3, bgcolor: "background.paper" }}>
@@ -43,11 +69,11 @@ export default function OverdueBirths({ records = [] }) {
           <Stack direction="row" spacing={1} alignItems="center">
             <WarningAmberIcon sx={{ fontSize: 22, color: "error.main" }} />
             <Typography variant="subtitle1" fontWeight={700} color="text.primary">
-              Overdue Births
+              Overdue Births & Checks
             </Typography>
-            {overdue.length > 0 && (
+            {allOverdue.length > 0 && (
               <Chip
-                label={`${overdue.length} overdue`}
+                label={`${allOverdue.length} overdue`}
                 size="small"
                 color="error"
                 sx={{ fontWeight: 600, fontSize: "0.7rem", height: 22, ml: "auto" }}
@@ -57,11 +83,11 @@ export default function OverdueBirths({ records = [] }) {
 
           <Divider />
 
-          {overdue.length === 0 ? (
+          {allOverdue.length === 0 ? (
             <Stack alignItems="center" spacing={1.5} sx={{ py: 3 }}>
               <CheckCircleIcon sx={{ fontSize: 44, color: "success.main" }} />
               <Typography variant="h6" fontWeight={700} color="success.main">
-                No Overdue Births
+                No Overdue Items
               </Typography>
               <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ lineHeight: 1.6, maxWidth: 300 }}>
                 All pregnancies are progressing within their expected gestation period.
@@ -69,10 +95,10 @@ export default function OverdueBirths({ records = [] }) {
             </Stack>
           ) : (
             <Stack spacing={0} divider={<Divider sx={{ ml: 6.5 }} />}>
-              {overdue.map((record) => (
+              {allOverdue.map((record) => (
                 <ButtonBase
                   key={record.id}
-                  onClick={() => navigate(`/animals/${record.female_id || record.id}`, { state: { source: "breeding", section: "breeding" } })}
+                  onClick={() => record.female_id && navigate(`/animals/${record.female_id}`, { state: { source: "breeding", section: "breeding" } })}
                   sx={{
                     width: "100%",
                     borderRadius: 2,
@@ -107,11 +133,12 @@ export default function OverdueBirths({ records = [] }) {
                           {record.female?.tag || "Unknown"}
                         </Typography>
                         <Typography variant="caption" color="text.disabled">
-                          {record.female?.breed || ""}
+                          {record.overdueType === "birth" ? "Birth Overdue" : "Check Overdue"}
                         </Typography>
                       </Stack>
                       <Typography variant="caption" color="text.disabled">
-                        Sire: {record.male?.tag || "Unknown"} • Expected: {new Date(record.expected_birth).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
+                        Sire: {record.male?.tag || "Unknown"}
+                        {record.expected_birth ? ` • Expected: ${new Date(record.expected_birth).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}` : ""}
                       </Typography>
                     </Stack>
 

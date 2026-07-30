@@ -147,7 +147,7 @@ export default function FinanceForm({
   return (
     <form onSubmit={handleSubmit} style={card}>
       <h2 style={title}>
-        {record ? "✏️ Edit Finance Record" : "💰 Add Finance Record"}
+        {record ? "✏️ Edit Finance Record" : "💳 Add Finance Record"}
       </h2>
 
       {/* Row 1: Applies To + Category + Transaction Type */}
@@ -175,7 +175,7 @@ export default function FinanceForm({
             style={input}
           >
             <option value="Expense">💸 Expense</option>
-            <option value="Income">💰 Income</option>
+            <option value="Income">💳 Income</option>
           </select>
         </div>
 

@@ -6,15 +6,18 @@ import {
   LinearProgress,
   Stack,
   Typography,
+  useTheme,
 } from "@mui/material";
 
-import { AccountBalance } from "@mui/icons-material";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { componentSize } from "../../design/tokens";
 
-function getScoreColor(score) {
-  if (score >= 80) return "success.dark";
-  if (score >= 60) return "success.main";
-  if (score >= 40) return "warning.main";
-  return "error.main";
+function getScoreColor(score, palette) {
+  if (score >= 80) return palette.success.main;
+  if (score >= 60) return palette.success.light;
+  if (score >= 40) return palette.warning.main;
+  return palette.error.main;
 }
 
 function getStatus(score) {
@@ -29,7 +32,6 @@ function calculateFinancialScore(analytics) {
 
   let score = 50;
 
-  // Profit margin contribution (up to 30 points)
   const margin = analytics.profitMargin || 0;
   if (margin >= 30) score += 30;
   else if (margin >= 20) score += 25;
@@ -37,147 +39,130 @@ function calculateFinancialScore(analytics) {
   else if (margin >= 0) score += 5;
   else score -= 10;
 
-  // Trend contribution (up to 10 points)
   if (analytics.monthlyTrend === "up") score += 10;
   else if (analytics.monthlyTrend === "down") score -= 5;
 
-  // Income diversity (up to 10 points)
   if (analytics.totalIncome > 0) score += 10;
 
   return Math.max(0, Math.min(100, score));
 }
 
+const SCORE_FACTORS = [
+  "Profit Margin",
+  "Monthly Trend",
+  "Income Diversity",
+  "Revenue Growth",
+];
+
 export default function FinancialHealthScore({ analytics }) {
+  const theme = useTheme();
+  const { palette } = theme;
+
   if (!analytics || !analytics.available) {
     return (
-      <Card elevation={2} sx={{ borderRadius: 3 }}>
+      <Card elevation={2} sx={{ borderRadius: 3, minHeight: 360, bgcolor: "background.paper" }}>
         <CardContent sx={{ p: 3 }}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-            <AccountBalance sx={{ fontSize: 22, color: "secondary.main" }} />
-            <Typography variant="subtitle1" fontWeight={700}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+            <AccountBalanceWalletIcon sx={{ fontSize: 22, color: "secondary.main" }} />
+            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
               Financial Health Score
             </Typography>
           </Stack>
-
-          <Divider sx={{ mb: 2 }} />
-
-          <Box sx={{ py: 3, textAlign: "center" }}>
-            <AccountBalance sx={{ fontSize: 36, color: "text.disabled", mb: 1 }} />
-            <Typography variant="body2" fontWeight={600}>
-              Not enough data yet.
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Record income and expenses to generate your financial health score.
-            </Typography>
-          </Box>
+          <Divider sx={{ mb: 2.5 }} />
+          <Typography color="text.secondary" variant="body2">
+            Record income and expenses to generate your financial health score.
+          </Typography>
         </CardContent>
       </Card>
     );
   }
 
   const score = calculateFinancialScore(analytics);
-  const color = getScoreColor(score);
+  const color = getScoreColor(score, palette);
   const status = getStatus(score);
 
   return (
-    <Card elevation={2} sx={{ borderRadius: 3 }}>
-      <CardContent sx={{ p: 3 }}>
-
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <AccountBalance sx={{ fontSize: 22, color: "secondary.main" }} />
-          <Typography variant="subtitle1" fontWeight={700}>
+    <Card elevation={2} sx={{ borderRadius: 3, minHeight: 360, display: "flex", flexDirection: "column", bgcolor: "background.paper" }}>
+      <CardContent sx={{ p: 3, flex: 1, display: "flex", flexDirection: "column" }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+          <AccountBalanceWalletIcon sx={{ fontSize: 22, color: "secondary.main" }} />
+          <Typography variant="subtitle1" fontWeight={700} color="text.primary">
             Financial Health Score
           </Typography>
         </Stack>
 
-        <Divider sx={{ mb: 2 }} />
+        <Divider sx={{ mb: 2.5 }} />
 
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={3}
-          alignItems={{ xs: "center", md: "center" }}
-        >
-          {/* Score Circle */}
+        <Stack spacing={2.5} alignItems="center" sx={{ flex: 1, justifyContent: "center" }}>
+          {/* Score circle */}
           <Box
             sx={{
-              width: 80,
-              height: 80,
+              width: componentSize.scoreCircle,
+              height: componentSize.scoreCircle,
               borderRadius: "50%",
-              border: 5,
-              borderColor: color,
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
+              border: `${componentSize.scoreCircleBorder}px solid ${color}`,
+              bgcolor: `${color}18`,
             }}
           >
-            <Typography variant="h5" fontWeight={700} sx={{ color, lineHeight: 1 }}>
+            <Typography variant="h3" fontWeight={800} sx={{ color }}>
               {score}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              /100
-            </Typography>
           </Box>
 
-          {/* Details */}
-          <Box sx={{ flex: 1, width: "100%" }}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ color, mb: 1 }}>
-              {status}
-            </Typography>
+          <Typography variant="body1" fontWeight={700} sx={{ color }}>
+            {status}
+          </Typography>
 
-            <Stack spacing={1}>
-              <Box>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                  <Typography variant="caption" fontWeight={600}>Profitability</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {(analytics.profitMargin || 0).toFixed(1)}%
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={Math.min(100, Math.max(0, analytics.profitMargin || 0))}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: "grey.200",
-                    "& .MuiLinearProgress-bar": {
-                      borderRadius: 3,
-                      bgcolor: (analytics.profitMargin || 0) >= 20 ? "success.dark" : "warning.main",
-                    },
-                  }}
-                />
-              </Box>
+          <Box sx={{ width: "100%" }}>
+            <LinearProgress
+              variant="determinate"
+              value={score}
+              sx={{
+                height: componentSize.progressBar,
+                borderRadius: componentSize.progressBar / 2,
+                bgcolor: palette.action.hover,
+                "& .MuiLinearProgress-bar": {
+                  borderRadius: componentSize.progressBar / 2,
+                  bgcolor: color,
+                },
+              }}
+            />
+          </Box>
 
-              <Box>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                  <Typography variant="caption" fontWeight={600}>Income vs Expenses</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    R{Number(analytics.netProfit || 0).toLocaleString()}
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={
-                    analytics.totalIncome > 0
-                      ? Math.min(100, (analytics.totalIncome / (analytics.totalIncome + analytics.totalExpenses)) * 100)
-                      : 0
-                  }
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: "grey.200",
-                    "& .MuiLinearProgress-bar": {
-                      borderRadius: 3,
-                      bgcolor: (analytics.netProfit || 0) >= 0 ? "success.dark" : "error.main",
-                    },
-                  }}
-                />
-              </Box>
+          {/* Quick stats */}
+          <Stack direction="row" spacing={3} justifyContent="center">
+            <Stack alignItems="center" spacing={0.25}>
+              <Typography variant="h6" fontWeight={700} color="text.primary">
+                {(analytics.profitMargin || 0).toFixed(0)}%
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Margin</Typography>
             </Stack>
-          </Box>
+            <Stack alignItems="center" spacing={0.25}>
+              <Typography variant="h6" fontWeight={700} color="text.primary">
+                R {Number(analytics.totalIncome || 0).toLocaleString("en-ZA", { maximumFractionDigits: 0 })}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Income</Typography>
+            </Stack>
+            <Stack alignItems="center" spacing={0.25}>
+              <Typography variant="h6" fontWeight={700} color="text.primary">
+                {analytics.monthlyTrend === "up" ? "\u2191" : analytics.monthlyTrend === "down" ? "\u2193" : "\u2192"}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Trend</Typography>
+            </Stack>
+          </Stack>
         </Stack>
 
+        {/* Score explanation */}
+        <Divider sx={{ mt: 2, mb: 1.5 }} />
+        <Stack direction="row" spacing={0.75} alignItems="flex-start">
+          <InfoOutlinedIcon sx={{ fontSize: 14, color: "text.disabled", mt: 0.2 }} />
+          <Typography variant="caption" color="text.disabled" sx={{ lineHeight: 1.5 }}>
+            Based on: {SCORE_FACTORS.join(" \u2022 ")}
+          </Typography>
+        </Stack>
       </CardContent>
     </Card>
   );

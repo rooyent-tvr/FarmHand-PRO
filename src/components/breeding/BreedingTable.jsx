@@ -1,85 +1,326 @@
-
 import { useState } from "react";
-import { deleteBreedingRecord } from "../../services/breedingService";
+import { useNavigate } from "react-router-dom";
 
-export default function BreedingTable({
-  records = [],
-  onEdit,
-  refreshRecords,
-}) {
+import {
+  Box,
+  Chip,
+  IconButton,
+  InputAdornment,
+  LinearProgress,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+
+import SearchIcon from "@mui/icons-material/Search";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+
+import { deleteBreedingRecord } from "../../services/breedingService";
+import { radius, transitions } from "../../design/tokens";
+
+function getPregnancyProgress(record) {
+  if (!record.breeding_date || !record.expected_birth) return 0;
+  const start = new Date(record.breeding_date);
+  const end = new Date(record.expected_birth);
+  const today = new Date();
+  const total = Math.max(1, Math.round((end - start) / 86400000));
+  const elapsed = Math.round((today - start) / 86400000);
+  return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+}
+
+function getDaysRemaining(record) {
+  if (!record.expected_birth) return { label: "\u2014", days: null, color: "default" };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(record.expected_birth);
+  due.setHours(0, 0, 0, 0);
+  const days = Math.ceil((due - today) / 86400000);
+  if (days < 0) return { label: "Overdue", days, color: "error" };
+  if (days === 0) return { label: "Today", days: 0, color: "warning" };
+  if (days <= 7) return { label: `${days} Days`, days, color: "warning" };
+  if (days <= 30) return { label: `${days} Days`, days, color: "info" };
+  return { label: `${days} Days`, days, color: "success" };
+}
+
+function getStatusColor(status) {
+  switch (status) {
+    case "Pregnant": return "success";
+    case "Confirmed": return "success";
+    case "Bred": return "info";
+    case "Completed": return "secondary";
+    case "Failed": return "error";
+    case "Ready": return "warning";
+    default: return "default";
+  }
+}
+
+function formatDate(date) {
+  if (!date) return "\u2014";
+  try {
+    return new Date(date).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+  } catch { return "\u2014"; }
+}
+
+function getProgressColor(progress) {
+  if (progress >= 90) return "error.main";
+  if (progress >= 70) return "warning.main";
+  return "success.main";
+}
+
+export default function BreedingTable({ records = [], onEdit, refreshRecords }) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
-  function getPregnancyProgress(record) {
-    if (!record.breeding_date || !record.expected_birth) return 0;
-    const start = new Date(record.breeding_date);
-    const end = new Date(record.expected_birth);
-    const today = new Date();
-    const total = Math.max(1, Math.round((end-start)/(1000*60*60*24)));
-    const elapsed = Math.round((today-start)/(1000*60*60*24));
-    return Math.min(100, Math.max(0, Math.round((elapsed/total)*100)));
-  }
-
-  function getDaysRemaining(record) {
-    if (!record.expected_birth) return {label:"-",color:"#757575"};
-    const today=new Date();
-    const due=new Date(record.expected_birth);
-    const days=Math.ceil((due-today)/(1000*60*60*24));
-    if(days<0) return {label:"🔴 Overdue",color:"#D32F2F"};
-    if(days==0) return {label:"🟠 Due Today",color:"#F57C00"};
-    if(days<=30) return {label:`🟡 ${days} days`,color:"#F9A825"};
-    return {label:`🟢 ${days} days`,color:"#2E7D32"};
-  }
-
-  const filtered = records.filter((record)=>{
-    const term=search.toLowerCase();
+  const filtered = records.filter((record) => {
+    const term = search.toLowerCase();
     return (
-      (record.female?.tag||"").toLowerCase().includes(term) ||
-      (record.male?.tag||"").toLowerCase().includes(term) ||
-      (record.status||"").toLowerCase().includes(term) ||
-      (record.breeding_method||"").toLowerCase().includes(term)
+      (record.female?.tag || "").toLowerCase().includes(term) ||
+      (record.male?.tag || "").toLowerCase().includes(term) ||
+      (record.status || "").toLowerCase().includes(term) ||
+      (record.breeding_method || "").toLowerCase().includes(term)
     );
   });
 
-  async function handleDelete(id){
-    if(!window.confirm("Delete this breeding record?")) return;
-    try{
+  async function handleDelete(e, id) {
+    e.stopPropagation();
+    if (!window.confirm("Delete this breeding record?")) return;
+    try {
       await deleteBreedingRecord(id);
       await refreshRecords();
-    }catch(err){alert(err.message);}
+    } catch (err) { alert(err.message); }
   }
 
-  const badgeColor=(s)=>({Pregnant:"#2E7D32",Bred:"#1976D2",Completed:"#8E24AA",Failed:"#D32F2F"}[s]||"#757575");
+  function handleEdit(e, record) {
+    e.stopPropagation();
+    onEdit?.(record);
+  }
 
   return (
-<div style={{background:"#fff",padding:24,borderRadius:14,boxShadow:"0 6px 18px rgba(0,0,0,.08)"}}>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap"}}>
-<div><h2>Breeding Records</h2><p>{filtered.length} Records</p></div>
-<input placeholder="🔍 Search breeding records..." value={search} onChange={e=>setSearch(e.target.value)} style={{padding:12,width:300,border:"1px solid #D0D7DE",borderRadius:8}}/>
-</div>
-<div style={{overflowX:"auto"}}>
-<table style={{width:"100%",borderCollapse:"collapse"}}>
-<thead><tr style={{background:"#2E7D32",color:"#fff"}}>
-<th style={header}>Female</th><th style={header}>Male</th><th style={header}>Breeding Date</th><th style={header}>Method</th><th style={header}>Expected Birth</th><th style={header}>Progress</th><th style={header}>Days Left</th><th style={header}>Status</th><th style={header}>Actions</th>
-</tr></thead>
-<tbody>
-{filtered.length===0?<tr><td colSpan="9" style={{padding:25,textAlign:"center"}}>No breeding records found.</td></tr>:
-filtered.map((record,i)=>{
-const progress=getPregnancyProgress(record);
-const days=getDaysRemaining(record);
-return <tr key={record.id} style={{background:i%2?"#FCFCFC":"#FFF",borderBottom:"1px solid #EEE"}}>
-<td style={cell}>🐄 {record.female?.tag}</td>
-<td style={cell}>🐂 {record.male?.tag}</td>
-<td style={cell}>{record.breeding_date}</td>
-<td style={cell}>{record.breeding_method}</td>
-<td style={cell}>{record.expected_birth}</td>
-<td style={cell}><div style={{width:120,background:"#EEE",borderRadius:8}}><div style={{width:`${progress}%`,background:"#2E7D32",height:10,borderRadius:8}}/></div><small>{progress}%</small></td>
-<td style={{...cell,color:days.color,fontWeight:600}}>{days.label}</td>
-<td style={cell}><span style={{background:badgeColor(record.status),color:"#fff",padding:"6px 12px",borderRadius:20,fontWeight:600,fontSize:13}}>{record.status}</span></td>
-<td style={cell}><button onClick={()=>onEdit(record)} style={editButton}>✏️ Edit</button><button onClick={()=>handleDelete(record.id)} style={deleteButton}>🗑 Delete</button></td>
-</tr>})}
-</tbody></table></div></div>);
+    <Box
+      sx={{
+        bgcolor: "background.paper",
+        borderRadius: radius.cardLarge,
+        border: "1px solid",
+        borderColor: "divider",
+        overflow: "hidden",
+      }}
+    >
+      {/* Header + Search */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "stretch", sm: "center" }}
+        spacing={2}
+        sx={{ px: 3, py: 2.5 }}
+      >
+        <Stack spacing={0.25}>
+          <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+            Breeding Records
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {filtered.length} record{filtered.length !== 1 ? "s" : ""}
+          </Typography>
+        </Stack>
+
+        <TextField
+          size="small"
+          placeholder="Search by animal, status or method..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            minWidth: 260,
+            "& .MuiOutlinedInput-root": { borderRadius: radius.input },
+          }}
+        />
+      </Stack>
+
+      {/* Table */}
+      <TableContainer sx={{ maxHeight: 600 }}>
+        <Table stickyHeader size="medium">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={headerCell}>Female</TableCell>
+              <TableCell sx={headerCell}>Male</TableCell>
+              <TableCell sx={headerCell}>Date</TableCell>
+              <TableCell sx={headerCell}>Method</TableCell>
+              <TableCell sx={headerCell}>Expected</TableCell>
+              <TableCell sx={headerCell}>Progress</TableCell>
+              <TableCell sx={headerCell}>Days Left</TableCell>
+              <TableCell sx={headerCell}>Status</TableCell>
+              <TableCell sx={headerCell} align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} sx={{ py: 6, textAlign: "center" }}>
+                  <Typography color="text.secondary">No breeding records match your search.</Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((record, index) => {
+                const progress = getPregnancyProgress(record);
+                const daysInfo = getDaysRemaining(record);
+                return (
+                  <TableRow
+                    key={record.id}
+                    hover
+                    onClick={() => record.female_id && navigate(`/animals/${record.female_id}`, { state: { source: "breeding", section: "breeding" } })}
+                    sx={{
+                      cursor: record.female_id ? "pointer" : "default",
+                      bgcolor: index % 2 === 0 ? "background.paper" : "grey.50",
+                      transition: transitions.fast,
+                      "&:hover": {
+                        bgcolor: "rgba(46,125,50,0.04)",
+                        borderLeft: "3px solid",
+                        borderLeftColor: "success.main",
+                      },
+                      "& td": { borderBottom: "1px solid", borderBottomColor: "divider" },
+                    }}
+                  >
+                    <TableCell sx={dataCell}>
+                      <Typography variant="body2" fontWeight={700} color="text.primary">
+                        {record.female?.tag || "\u2014"}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell sx={dataCell}>
+                      <Typography variant="body2" color="text.secondary">
+                        {record.male?.tag || "\u2014"}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell sx={dataCell}>
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDate(record.breeding_date)}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell sx={dataCell}>
+                      <Typography variant="body2" color="text.primary">
+                        {record.breeding_method || "\u2014"}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell sx={dataCell}>
+                      <Typography variant="body2" color="text.primary">
+                        {formatDate(record.expected_birth)}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell sx={dataCell}>
+                      {record.expected_birth && record.status === "Pregnant" ? (
+                        <Stack spacing={0.5} sx={{ minWidth: 80 }}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={progress}
+                            sx={{
+                              height: 6,
+                              borderRadius: 3,
+                              bgcolor: "grey.200",
+                              "& .MuiLinearProgress-bar": {
+                                borderRadius: 3,
+                                bgcolor: getProgressColor(progress),
+                              },
+                            }}
+                          />
+                          <Typography variant="caption" color="text.disabled" sx={{ fontSize: "0.65rem" }}>
+                            {progress}%
+                          </Typography>
+                        </Stack>
+                      ) : (
+                        <Typography variant="caption" color="text.disabled">\u2014</Typography>
+                      )}
+                    </TableCell>
+
+                    <TableCell sx={dataCell}>
+                      {daysInfo.label !== "\u2014" ? (
+                        <Chip
+                          label={daysInfo.label}
+                          size="small"
+                          color={daysInfo.color}
+                          sx={{ fontWeight: 700, fontSize: "0.7rem", height: 24, minWidth: 64 }}
+                        />
+                      ) : (
+                        <Typography variant="caption" color="text.disabled">\u2014</Typography>
+                      )}
+                    </TableCell>
+
+                    <TableCell sx={dataCell}>
+                      <Chip
+                        label={record.status || "Unknown"}
+                        size="small"
+                        color={getStatusColor(record.status)}
+                        sx={{ fontWeight: 700, fontSize: "0.72rem", height: 26 }}
+                      />
+                    </TableCell>
+
+                    <TableCell sx={dataCell} align="right">
+                      <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                        {record.female_id && (
+                          <Tooltip title="View Animal">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={(e) => { e.stopPropagation(); navigate(`/animals/${record.female_id}`, { state: { source: "breeding", section: "breeding" } }); }}
+                            >
+                              <VisibilityIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Edit">
+                          <IconButton size="small" color="primary" onClick={(e) => handleEdit(e, record)}>
+                            <EditIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton size="small" color="error" onClick={(e) => handleDelete(e, record.id)}>
+                            <DeleteOutlinedIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
 }
-const header={padding:14,textAlign:"left"};
-const cell={padding:14};
-const editButton={background:"#1976D2",color:"#fff",border:"none",borderRadius:8,padding:"8px 14px",cursor:"pointer",marginRight:8,fontWeight:600};
-const deleteButton={background:"#D32F2F",color:"#fff",border:"none",borderRadius:8,padding:"8px 14px",cursor:"pointer",fontWeight:600};
+
+const headerCell = {
+  fontWeight: 700,
+  fontSize: "0.75rem",
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+  color: "text.secondary",
+  bgcolor: "grey.50",
+  borderBottom: "2px solid",
+  borderBottomColor: "divider",
+  py: 1.5,
+};
+
+const dataCell = {
+  py: 1.8,
+  px: 2,
+};

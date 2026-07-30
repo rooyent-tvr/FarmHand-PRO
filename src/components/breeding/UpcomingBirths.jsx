@@ -39,7 +39,7 @@ export default function UpcomingBirths({ records = [] }) {
   today.setHours(0, 0, 0, 0);
 
   const pregnancies = records
-    .filter((r) => r.expected_birth && r.status === "Pregnant")
+    .filter((r) => r.expected_birth && (r.status === "Pregnant" || r.status === "Confirmed"))
     .map((record) => {
       const expected = new Date(record.expected_birth);
       expected.setHours(0, 0, 0, 0);

@@ -1,46 +1,55 @@
 import { useState } from "react";
 
 import {
-  deleteFinanceRecord,
-} from "../../services/financeService";
+  Box,
+  Chip,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+
+import SearchIcon from "@mui/icons-material/Search";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+
+import { deleteFinanceRecord } from "../../services/financeService";
+import { radius, transitions } from "../../design/tokens";
 
 function getAppliesToLabel(record) {
   const scope = record.applies_to || (record.animal_id ? "animal" : "farm");
-
-  if (scope === "farm") return "\uD83C\uDF3E Entire Farm";
-  if (scope === "livestock") return "\uD83D\uDC04 Livestock";
-
-  if (scope === "animal") {
-    if (record.animal?.tag) {
-      return `\uD83D\uDC04 Animal \u2022 ${record.animal.tag}`;
-    }
-    return "\uD83D\uDC04 Deleted Animal";
-  }
-
-  return "\uD83C\uDF3E Entire Farm";
+  if (scope === "farm") return "Entire Farm";
+  if (scope === "livestock") return "Livestock";
+  if (scope === "animal") return record.animal?.tag ? `Animal \u2022 ${record.animal.tag}` : "Deleted Animal";
+  return "Entire Farm";
 }
 
-export default function FinanceTable({
-  records = [],
-  onEdit,
-  refreshRecords,
-}) {
+function formatDate(date) {
+  if (!date) return "\u2014";
+  try {
+    return new Date(date).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+  } catch { return "\u2014"; }
+}
+
+function formatAmount(value, category) {
+  const num = Number(value || 0);
+  const formatted = `R ${Math.abs(num).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return category === "Income" ? `+${formatted}` : `-${formatted}`;
+}
+
+export default function FinanceTable({ records = [], onEdit, refreshRecords }) {
   const [search, setSearch] = useState("");
-
-  const formatCurrency = (value) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "ZAR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(Number(value || 0));
-
-  const formatDate = (date) =>
-    new Date(date).toLocaleDateString("en-ZA");
 
   const filtered = records.filter((record) => {
     const term = search.toLowerCase();
-
     return (
       getAppliesToLabel(record).toLowerCase().includes(term) ||
       (record.animal?.tag || "").toLowerCase().includes(term) ||
@@ -50,163 +59,185 @@ export default function FinanceTable({
     );
   });
 
-  async function handleDelete(id) {
+  async function handleDelete(e, id) {
+    e.stopPropagation();
     if (!window.confirm("Delete this finance record?")) return;
-
     try {
       await deleteFinanceRecord(id);
       await refreshRecords();
-    } catch (err) {
-      alert(err.message);
-    }
+    } catch (err) { alert(err.message); }
+  }
+
+  function handleEdit(e, record) {
+    e.stopPropagation();
+    onEdit?.(record);
   }
 
   return (
-    <div
-      style={{
-        background: "#FFFFFF",
-        padding: 24,
-        borderRadius: 16,
-        boxShadow: "0 8px 20px rgba(15,23,42,.08)",
+    <Box
+      sx={{
+        bgcolor: "background.paper",
+        borderRadius: radius.cardLarge,
+        border: "1px solid",
+        borderColor: "divider",
+        overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 16,
-          marginBottom: 20,
-        }}
+      {/* Header + Search */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "stretch", sm: "center" }}
+        spacing={2}
+        sx={{ px: 3, py: 2.5 }}
       >
-        <div>
-          <h2 style={{ margin: 0 }}>💰 Finance Records</h2>
-          <p style={{ color: "#64748B" }}>{filtered.length} Records</p>
-        </div>
+        <Stack spacing={0.25}>
+          <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+            Finance Records
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
+          </Typography>
+        </Stack>
 
-        <input
-          placeholder="🔍 Search records..."
+        <TextField
+          size="small"
+          placeholder="Search by type, category or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: 12,
-            width: 320,
-            border: "1px solid #CBD5E1",
-            borderRadius: 10,
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            minWidth: 280,
+            "& .MuiOutlinedInput-root": { borderRadius: radius.input },
           }}
         />
-      </div>
+      </Stack>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "#16A34A", color: "#FFFFFF" }}>
-              <th style={header}>Applies To</th>
-              <th style={header}>Category</th>
-              <th style={header}>Type</th>
-              <th style={header}>Amount</th>
-              <th style={header}>Date</th>
-              <th style={header}>Description</th>
-              <th style={header}>Actions</th>
-            </tr>
-          </thead>
+      {/* Table */}
+      <TableContainer sx={{ maxHeight: 600 }}>
+        <Table stickyHeader size="medium">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={headerCell}>Date</TableCell>
+              <TableCell sx={headerCell}>Type</TableCell>
+              <TableCell sx={headerCell}>Category</TableCell>
+              <TableCell sx={headerCell}>Applies To</TableCell>
+              <TableCell sx={headerCell}>Description</TableCell>
+              <TableCell sx={headerCell} align="right">Amount</TableCell>
+              <TableCell sx={headerCell} align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
 
-          <tbody>
+          <TableBody>
             {filtered.length === 0 ? (
-              <tr>
-                <td colSpan="7" style={{ padding: 30, textAlign: "center" }}>
-                  No finance records found.
-                </td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={7} sx={{ py: 6, textAlign: "center" }}>
+                  <Typography color="text.secondary">No finance records match your search.</Typography>
+                </TableCell>
+              </TableRow>
             ) : (
               filtered.map((record, index) => (
-                <tr
+                <TableRow
                   key={record.id}
-                  style={{
-                    background: index % 2 ? "#FCFCFC" : "#FFFFFF",
-                    borderBottom: "1px solid #E5E7EB",
+                  hover
+                  sx={{
+                    cursor: "default",
+                    bgcolor: index % 2 === 0 ? "background.paper" : "grey.50",
+                    transition: transitions.fast,
+                    "&:hover": {
+                      bgcolor: "rgba(46,125,50,0.04)",
+                      borderLeft: "3px solid",
+                      borderLeftColor: "success.main",
+                    },
+                    "& td": { borderBottom: "1px solid", borderBottomColor: "divider" },
                   }}
                 >
-                  <td style={cell}>
-                    {getAppliesToLabel(record)}
-                  </td>
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" color="text.secondary">
+                      {formatDate(record.transaction_date)}
+                    </Typography>
+                  </TableCell>
 
-                  <td style={cell}>
-                    <span
-                      style={{
-                        background: record.category === "Income" ? "#DCFCE7" : "#FEE2E2",
-                        color: record.category === "Income" ? "#166534" : "#991B1B",
-                        padding: "6px 12px",
-                        borderRadius: 20,
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" fontWeight={600} color="text.primary">
+                      {record.transaction_type}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell sx={dataCell}>
+                    <Chip
+                      label={record.category}
+                      size="small"
+                      color={record.category === "Income" ? "success" : "error"}
+                      sx={{ fontWeight: 700, fontSize: "0.72rem", height: 26 }}
+                    />
+                  </TableCell>
+
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" color="text.secondary">
+                      {getAppliesToLabel(record)}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
+                      {record.description || "\u2014"}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell sx={dataCell} align="right">
+                    <Typography
+                      variant="body2"
+                      fontWeight={700}
+                      sx={{ color: record.category === "Income" ? "success.main" : "error.main" }}
                     >
-                      {record.category === "Income" ? "💰 Income" : "💸 Expense"}
-                    </span>
-                  </td>
+                      {formatAmount(record.amount, record.category)}
+                    </Typography>
+                  </TableCell>
 
-                  <td style={cell}>{record.transaction_type}</td>
-
-                  <td
-                    style={{
-                      ...cell,
-                      fontWeight: 700,
-                      color: record.category === "Income" ? "#16A34A" : "#DC2626",
-                    }}
-                  >
-                    {formatCurrency(record.amount)}
-                  </td>
-
-                  <td style={cell}>{formatDate(record.transaction_date)}</td>
-
-                  <td style={cell}>{record.description || "-"}</td>
-
-                  <td style={cell}>
-                    <button onClick={() => onEdit(record)} style={editButton}>
-                      ✏️ Edit
-                    </button>
-                    <button onClick={() => handleDelete(record.id)} style={deleteButton}>
-                      🗑 Delete
-                    </button>
-                  </td>
-                </tr>
+                  <TableCell sx={dataCell} align="right">
+                    <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                      <Tooltip title="Edit">
+                        <IconButton size="small" color="primary" onClick={(e) => handleEdit(e, record)}>
+                          <EditIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton size="small" color="error" onClick={(e) => handleDelete(e, record.id)}>
+                          <DeleteOutlinedIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
 
-const header = {
-  padding: 14,
-  textAlign: "left",
+const headerCell = {
+  fontWeight: 700,
+  fontSize: "0.75rem",
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+  color: "text.secondary",
+  bgcolor: "grey.50",
+  borderBottom: "2px solid",
+  borderBottomColor: "divider",
+  py: 1.5,
 };
 
-const cell = {
-  padding: 14,
-};
-
-const editButton = {
-  background: "#2563EB",
-  color: "#FFFFFF",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 14px",
-  cursor: "pointer",
-  marginRight: 8,
-  fontWeight: 600,
-};
-
-const deleteButton = {
-  background: "#DC2626",
-  color: "#FFFFFF",
-  border: "none",
-  borderRadius: 8,
-  padding: "8px 14px",
-  cursor: "pointer",
-  fontWeight: 600,
+const dataCell = {
+  py: 1.8,
+  px: 2,
 };

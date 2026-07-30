@@ -1,33 +1,45 @@
 import { useEffect, useState } from "react";
 
-import { Stack } from "@mui/material";
+import { Grid, Stack } from "@mui/material";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import AddIcon from "@mui/icons-material/Add";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 
-import PageContainer from "../components/layout/PageContainer";
+import {
+  PremiumPageLayout,
+  PremiumKPIGrid,
+  PremiumStatCard,
+  PremiumDashboardSection,
+  PremiumActionButton,
+  PremiumWorkspaceToolbar,
+  PremiumLoadingState,
+  spacing,
+} from "../design";
 
-import FinanceStats from "../components/finance/FinanceStats";
 import FinanceForm from "../components/finance/FinanceForm";
 import FinanceTable from "../components/finance/FinanceTable";
 import FinanceInsights from "../components/finance/FinanceInsights";
 import FinancialHealthScore from "../components/finance/FinancialHealthScore";
 
-import {
-  getFinanceRecords,
-} from "../services/financeService";
-
+import { getFinanceRecords } from "../services/financeService";
 import { generateFinanceAnalytics } from "../utils/financeAnalytics";
+
+function formatZAR(value) {
+  return `R ${Math.abs(Number(value || 0)).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
 export default function Finance() {
   const [records, setRecords] = useState([]);
-  const [selectedRecord, setSelectedRecord] =
-    useState(null);
-  const [loading, setLoading] =
-    useState(true);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function loadRecords() {
     try {
-      const data =
-        await getFinanceRecords();
-
+      const data = await getFinanceRecords();
       setRecords(data || []);
     } catch (err) {
       console.error(err);
@@ -43,39 +55,118 @@ export default function Finance() {
 
   if (loading) {
     return (
-      <PageContainer
-        fullWidth
-        title="💰 Finance"
-        subtitle="Loading finance records..."
+      <PremiumPageLayout
+        title="Finance"
+        subtitle="Track farm income, expenses, profitability and cash flow."
+        icon={<AccountBalanceWalletIcon sx={{ fontSize: 28 }} />}
       >
-        Loading...
-      </PageContainer>
+        <PremiumLoadingState message="Loading financial data..." size={40} />
+      </PremiumPageLayout>
     );
   }
 
   const analytics = generateFinanceAnalytics({ financeRecords: records });
 
+  const income = records
+    .filter((r) => r.category === "Income")
+    .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+  const expenses = records
+    .filter((r) => r.category === "Expense")
+    .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+  const profit = income - expenses;
+
   return (
-    <PageContainer
-      fullWidth
-      title="💰 Finance"
-      subtitle="Manage your farm income and expenses."
+    <PremiumPageLayout
+      title="Finance"
+      subtitle="Track farm income, expenses, profitability and cash flow."
+      icon={<AccountBalanceWalletIcon sx={{ fontSize: 28 }} />}
     >
-      <Stack spacing={3}>
-        <FinanceStats records={records} />
-        <FinancialHealthScore analytics={analytics} />
-        <FinanceInsights analytics={analytics} />
-        <FinanceForm
-          record={selectedRecord}
-          refreshRecords={loadRecords}
-          onSaved={() => setSelectedRecord(null)}
-        />
-        <FinanceTable
-          records={records}
-          refreshRecords={loadRecords}
-          onEdit={setSelectedRecord}
-        />
+      <Stack spacing={4}>
+        {/* KPI Cards */}
+        <PremiumKPIGrid gap={3.5}>
+          <PremiumStatCard
+            label="Total Income"
+            value={formatZAR(income)}
+            subtitle="All revenue"
+            icon={<TrendingUpIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(22,163,74,0.12)"
+            iconColor="#16A34A"
+          />
+          <PremiumStatCard
+            label="Total Expenses"
+            value={formatZAR(expenses)}
+            subtitle="All costs"
+            icon={<TrendingDownIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(220,38,38,0.12)"
+            iconColor="#DC2626"
+          />
+          <PremiumStatCard
+            label="Net Profit"
+            value={`${profit >= 0 ? "+" : "-"}${formatZAR(profit)}`}
+            subtitle={profit >= 0 ? "Profitable" : "Operating at loss"}
+            icon={<ShowChartIcon sx={{ fontSize: 28 }} />}
+            iconBg={profit >= 0 ? "rgba(22,163,74,0.12)" : "rgba(220,38,38,0.12)"}
+            iconColor={profit >= 0 ? "#16A34A" : "#DC2626"}
+          />
+          <PremiumStatCard
+            label="Transactions"
+            value={records.length}
+            subtitle="Total records"
+            icon={<ReceiptLongIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(245,158,11,0.12)"
+            iconColor="#F59E0B"
+          />
+        </PremiumKPIGrid>
+
+        {/* Financial Intelligence */}
+        <PremiumDashboardSection
+          title="Financial Intelligence"
+          description="AI-powered profitability monitoring and cost insights."
+        >
+          <Grid container spacing={spacing.cardGap}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <FinancialHealthScore analytics={analytics} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <FinanceInsights analytics={analytics} />
+            </Grid>
+          </Grid>
+        </PremiumDashboardSection>
+
+        {/* Transaction Form (toggle) */}
+        {showForm && (
+          <FinanceForm
+            record={selectedRecord}
+            refreshRecords={loadRecords}
+            onSaved={() => { setSelectedRecord(null); setShowForm(false); }}
+          />
+        )}
+
+        {/* Finance Records */}
+        <PremiumDashboardSection
+          title="Transactions"
+          description={`${records.length} financial record${records.length !== 1 ? "s" : ""} in your ledger.`}
+        >
+          <PremiumWorkspaceToolbar
+            primaryAction={
+              <PremiumActionButton
+                label="Record Transaction"
+                variant="contained"
+                color="success"
+                startIcon={<AddIcon />}
+                onClick={() => setShowForm((prev) => !prev)}
+              />
+            }
+          />
+          <FinanceTable
+            records={records}
+            refreshRecords={loadRecords}
+            onEdit={(record) => { setSelectedRecord(record); setShowForm(true); }}
+          />
+        </PremiumDashboardSection>
       </Stack>
-    </PageContainer>
+    </PremiumPageLayout>
   );
 }

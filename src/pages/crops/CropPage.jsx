@@ -1,14 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Grid, Stack } from "@mui/material";
+import GrassIcon from "@mui/icons-material/Grass";
+import AddIcon from "@mui/icons-material/Add";
+import AgricultureIcon from "@mui/icons-material/Agriculture";
+import LandscapeIcon from "@mui/icons-material/Landscape";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-import PageContainer from "../../components/layout/PageContainer";
-import StatCard from "../../components/ui/StatCard";
+import {
+  PremiumPageLayout,
+  PremiumKPIGrid,
+  PremiumStatCard,
+  PremiumDashboardSection,
+  PremiumActionButton,
+  PremiumWorkspaceToolbar,
+  PremiumLoadingState,
+  spacing,
+} from "../../design";
 
 import CropForm from "../../components/crops/CropForm";
 import CropTable from "../../components/crops/CropTable";
 import CropHealthScore from "../../components/crops/CropHealthScore";
 import CropInsights from "../../components/crops/CropInsights";
+import ViewToggle from "../../components/livestock/ViewToggle";
 
 import { getCrops } from "../../services/cropService";
 import { getWeatherSummary } from "../../services/weatherService";
@@ -19,10 +33,11 @@ export default function CropPage() {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCrop, setSelectedCrop] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [view, setView] = useState("table");
 
   async function loadCrops() {
     setLoading(true);
-
     try {
       const [data, weatherData] = await Promise.all([
         getCrops(),
@@ -42,106 +57,119 @@ export default function CropPage() {
     loadCrops();
   }, []);
 
-  function handleEdit(crop) {
-    setSelectedCrop(crop);
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  function handleSaved() {
-    setSelectedCrop(null);
-  }
-
-  const totalCrops = crops.length;
-
-  const growing = crops.filter(
-    (crop) => crop.status === "Growing"
-  ).length;
-
-  const harvested = crops.filter(
-    (crop) => crop.status === "Harvested"
-  ).length;
-
-  const totalArea = crops.reduce(
-    (sum, crop) => sum + Number(crop.area || 0),
-    0
+  const analytics = useMemo(
+    () => generateCropAnalytics({ crops, weather }),
+    [crops, weather]
   );
 
-  const analytics = generateCropAnalytics({ crops, weather });
+  const totalCrops = crops.length;
+  const growing = crops.filter((c) => c.status === "Growing").length;
+  const harvested = crops.filter((c) => c.status === "Harvested").length;
+  const totalArea = crops.reduce((sum, c) => sum + Number(c.area || 0), 0);
+
+  if (loading) {
+    return (
+      <PremiumPageLayout
+        title="Crops"
+        subtitle="Manage planting, crop health, harvesting and seasonal performance."
+        icon={<GrassIcon sx={{ fontSize: 28 }} />}
+      >
+        <PremiumLoadingState message="Loading crop data..." size={40} />
+      </PremiumPageLayout>
+    );
+  }
 
   return (
-    <PageContainer
-      fullWidth
-      title="🌾 Crop Management"
-      subtitle="Manage planting, tracking and harvest information."
+    <PremiumPageLayout
+      title="Crops"
+      subtitle="Manage planting, crop health, harvesting and seasonal performance."
+      icon={<GrassIcon sx={{ fontSize: 28 }} />}
     >
-      <Stack spacing={3}>
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              title="Total Crops"
-              value={totalCrops}
-              icon="🌾"
-              color="success.dark"
-            />
-          </Grid>
+      <Stack spacing={4}>
+        {/* KPI Cards */}
+        <PremiumKPIGrid gap={3.5}>
+          <PremiumStatCard
+            label="Total Crops"
+            value={totalCrops}
+            subtitle="Registered"
+            icon={<GrassIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(46,125,50,0.12)"
+            iconColor="#2E7D32"
+          />
+          <PremiumStatCard
+            label="Growing"
+            value={growing}
+            subtitle="Active growth"
+            icon={<GrassIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(67,160,71,0.12)"
+            iconColor="#43A047"
+          />
+          <PremiumStatCard
+            label="Harvested"
+            value={harvested}
+            subtitle="Completed"
+            icon={<AgricultureIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(251,140,0,0.12)"
+            iconColor="#FB8C00"
+          />
+          <PremiumStatCard
+            label="Total Area"
+            value={`${totalArea.toFixed(1)} ha`}
+            subtitle="Under management"
+            icon={<LandscapeIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(21,101,192,0.12)"
+            iconColor="#1565C0"
+          />
+        </PremiumKPIGrid>
 
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              title="Growing"
-              value={growing}
-              icon="🌱"
-              color="success.main"
-            />
+        {/* Crop Intelligence */}
+        <PremiumDashboardSection
+          title="Crop Intelligence"
+          description="AI-powered crop monitoring and harvest recommendations."
+        >
+          <Grid container spacing={spacing.cardGap}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <CropHealthScore analytics={analytics} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <CropInsights analytics={analytics} />
+            </Grid>
           </Grid>
+        </PremiumDashboardSection>
 
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              title="Harvested"
-              value={harvested}
-              icon="🚜"
-              color="warning.dark"
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              title="Total Area"
-              value={`${totalArea.toFixed(2)} ha`}
-              icon="📏"
-              color="info.dark"
-            />
-          </Grid>
-        </Grid>
-
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <CropHealthScore analytics={analytics} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <CropInsights analytics={analytics} />
-          </Grid>
-        </Grid>
-
-        <CropForm
-          crop={selectedCrop}
-          refreshCrops={loadCrops}
-          onSaved={handleSaved}
-        />
-
-        {loading ? (
-          <p>Loading crops...</p>
-        ) : (
-          <CropTable
-            crops={crops}
-            onEdit={handleEdit}
+        {/* Crop Form (toggle) */}
+        {showForm && (
+          <CropForm
+            crop={selectedCrop}
             refreshCrops={loadCrops}
+            onSaved={() => { setSelectedCrop(null); setShowForm(false); }}
           />
         )}
+
+        {/* Crop Records */}
+        <PremiumDashboardSection
+          title="Crop Registry"
+          description={`${totalCrops} crop${totalCrops !== 1 ? "s" : ""} in your registry.`}
+        >
+          <PremiumWorkspaceToolbar
+            primaryAction={
+              <PremiumActionButton
+                label="Add Crop"
+                variant="contained"
+                color="success"
+                startIcon={<AddIcon />}
+                onClick={() => setShowForm((prev) => !prev)}
+              />
+            }
+            viewToggle={<ViewToggle view={view} setView={setView} />}
+          />
+          <CropTable
+            crops={crops}
+            onEdit={(crop) => { setSelectedCrop(crop); setShowForm(true); }}
+            refreshCrops={loadCrops}
+          />
+        </PremiumDashboardSection>
       </Stack>
-    </PageContainer>
+    </PremiumPageLayout>
   );
 }
