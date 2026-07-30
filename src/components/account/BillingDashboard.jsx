@@ -31,6 +31,9 @@ import {
 import { startUpgradePayment } from "../../services/paymentService";
 import { getCurrentUser } from "../../services/profileService";
 
+import BillingHistory from "../billing/BillingHistory";
+import SubscriptionTimeline from "../billing/SubscriptionTimeline";
+
 function formatDate(date) {
   if (!date) return "\u2014";
 
@@ -261,6 +264,16 @@ export default function BillingDashboard({
           <Box sx={{ height: 8 }} />
         </CardContent>
       </Card>
+
+      {/* ================================================================
+          BILLING HISTORY
+          ================================================================ */}
+      <BillingHistory />
+
+      {/* ================================================================
+          SUBSCRIPTION TIMELINE
+          ================================================================ */}
+      <SubscriptionTimeline />
 
       <ReactivateSubscriptionDialog
         open={reactivateOpen}

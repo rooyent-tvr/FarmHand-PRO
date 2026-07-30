@@ -148,3 +148,110 @@ export default {
   generateInvoiceNumber,
   createDemoPayment,
 };
+
+// ============================================================
+// Billing Centre — Sprint 42.6
+// ============================================================
+
+/**
+ * Get all invoices (payments) for a user, formatted as invoice records.
+ * Maps subscription_payments to invoice-style objects.
+ */
+export async function getInvoices(userId) {
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("user_id", userId)
+    .order("paid_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((payment) => ({
+    id: payment.id,
+    invoice_number: payment.invoice_number || null,
+    amount: Number(payment.amount || 0),
+    currency: payment.currency || "ZAR",
+    status: payment.status || "Completed",
+    provider: payment.provider || "PayFast",
+    plan: payment.subscription_plan || "Pro",
+    paid_at: payment.paid_at,
+    transaction_id: payment.transaction_id,
+    payment_reference: payment.payment_reference,
+  }));
+}
+
+/**
+ * Get all payments for a user (alias with consistent naming).
+ */
+export async function getPayments(userId) {
+  return getPaymentHistory(userId);
+}
+
+/**
+ * Get subscription lifecycle events for a user.
+ * Constructs a timeline from payments and subscription metadata.
+ * Returns events sorted newest first.
+ */
+export async function getSubscriptionEvents(userId) {
+  if (!userId) return [];
+
+  const { data: payments, error: payError } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("user_id", userId)
+    .order("paid_at", { ascending: false });
+
+  if (payError) throw payError;
+
+  const { data: subscriptions, error: subError } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (subError) throw subError;
+
+  const events = [];
+
+  // Subscription creation events
+  for (const sub of subscriptions ?? []) {
+    events.push({
+      id: `sub-created-${sub.id}`,
+      type: "subscription_created",
+      title: `${sub.plan} subscription created`,
+      description: `Billing cycle: ${sub.billing_cycle || "Monthly"}`,
+      date: sub.created_at,
+      status: sub.status,
+    });
+
+    if (sub.status === "Pending Cancellation") {
+      events.push({
+        id: `sub-cancel-${sub.id}`,
+        type: "cancellation_requested",
+        title: "Cancellation requested",
+        description: "Subscription will end at the current billing period",
+        date: sub.updated_at,
+        status: "warning",
+      });
+    }
+  }
+
+  // Payment events
+  for (const payment of payments ?? []) {
+    events.push({
+      id: `pay-${payment.id}`,
+      type: "payment",
+      title: `Payment of R${Number(payment.amount || 0).toFixed(2)}`,
+      description: `${payment.provider || "PayFast"} — ${payment.invoice_number || payment.transaction_id}`,
+      date: payment.paid_at,
+      status: payment.status === "Completed" ? "success" : "pending",
+    });
+  }
+
+  // Sort by date descending
+  events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  return events;
+}
