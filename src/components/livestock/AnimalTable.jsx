@@ -1,223 +1,265 @@
 import { useState } from "react";
-import { deleteAnimal } from "../../services/livestockService";
+import { useNavigate } from "react-router-dom";
 
-export default function AnimalTable({
-  animals,
-  onEdit,
-  refreshAnimals,
-}) {
+import {
+  Box,
+  Chip,
+  IconButton,
+  InputAdornment,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+
+import SearchIcon from "@mui/icons-material/Search";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+
+import { deleteAnimal } from "../../services/livestockService";
+import { radius, transitions } from "../../design/tokens";
+
+function getStatusColor(status) {
+  switch (status) {
+    case "Healthy": return "success";
+    case "Pregnant": return "warning";
+    case "Sick": return "error";
+    case "Injured": return "error";
+    case "Sold": return "default";
+    default: return "default";
+  }
+}
+
+function getSpeciesIcon(type) {
+  switch (type) {
+    case "Sheep": return "\uD83D\uDC11";
+    case "Goats": return "\uD83D\uDC10";
+    case "Pigs": return "\uD83D\uDC16";
+    case "Poultry": return "\uD83D\uDC14";
+    default: return "\uD83D\uDC04";
+  }
+}
+
+export default function AnimalTable({ animals, onEdit, refreshAnimals }) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
   const filtered = animals.filter((animal) => {
     const term = search.toLowerCase();
-
     return (
-      animal.tag.toLowerCase().includes(term) ||
+      (animal.tag || "").toLowerCase().includes(term) ||
       (animal.animal_type || "Cattle").toLowerCase().includes(term) ||
-      animal.breed.toLowerCase().includes(term) ||
-      animal.gender.toLowerCase().includes(term) ||
-      animal.status.toLowerCase().includes(term)
+      (animal.breed || "").toLowerCase().includes(term) ||
+      (animal.gender || "").toLowerCase().includes(term) ||
+      (animal.status || "").toLowerCase().includes(term)
     );
   });
 
-  async function handleDelete(id) {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this animal?"
-    );
-
-    if (!confirmDelete) return;
-
+  async function handleDelete(e, id) {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this animal?")) return;
     try {
       await deleteAnimal(id);
       await refreshAnimals();
     } catch (err) {
-      console.error(err);
       alert(err.message);
     }
   }
 
+  function handleEdit(e, animal) {
+    e.stopPropagation();
+    onEdit(animal);
+  }
+
   return (
-    <div
-      style={{
-        background: "#ffffff",
-        borderRadius: "14px",
-        padding: "24px",
-        boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+    <Box
+      sx={{
+        bgcolor: "background.paper",
+        borderRadius: radius.cardLarge,
+        border: "1px solid",
+        borderColor: "divider",
+        overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-          gap: "15px",
-        }}
+      {/* Header + Search */}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "stretch", sm: "center" }}
+        spacing={2}
+        sx={{ px: 3, py: 2.5 }}
       >
-        <div>
-          <h2 style={{ margin: 0 }}>Livestock</h2>
+        <Stack spacing={0.25}>
+          <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+            Herd Registry
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {filtered.length} animal{filtered.length !== 1 ? "s" : ""}
+          </Typography>
+        </Stack>
 
-          <p
-            style={{
-              margin: "5px 0 0",
-              color: "#777",
-            }}
-          >
-            {filtered.length} Animals
-          </p>
-        </div>
-
-        <input
-          type="text"
-          placeholder="🔍 Search by Tag, Breed, Species or Status..."
+        <TextField
+          size="small"
+          placeholder="Search animals by tag, breed or species..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            padding: "12px 16px",
-            width: "300px",
-            borderRadius: "8px",
-            border: "1px solid #D0D7DE",
-            fontSize: "14px",
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            minWidth: 280,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: radius.input,
+            },
           }}
         />
-      </div>
+      </Stack>
 
-      <div style={{ overflowX: "auto" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-          }}
-        >
-          <thead>
-            <tr
-              style={{
-                background: "#2E7D32",
-                color: "white",
-              }}
-            >
-              <th style={header}>Tag</th>
-              <th style={header}>Species</th>
-              <th style={header}>Breed</th>
-              <th style={header}>Gender</th>
-              <th style={header}>Weight</th>
-              <th style={header}>Status</th>
-              <th style={header}>Actions</th>
-            </tr>
-          </thead>
+      {/* Table */}
+      <TableContainer sx={{ maxHeight: 600 }}>
+        <Table stickyHeader size="medium">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={headerCell}>Tag</TableCell>
+              <TableCell sx={headerCell}>Species</TableCell>
+              <TableCell sx={headerCell}>Breed</TableCell>
+              <TableCell sx={headerCell}>Gender</TableCell>
+              <TableCell sx={headerCell}>Weight</TableCell>
+              <TableCell sx={headerCell}>Status</TableCell>
+              <TableCell sx={headerCell} align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
 
-          <tbody>
-            {filtered.map((animal, index) => (
-              <tr
-                key={animal.id}
-                style={{
-                  borderBottom: "1px solid #eee",
-                  background: index % 2 ? "#FCFCFC" : "#FFF",
-                }}
-              >
-                <td style={cell}>{animal.tag}</td>
+          <TableBody>
+            {filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} sx={{ py: 6, textAlign: "center" }}>
+                  <Typography color="text.secondary">No animals match your search.</Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((animal, index) => (
+                <TableRow
+                  key={animal.id}
+                  hover
+                  onClick={() => navigate(`/animals/${animal.id}`)}
+                  sx={{
+                    cursor: "pointer",
+                    bgcolor: index % 2 === 0 ? "background.paper" : "grey.50",
+                    transition: transitions.fast,
+                    "&:hover": {
+                      bgcolor: "rgba(46,125,50,0.04)",
+                      borderLeft: "3px solid",
+                      borderLeftColor: "success.main",
+                    },
+                    "& td": { borderBottom: "1px solid", borderBottomColor: "divider" },
+                  }}
+                >
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" fontWeight={700} color="text.primary">
+                      {animal.tag}
+                    </Typography>
+                  </TableCell>
 
-                <td style={cell}>
-                  {getSpeciesIcon(animal.animal_type)}{" "}
-                  {animal.animal_type || "Cattle"}
-                </td>
+                  <TableCell sx={dataCell}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography sx={{ fontSize: 20, lineHeight: 1 }}>
+                        {getSpeciesIcon(animal.animal_type)}
+                      </Typography>
+                      <Typography variant="body2" color="text.primary">
+                        {animal.animal_type || "Cattle"}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
 
-                <td style={cell}>{animal.breed}</td>
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" color="text.primary">{animal.breed}</Typography>
+                  </TableCell>
 
-                <td style={cell}>{animal.gender}</td>
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" color="text.secondary">{animal.gender}</Typography>
+                  </TableCell>
 
-                <td style={cell}>
-                  {animal.weight ? `${animal.weight} kg` : "-"}
-                </td>
+                  <TableCell sx={dataCell}>
+                    <Typography variant="body2" color="text.primary" fontWeight={600}>
+                      {animal.weight ? `${animal.weight} kg` : "\u2014"}
+                    </Typography>
+                  </TableCell>
 
-                <td style={cell}>
-                  <span
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: "20px",
-                      fontWeight: 600,
-                      fontSize: 13,
-                      color: "#fff",
-                      background:
-                        animal.status === "Healthy"
-                          ? "#2E7D32"
-                          : animal.status === "Pregnant"
-                          ? "#FB8C00"
-                          : "#D32F2F",
-                    }}
-                  >
-                    {animal.status}
-                  </span>
-                </td>
+                  <TableCell sx={dataCell}>
+                    <Chip
+                      label={animal.status}
+                      size="small"
+                      color={getStatusColor(animal.status)}
+                      sx={{ fontWeight: 700, fontSize: "0.72rem", height: 26 }}
+                    />
+                  </TableCell>
 
-                <td style={cell}>
-                  <button
-                    style={editButton}
-                    onClick={() => onEdit(animal)}
-                  >
-                    ✏️ Edit
-                  </button>
-
-                  <button
-                    style={deleteButton}
-                    onClick={() => handleDelete(animal.id)}
-                  >
-                    🗑 Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                  <TableCell sx={dataCell} align="right">
+                    <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                      <Tooltip title="View Profile">
+                        <IconButton
+                          size="small"
+                          color="success"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/animals/${animal.id}`); }}
+                        >
+                          <VisibilityIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={(e) => handleEdit(e, animal)}
+                        >
+                          <EditIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={(e) => handleDelete(e, animal.id)}
+                        >
+                          <DeleteOutlinedIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 }
 
-const header = {
-  padding: "14px",
-  textAlign: "left",
+const headerCell = {
+  fontWeight: 700,
+  fontSize: "0.75rem",
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+  color: "text.secondary",
+  bgcolor: "grey.50",
+  borderBottom: "2px solid",
+  borderBottomColor: "divider",
+  py: 1.5,
 };
 
-const cell = {
-  padding: "14px",
+const dataCell = {
+  py: 1.8,
+  px: 2,
 };
-
-const editButton = {
-  background: "#1976D2",
-  color: "#FFFFFF",
-  border: "none",
-  borderRadius: "8px",
-  padding: "8px 14px",
-  cursor: "pointer",
-  marginRight: "8px",
-  fontWeight: 600,
-};
-
-const deleteButton = {
-  background: "#D32F2F",
-  color: "#FFFFFF",
-  border: "none",
-  borderRadius: "8px",
-  padding: "8px 14px",
-  cursor: "pointer",
-  fontWeight: 600,
-};
-
-function getSpeciesIcon(animal_type) {
-  switch (animal_type) {
-    case "Sheep":
-      return "🐑";
-    case "Goats":
-      return "🐐";
-    case "Pigs":
-      return "🐖";
-    case "Poultry":
-      return "🐔";
-    default:
-      return "🐄";
-  }
-}
-
-

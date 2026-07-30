@@ -6,7 +6,7 @@ const actions = [
   { label: "Add Crop", icon: "🌾", route: "/crops" },
   { label: "New Task", icon: "📋", route: "/planner" },
   { label: "Add Machine", icon: "🚜", route: "/machinery" },
-  { label: "Record Expense", icon: "💰", route: "/finance" },
+  { label: "Record Expense", icon: "💳", route: "/finance" },
   { label: "View Reports", icon: "📊", route: "/reports" },
 ];
 

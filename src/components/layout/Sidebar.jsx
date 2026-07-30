@@ -6,7 +6,7 @@ const menu = [
   { name: "🐄 Livestock", path: "/livestock" },
   { name: "❤️ Animal Health", path: "/health" },
   { name: "🐂 Breeding", path: "/breeding" },
-  { name: "💰 Finance", path: "/finance" },
+  { name: "💳 Finance", path: "/finance" },
   { name: "🌾 Crops", path: "/crops" },
   { name: "🚜 Machinery", path: "/machinery" },
   { name: "📋 Planner Dashboard", path: "/tasks" },

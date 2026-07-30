@@ -23,12 +23,12 @@ function getStaticGreeting() {
 
 function getModuleIcon(module) {
   switch (module) {
-    case "Livestock": return "\u{1F404}";
-    case "Crops": return "\u{1F33E}";
-    case "Machinery": return "\u{1F69C}";
-    case "Planner": return "\u{1F4CB}";
-    case "Finance": return "\u{1F4B0}";
-    default: return "\u{1F4CA}";
+    case "Livestock": return "\uD83D\uDC04";
+    case "Crops": return "\uD83C\uDF3E";
+    case "Machinery": return "\uD83D\uDE9C";
+    case "Planner": return "\uD83D\uDCCB";
+    case "Finance": return "\uD83D\uDCB3";
+    default: return "\uD83D\uDCCA";
   }
 }
 
@@ -73,39 +73,44 @@ function TrendIcon({ trend }) {
 
 // ─── HeroHeader ──────────────────────────────────────────────────────────────
 
-function HeroHeader({ greeting, summary }) {
+function HeroHeader({ greeting, summary, farmName, farmRegion }) {
+  const today = new Date().toLocaleDateString("en-ZA", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
   return (
     <div style={{ marginBottom: 8 }}>
+      {(farmName || farmRegion) && (
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            opacity: 0.8,
+            marginBottom: 4,
+            letterSpacing: "0.01em",
+          }}
+        >
+          {farmName}{farmName && farmRegion ? " \u2022 " : ""}{farmRegion}
+        </div>
+      )}
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: "0.28em",
-          opacity: 0.7,
-          marginBottom: 4,
-        }}
-      >
-        FELDRIX
-      </div>
-      <div
-        style={{
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.18em",
           opacity: 0.55,
-          marginBottom: 20,
+          marginBottom: 18,
         }}
       >
-        SMART FARM OPERATING SYSTEM
+        {today}
       </div>
       <h1
         style={{
-          fontSize: 42,
+          fontSize: 38,
           fontWeight: 800,
           letterSpacing: "-0.03em",
-          lineHeight: 1.05,
+          lineHeight: 1.1,
           margin: 0,
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
         }}
@@ -114,13 +119,13 @@ function HeroHeader({ greeting, summary }) {
       </h1>
       <p
         style={{
-          fontSize: 16,
+          fontSize: 15,
           fontWeight: 400,
-          opacity: 0.88,
-          marginTop: 14,
-          maxWidth: 600,
-          lineHeight: 1.65,
-          margin: "14px 0 0 0",
+          opacity: 0.85,
+          marginTop: 12,
+          maxWidth: 520,
+          lineHeight: 1.6,
+          margin: "12px 0 0 0",
         }}
       >
         {summary}
@@ -138,39 +143,37 @@ function WeatherPanel({ weather, weatherText }) {
         textAlign: "center",
         flexShrink: 0,
         marginLeft: 32,
-        background: "rgba(255,255,255,.12)",
+        background: "rgba(255,255,255,.1)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        padding: "28px 32px",
+        padding: "24px 28px",
         borderRadius: 20,
-        border: "1px solid rgba(255,255,255,.18)",
-        minWidth: 200,
-        boxShadow: "0 8px 32px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.1)",
+        border: "1px solid rgba(255,255,255,.15)",
+        minWidth: 180,
+        boxShadow: "0 8px 32px rgba(0,0,0,.12)",
       }}
     >
-      {weatherText ? (
+      {weather?.available ? (
         <div>
-          <div style={{ fontSize: 52, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em" }}>
-            {weather?.current?.temperature ?? ""}&deg;
+          <div style={{ fontSize: 48, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em" }}>
+            {weather.current?.temperature ?? ""}&deg;
           </div>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 8, fontWeight: 500 }}>
-            {weatherText}
+          <div style={{ fontSize: 13, opacity: 0.9, marginTop: 8, fontWeight: 600 }}>
+            {weather.current?.condition || weatherText || ""}
           </div>
-        </div>
-      ) : weather?.available ? (
-        <div>
-          <div style={{ fontSize: 52, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.02em" }}>
-            {weather.current?.temperature}&deg;
-          </div>
-          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 8, fontWeight: 500 }}>
-            {weather.current?.condition}
-          </div>
-          <div style={{ fontSize: 11, opacity: 0.6, marginTop: 6, fontWeight: 400 }}>
-            Wind {weather.current?.windSpeed} km/h
+          {(weather.current?.high || weather.current?.low) && (
+            <div style={{ fontSize: 11, opacity: 0.6, marginTop: 6, fontWeight: 400 }}>
+              H: {weather.current?.high ?? ""}&deg; &nbsp; L: {weather.current?.low ?? ""}&deg;
+            </div>
+          )}
+          <div style={{ fontSize: 11, opacity: 0.55, marginTop: 4, fontWeight: 400 }}>
+            {weather.current?.humidity ? `Humidity ${weather.current.humidity}%` : ""}
+            {weather.current?.humidity && weather.current?.windSpeed ? " \u2022 " : ""}
+            {weather.current?.windSpeed ? `Wind ${weather.current.windSpeed} km/h` : ""}
           </div>
         </div>
       ) : (
-        <div style={{ fontSize: 12, opacity: 0.45, fontWeight: 500 }}>
+        <div style={{ fontSize: 12, opacity: 0.4, fontWeight: 500 }}>
           Weather<br />unavailable
         </div>
       )}
@@ -305,7 +308,7 @@ function KPICard({ icon, label, value, sub, accent, status, trend, onClick }) {
         e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.08)";
       }}
     >
-      <div style={{ fontSize: 32, lineHeight: 1 }}>{icon}</div>
+      <div style={{ fontSize: 34, lineHeight: 1 }}>{icon}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
           <div
@@ -380,9 +383,13 @@ export default function HeroBanner({
   smartCards = [],
   onCardClick,
   dailyBriefing = null,
+  userName = "",
+  farmName = "",
+  farmRegion = "",
 }) {
   // Use briefing data if available, fallback to static
-  const greeting = dailyBriefing?.greeting || getStaticGreeting();
+  const baseGreeting = dailyBriefing?.greeting || getStaticGreeting();
+  const greeting = userName ? `${baseGreeting}, ${userName}` : baseGreeting;
   const summary = dailyBriefing?.summary || "Your farm is looking great today.";
   const recommendation = dailyBriefing?.recommendation || null;
   const highlights = dailyBriefing?.highlights?.slice(0, 3) || [];
@@ -409,13 +416,17 @@ export default function HeroBanner({
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
-      {/* Background — agricultural imagery with soft dark green overlay */}
+      {/* Background — reuses Login page farm images */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1400&q=80')",
+          backgroundImage: (() => {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 12) return "url('/branding/login/login-sunrise.png')";
+            if (hour >= 12 && hour < 18) return "url('/branding/login/login-sunset.png')";
+            return "url('/branding/login/login-night.png')";
+          })(),
           backgroundSize: "cover",
           backgroundPosition: "center 40%",
           zIndex: 0,
@@ -465,7 +476,7 @@ export default function HeroBanner({
         >
           {/* Left Column */}
           <div style={{ flex: 1, minWidth: 280 }}>
-            <HeroHeader greeting={greeting} summary={summary} />
+            <HeroHeader greeting={greeting} summary={summary} farmName={farmName} farmRegion={farmRegion} />
             <RecommendationCard recommendation={recommendation} />
             <HighlightRow highlights={highlights} />
           </div>
@@ -498,35 +509,35 @@ export default function HeroBanner({
           ) : (
             <>
               <KPICard
-                icon="\u{1F404}"
+                icon={"\uD83D\uDC04"}
                 label="Livestock"
                 value={totalAnimals}
                 sub="Total Animals"
                 status="good"
               />
               <KPICard
-                icon="\u{1F33E}"
+                icon={"\uD83C\uDF3E"}
                 label="Crops"
                 value={totalCrops}
                 sub="Active Fields"
                 status="good"
               />
               <KPICard
-                icon="\u{1F69C}"
+                icon={"\uD83D\uDE9C"}
                 label="Machinery"
                 value={machineryCount > 0 ? machineryCount : "\u2713"}
                 sub={machineryCount > 0 ? "Service Due" : "Active"}
                 status={machineryCount > 0 ? "warning" : "good"}
               />
               <KPICard
-                icon="\u{1F4CB}"
+                icon={"\uD83D\uDCCB"}
                 label="Planner"
                 value={plannerOverdue + plannerToday}
                 sub="Items Today"
                 status={plannerOverdue > 0 ? "critical" : "good"}
               />
               <KPICard
-                icon="\u{1F4B0}"
+                icon={"\uD83D\uDCB3"}
                 label="Finance"
                 value={`R ${farmHealthScore.toLocaleString()}`}
                 sub={farmHealthStatus || "Score"}

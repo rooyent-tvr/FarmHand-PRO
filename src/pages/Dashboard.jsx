@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Button, Grid, Stack } from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 import { ArrowForward } from "@mui/icons-material";
 
-import PageContainer from "../components/layout/PageContainer";
+import {
+  PremiumPageLayout,
+  PremiumDashboardSection,
+  PremiumActionButton,
+  PremiumLoadingState,
+  spacing,
+} from "../design";
 
 import HeroBanner from "../components/dashboard/HeroBanner";
 import AIInsights from "../components/dashboard/AIInsights";
@@ -30,6 +36,7 @@ import { getNotifications as getEngineNotifications } from "../services/notifica
 import { getSmartDashboardCards } from "../services/dashboard/smartCards";
 import { getDailyFarmBriefing } from "../services/dashboard/dailyBriefing";
 import { useNotificationBadge } from "../context/NotificationContext";
+import { getCurrentUser, getProfile } from "../services/profileService";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -43,10 +50,29 @@ export default function Dashboard() {
   const [smartCards, setSmartCards] = useState([]);
   const [dailyBriefing, setDailyBriefing] = useState(null);
   const [farmInsights, setFarmInsights] = useState([]);
+  const [userName, setUserName] = useState("");
+  const [farmName, setFarmName] = useState("");
+  const [farmRegion, setFarmRegion] = useState("");
   const [loading, setLoading] = useState(true);
 
   async function loadDashboard() {
     try {
+      // Load user name for personalised greeting
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          const profile = await getProfile().catch(() => null);
+          const name = profile?.full_name?.split(" ")[0]
+            || user.user_metadata?.full_name?.split(" ")[0]
+            || user.user_metadata?.name?.split(" ")[0]
+            || user.email?.split("@")[0]
+            || "Farmer";
+          setUserName(name);
+          setFarmName(profile?.farm_name || "");
+          setFarmRegion(profile?.province || "South Africa");
+        }
+      } catch { /* non-blocking */ }
+
       const [dash, health, notifs, weatherData] = await Promise.all([
         getDashboardStats(),
         getHealthRecords(),
@@ -134,7 +160,11 @@ export default function Dashboard() {
   }, []);
 
   if (loading || !dashboard) {
-    return <h2>Loading dashboard...</h2>;
+    return (
+      <PremiumPageLayout title="Dashboard" subtitle="Loading your farm...">
+        <PremiumLoadingState message="Preparing your dashboard..." size={40} />
+      </PremiumPageLayout>
+    );
   }
 
   // Derived values for presentation engines
@@ -180,8 +210,8 @@ export default function Dashboard() {
   });
 
   return (
-    <PageContainer fullWidth>
-      <Stack spacing={3}>
+    <PremiumPageLayout title="" subtitle="">
+      <Stack spacing={4}>
 
         {/* HERO BANNER */}
         <HeroBanner
@@ -191,86 +221,103 @@ export default function Dashboard() {
           smartCards={smartCards}
           onCardClick={(route) => navigate(route)}
           dailyBriefing={dailyBriefing}
+          userName={userName}
+          farmName={farmName}
+          farmRegion={farmRegion}
         />
 
         {/* OPERATIONS CENTRE */}
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <AIInsights
-              insights={aiInsights}
-              onViewAll={() => navigate("/planner")}
-            />
+        <PremiumDashboardSection
+          title="Operations Centre"
+          description="AI-generated priorities and recommended actions."
+        >
+          <Grid container spacing={spacing.cardGap}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <AIInsights
+                insights={aiInsights}
+                onViewAll={() => navigate("/planner")}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <ActionCenter
+                actions={actions}
+                onViewAll={() => navigate("/planner")}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <TodayPriorities
+                healthDue={healthDue}
+                pregnant={dashboard.pregnantBreeding}
+                growing={growingCrops}
+                tasksDue={plannerOverdue + plannerToday}
+                onViewPlanner={() => navigate("/planner")}
+              />
+            </Grid>
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <ActionCenter
-              actions={actions}
-              onViewAll={() => navigate("/planner")}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <TodayPriorities
-              healthDue={healthDue}
-              pregnant={dashboard.pregnantBreeding}
-              growing={growingCrops}
-              tasksDue={plannerOverdue + plannerToday}
-              onViewPlanner={() => navigate("/planner")}
-            />
-          </Grid>
-        </Grid>
+        </PremiumDashboardSection>
 
         {/* FARM INTELLIGENCE */}
-        <FarmIntelligenceCenter
-          insights={farmInsights}
-          onAction={(route) => navigate(route)}
-        />
+        <PremiumDashboardSection
+          title="Farm Intelligence"
+          description="Smart insights powered by your farm data."
+        >
+          <FarmIntelligenceCenter
+            insights={farmInsights}
+            onAction={(route) => navigate(route)}
+          />
+        </PremiumDashboardSection>
 
         {/* QUICK ACTIONS */}
         <DashboardQuickActions />
 
         {/* FARM OVERVIEW */}
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <FarmHealthScore
-              score={farmHealth.score}
-              status={farmHealth.status}
-              breakdown={farmHealth.breakdown}
-            />
+        <PremiumDashboardSection
+          title="Farm Overview"
+          description="Health score, weather and activity timeline."
+        >
+          <Grid container spacing={spacing.cardGap}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <FarmHealthScore
+                score={farmHealth.score}
+                status={farmHealth.status}
+                breakdown={farmHealth.breakdown}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <WeatherSummary weather={weather} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <FarmTimeline events={farmTimeline} />
+            </Grid>
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <WeatherSummary weather={weather} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <FarmTimeline events={farmTimeline} />
-          </Grid>
-        </Grid>
+        </PremiumDashboardSection>
 
-        {/* NOTIFICATION CENTER */}
-        <NotificationCenter
-          notifications={engineNotifications}
-          onNotificationClick={(n) => navigate(n.route || "/dashboard")}
-          onMarkAsRead={() => {}}
-          onClear={() => {}}
-        />
+        {/* NOTIFICATIONS */}
+        <PremiumDashboardSection
+          title="Notifications"
+          description="Recent farm alerts and system messages."
+        >
+          <NotificationCenter
+            notifications={engineNotifications}
+            onNotificationClick={(n) => navigate(n.route || "/dashboard")}
+            onMarkAsRead={() => {}}
+            onClear={() => {}}
+          />
+        </PremiumDashboardSection>
 
         {/* VIEW ANALYTICS */}
         <Stack direction="row" justifyContent="center" sx={{ pt: 1, pb: 2 }}>
-          <Button
+          <PremiumActionButton
+            label="View Farm Analytics"
             variant="outlined"
-            endIcon={<ArrowForward />}
+            size="medium"
+            startIcon={<ArrowForward />}
             onClick={() => navigate("/reports")}
-            sx={{
-              textTransform: "none",
-              borderRadius: 2,
-              px: 3,
-              fontWeight: 600,
-              fontSize: "0.8rem",
-            }}
-          >
-            View Farm Analytics
-          </Button>
+            sx={{ px: 4 }}
+          />
         </Stack>
 
       </Stack>
-    </PageContainer>
+    </PremiumPageLayout>
   );
 }

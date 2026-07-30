@@ -232,11 +232,11 @@ function generateFinanceCard(finance = {}) {
   }
 
   const income = records
-    .filter((r) => (r.type || "").toLowerCase() === "income")
+    .filter((r) => (r.category || r.type || "").toLowerCase() === "income")
     .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
   const expenses = records
-    .filter((r) => (r.type || "").toLowerCase() === "expense")
+    .filter((r) => (r.category || r.type || "").toLowerCase() === "expense")
     .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
   const profit = income - expenses;
@@ -250,16 +250,16 @@ function generateFinanceCard(finance = {}) {
 
   const thisMonthIncome = records
     .filter((r) => {
-      if ((r.type || "").toLowerCase() !== "income") return false;
-      const d = new Date(r.date || r.created_at);
+      if ((r.category || r.type || "").toLowerCase() !== "income") return false;
+      const d = new Date(r.transaction_date || r.date || r.created_at);
       return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
     })
     .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
   const lastMonthIncome = records
     .filter((r) => {
-      if ((r.type || "").toLowerCase() !== "income") return false;
-      const d = new Date(r.date || r.created_at);
+      if ((r.category || r.type || "").toLowerCase() !== "income") return false;
+      const d = new Date(r.transaction_date || r.date || r.created_at);
       return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
     })
     .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);

@@ -1,9 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Grid, Stack } from "@mui/material";
+import PetsIcon from "@mui/icons-material/Pets";
+import AddIcon from "@mui/icons-material/Add";
 
-import PageContainer from "../components/layout/PageContainer";
-import LivestockStatsGrid from "../components/livestock/LivestockStatsGrid";
+import {
+  PremiumPageLayout,
+  PremiumKPIGrid,
+  PremiumStatCard,
+  PremiumDashboardSection,
+  PremiumActionButton,
+  PremiumLoadingState,
+  spacing,
+} from "../design";
+
 import LivestockHealthScore from "../components/livestock/LivestockHealthScore";
 import LivestockInsights from "../components/livestock/LivestockInsights";
 import AnimalForm from "../components/livestock/AnimalForm";
@@ -23,6 +33,7 @@ export default function Livestock() {
   const [loading, setLoading] = useState(true);
 
   const [view, setView] = useState("table");
+  const [showForm, setShowForm] = useState(false);
 
   const [selectedAnimal, setSelectedAnimal] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -66,42 +77,111 @@ export default function Livestock() {
     setShowModal(false);
   }
 
+  if (loading) {
+    return (
+      <PremiumPageLayout
+        title="Livestock"
+        subtitle="Manage your herd, monitor performance and access every animal profile."
+        icon={<PetsIcon sx={{ fontSize: 28 }} />}
+      >
+        <PremiumLoadingState message="Loading livestock data..." size={40} />
+      </PremiumPageLayout>
+    );
+  }
+
   return (
-    <PageContainer
-      title="🐄 Livestock Management"
-      subtitle="Manage all livestock on your farm."
-    >
-      <Stack spacing={3}>
-        <LivestockStatsGrid analytics={analytics} />
-
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <LivestockHealthScore analytics={analytics} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <LivestockInsights analytics={analytics} />
-          </Grid>
-        </Grid>
-
-        <AnimalForm refreshAnimals={loadAnimals} />
-
-        <ViewToggle
-          view={view}
-          setView={setView}
+    <PremiumPageLayout
+      title="Livestock"
+      subtitle="Manage your herd, monitor performance and access every animal profile."
+      icon={<PetsIcon sx={{ fontSize: 28 }} />}
+      actions={
+        <PremiumActionButton
+          label="Add Animal"
+          variant="contained"
+          color="success"
+          startIcon={<AddIcon />}
+          onClick={() => setShowForm((prev) => !prev)}
         />
+      }
+    >
+      <Stack spacing={4}>
+        {/* KPI Cards */}
+        <PremiumKPIGrid>
+          <PremiumStatCard
+            label="Total Animals"
+            value={analytics.totalAnimals}
+            subtitle="In your herd"
+            icon={<PetsIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(46,125,50,0.12)"
+            iconColor="#2E7D32"
+          />
+          <PremiumStatCard
+            label="Healthy"
+            value={analytics.healthyAnimals}
+            subtitle="Status: Healthy"
+            icon={<PetsIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(67,160,71,0.12)"
+            iconColor="#43A047"
+          />
+          <PremiumStatCard
+            label="Pregnant"
+            value={analytics.pregnantAnimals}
+            subtitle="Active pregnancies"
+            icon={<PetsIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(251,140,0,0.12)"
+            iconColor="#FB8C00"
+          />
+          <PremiumStatCard
+            label="Average Weight"
+            value={`${analytics.averageWeight} kg`}
+            subtitle="Herd average"
+            icon={<PetsIcon sx={{ fontSize: 28 }} />}
+            iconBg="rgba(21,101,192,0.12)"
+            iconColor="#1565C0"
+          />
+        </PremiumKPIGrid>
 
-        {loading ? (
-          <p>Loading livestock...</p>
-        ) : (
+        {/* Intelligence Section */}
+        <PremiumDashboardSection
+          title="Herd Intelligence"
+          description="AI-powered health monitoring and recommendations."
+        >
+          <Grid container spacing={spacing.cardGap}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <LivestockHealthScore analytics={analytics} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <LivestockInsights analytics={analytics} />
+            </Grid>
+          </Grid>
+        </PremiumDashboardSection>
+
+        {/* Add Animal Form */}
+        {showForm && (
+          <AnimalForm
+            refreshAnimals={loadAnimals}
+            onSaved={() => setShowForm(false)}
+          />
+        )}
+
+        {/* Herd View */}
+        <PremiumDashboardSection
+          title="Herd Registry"
+          description={`${animals.length} animals registered.`}
+          action={
+            <ViewToggle view={view} setView={setView} />
+          }
+        >
           <LivestockView
             view={view}
             animals={animals}
             onEdit={handleEdit}
             refreshAnimals={loadAnimals}
           />
-        )}
+        </PremiumDashboardSection>
       </Stack>
 
+      {/* Edit Modal */}
       <AnimalModal
         open={showModal}
         title="Edit Animal"
@@ -113,6 +193,6 @@ export default function Livestock() {
           onSaved={closeModal}
         />
       </AnimalModal>
-    </PageContainer>
+    </PremiumPageLayout>
   );
 }

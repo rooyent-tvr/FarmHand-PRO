@@ -94,6 +94,42 @@ export async function getDashboardStats() {
   const breedingRecords = breeding || [];
 
   // --------------------------------------------------
+  // MACHINERY
+  // --------------------------------------------------
+
+  let machines = [];
+  let maintenancePlans = [];
+  try {
+    const { data: machineData } = await supabase
+      .from("machinery")
+      .select("*")
+      .eq("user_id", user.id);
+    machines = machineData || [];
+
+    if (machines.length > 0) {
+      const machineIds = machines.map((m) => m.id);
+      const { data: maintenanceData } = await supabase
+        .from("maintenance_plans")
+        .select("*")
+        .in("machine_id", machineIds);
+      maintenancePlans = maintenanceData || [];
+    }
+  } catch { /* tables may not exist yet */ }
+
+  // --------------------------------------------------
+  // FINANCE
+  // --------------------------------------------------
+
+  let financeRecords = [];
+  try {
+    const { data: financeData } = await supabase
+      .from("finance_records")
+      .select("*")
+      .eq("user_id", user.id);
+    financeRecords = financeData || [];
+  } catch { /* table may not exist yet */ }
+
+  // --------------------------------------------------
   // LIVESTOCK STATS
   // --------------------------------------------------
 
@@ -245,5 +281,12 @@ export async function getDashboardStats() {
     dueSoonBreeding,
     overdueBreeding,
     latestBreeding,
+
+    // Machinery
+    machines,
+    maintenancePlans,
+
+    // Finance
+    financeRecords,
   };
 }

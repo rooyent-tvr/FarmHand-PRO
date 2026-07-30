@@ -1,42 +1,23 @@
+import { Box } from "@mui/material";
+import { PremiumEmptyState } from "../../design";
 import AnimalCard from "./AnimalCard";
 
-export default function AnimalGrid({
-  animals = [],
-  onEdit,
-  onDelete,
-}) {
+export default function AnimalGrid({ animals = [], onEdit, onDelete }) {
   if (!animals.length) {
     return (
-      <div
-        style={{
-          background: "#FFFFFF",
-          borderRadius: 18,
-          padding: 60,
-          textAlign: "center",
-          color: "#64748B",
-          border: "1px dashed #CBD5E1",
-        }}
-      >
-        <div style={{ fontSize: 60 }}>
-          🐄
-        </div>
-
-        <h2>No Animals Found</h2>
-
-        <p>
-          Try changing your search or filters.
-        </p>
-      </div>
+      <PremiumEmptyState
+        title="No Animals Found"
+        message="Add your first animal to start building your herd registry."
+      />
     );
   }
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit,minmax(340px,1fr))",
-        gap: 24,
+        gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+        gap: 3,
       }}
     >
       {animals.map((animal) => (
@@ -47,6 +28,6 @@ export default function AnimalGrid({
           onDelete={onDelete}
         />
       ))}
-    </div>
+    </Box>
   );
 }

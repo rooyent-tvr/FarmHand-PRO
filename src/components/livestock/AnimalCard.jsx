@@ -1,212 +1,171 @@
 import { useNavigate } from "react-router-dom";
 
-export default function AnimalCard({
-  animal,
-  onEdit,
-  onDelete,
-}) {
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  Stack,
+  Typography,
+} from "@mui/material";
+
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+
+import { radius, transitions, elevation } from "../../design/tokens";
+
+function getStatusColor(status) {
+  switch (status) {
+    case "Healthy": return "success";
+    case "Pregnant": return "warning";
+    case "Sick": return "error";
+    case "Injured": return "error";
+    case "Sold": return "default";
+    default: return "default";
+  }
+}
+
+function getSpeciesIcon(type) {
+  switch (type) {
+    case "Cattle": return "\uD83D\uDC04";
+    case "Sheep": return "\uD83D\uDC11";
+    case "Goats": return "\uD83D\uDC10";
+    case "Pigs": return "\uD83D\uDC16";
+    case "Poultry": return "\uD83D\uDC14";
+    default: return "\uD83D\uDC04";
+  }
+}
+
+export default function AnimalCard({ animal, onEdit, onDelete }) {
   const navigate = useNavigate();
 
-  const statusColor = {
-    Healthy: "#16A34A",
-    Pregnant: "#F59E0B",
-    Sick: "#DC2626",
-    Sold: "#6B7280",
-  };
-
-  const speciesIcon = {
-    Cattle: "🐄",
-    Sheep: "🐑",
-    Goats: "🐐",
-    Pigs: "🐖",
-    Poultry: "🐔",
-  };
-
   return (
-    <div
-      style={{
-        background: "#FFFFFF",
-        borderRadius: 18,
-        padding: 20,
-        boxShadow: "0 8px 20px rgba(15,23,42,.08)",
-        border: "1px solid #E5E7EB",
-        transition: "0.2s",
+    <Card
+      elevation={0}
+      sx={{
+        borderRadius: radius.cardLarge,
+        border: "1px solid",
+        borderColor: "divider",
+        transition: transitions.entrance,
+        "&:hover": {
+          boxShadow: elevation.cardHover,
+          transform: "translateY(-3px)",
+          borderColor: "transparent",
+        },
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 34,
-          }}
-        >
-          {speciesIcon[animal.animal_type] || "🐄"}
-        </div>
+      <CardContent sx={{ p: 2.5 }}>
+        <Stack spacing={2}>
+          {/* Header: Avatar + Status */}
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Box sx={{ fontSize: 44, lineHeight: 1 }}>
+              {getSpeciesIcon(animal.animal_type)}
+            </Box>
+            <Chip
+              label={animal.status || "Unknown"}
+              size="small"
+              color={getStatusColor(animal.status)}
+              sx={{ fontWeight: 700, fontSize: "0.7rem", height: 24 }}
+            />
+          </Stack>
 
-        <span
-          style={{
-            background: statusColor[animal.status] || "#64748B",
-            color: "#FFFFFF",
-            padding: "6px 12px",
-            borderRadius: 999,
-            fontSize: 12,
-            fontWeight: 700,
-          }}
-        >
-          {animal.status}
-        </span>
-      </div>
+          {/* Name + ID */}
+          <Stack spacing={0.25}>
+            <Typography variant="h6" fontWeight={700} color="text.primary" noWrap>
+              {animal.tag}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {animal.breed}
+            </Typography>
+          </Stack>
 
-      <h3
-        style={{
-          margin: 0,
-          color: "#0F172A",
-        }}
-      >
-        {animal.tag}
-      </h3>
+          <Divider />
 
-      <p
-        style={{
-          margin: "6px 0 18px",
-          color: "#64748B",
-        }}
-      >
-        {animal.breed}
-      </p>
+          {/* Attributes Grid */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 1.5,
+            }}
+          >
+            <AttrField label="Gender" value={animal.gender || "\u2014"} />
+            <AttrField label="Weight" value={animal.weight ? `${animal.weight} kg` : "\u2014"} />
+            <AttrField label="Species" value={animal.animal_type || "\u2014"} />
+            <AttrField label="Value" value={animal.purchase_price ? `R ${Number(animal.purchase_price).toLocaleString()}` : "\u2014"} />
+          </Box>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12,
-          marginBottom: 20,
-        }}
-      >
-        <Info
-          label="Gender"
-          value={animal.gender}
-        />
+          <Divider />
 
-        <Info
-          label="Weight"
-          value={
-            animal.weight
-              ? `${animal.weight} kg`
-              : "-"
-          }
-        />
+          {/* Primary Action */}
+          <Button
+            fullWidth
+            variant="contained"
+            color="success"
+            startIcon={<VisibilityIcon sx={{ fontSize: 18 }} />}
+            onClick={() => navigate(`/animals/${animal.id}`)}
+            sx={{
+              textTransform: "none",
+              fontWeight: 700,
+              borderRadius: radius.button,
+              py: 1.2,
+            }}
+          >
+            View Profile
+          </Button>
 
-        <Info
-          label="Species"
-          value={animal.animal_type}
-        />
-
-        <Info
-          label="Purchase"
-          value={
-            animal.purchase_price
-              ? `R ${Number(
-                  animal.purchase_price
-                ).toLocaleString()}`
-              : "-"
-          }
-        />
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: 10,
-          marginBottom: 10,
-        }}
-      >
-        <button
-          onClick={() => navigate(`/animals/${animal.id}`)}
-          style={{
-            padding: 12,
-            border: "none",
-            borderRadius: 10,
-            background: "#2E7D32",
-            color: "#FFFFFF",
-            cursor: "pointer",
-            fontWeight: 700,
-          }}
-        >
-          👁 View Profile
-        </button>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 10,
-        }}
-      >
-        <button
-          onClick={() => onEdit(animal)}
-          style={{
-            flex: 1,
-            padding: 12,
-            border: "none",
-            borderRadius: 10,
-            background: "#2563EB",
-            color: "#FFFFFF",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          ✏ Edit
-        </button>
-
-        <button
-          onClick={() => onDelete(animal.id)}
-          style={{
-            flex: 1,
-            padding: 12,
-            border: "none",
-            borderRadius: 10,
-            background: "#DC2626",
-            color: "#FFFFFF",
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          🗑 Delete
-        </button>
-      </div>
-    </div>
+          {/* Secondary Actions */}
+          <Stack direction="row" spacing={1}>
+            <Button
+              fullWidth
+              variant="outlined"
+              size="small"
+              startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+              onClick={() => onEdit(animal)}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: radius.button,
+                fontSize: "0.78rem",
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="error"
+              size="small"
+              startIcon={<DeleteOutlinedIcon sx={{ fontSize: 16 }} />}
+              onClick={() => onDelete(animal.id)}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: radius.button,
+                fontSize: "0.78rem",
+              }}
+            >
+              Delete
+            </Button>
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }
 
-function Info({ label, value }) {
+function AttrField({ label, value }) {
   return (
-    <div>
-      <div
-        style={{
-          fontSize: 12,
-          color: "#94A3B8",
-        }}
-      >
+    <Stack spacing={0.25}>
+      <Typography variant="caption" color="text.disabled" sx={{ fontSize: "0.65rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>
         {label}
-      </div>
-
-      <div
-        style={{
-          marginTop: 4,
-          fontWeight: 700,
-          color: "#0F172A",
-        }}
-      >
+      </Typography>
+      <Typography variant="body2" fontWeight={700} color="text.primary">
         {value}
-      </div>
-    </div>
+      </Typography>
+    </Stack>
   );
 }
