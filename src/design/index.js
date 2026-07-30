@@ -32,4 +32,5 @@ export { default as PremiumKPIGrid } from "./layouts/PremiumKPIGrid";
 export { default as PremiumContentSection } from "./layouts/PremiumContentSection";
 export { default as PremiumTimeline, PremiumTimelineRow, PremiumTimelineGroup } from "./layouts/PremiumTimeline";
 export { default as PremiumWorkspace } from "./layouts/PremiumWorkspace";
+export { default as PremiumWorkspaceToolbar } from "./components/PremiumWorkspaceToolbar";
 export { default as PremiumDashboardSection } from "./layouts/PremiumDashboardSection";

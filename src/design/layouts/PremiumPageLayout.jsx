@@ -32,7 +32,7 @@ export default function PremiumPageLayout({ title, subtitle, icon, actions, tool
               </Box>
             )}
             <Stack spacing={0.25}>
-              <Typography variant="h5" fontWeight={700} color="text.primary">
+              <Typography variant="h5" fontWeight={800} color="text.primary" sx={{ fontSize: { xs: "1.6rem", md: "2.1rem" }, letterSpacing: "-0.02em" }}>
                 {title}
               </Typography>
               {subtitle && (

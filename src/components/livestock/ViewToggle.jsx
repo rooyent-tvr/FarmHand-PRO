@@ -1,48 +1,45 @@
-export default function ViewToggle({
-  view,
-  setView,
-}) {
-  const active = {
-    background: "#2E7D32",
-    color: "#FFFFFF",
-  };
+import { Button, Stack } from "@mui/material";
+import TableChartIcon from "@mui/icons-material/TableChart";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import { radius } from "../../design/tokens";
 
-  const inactive = {
-    background: "#E2E8F0",
-    color: "#334155",
-  };
-
-  const buttonStyle = (selected) => ({
-    padding: "10px 18px",
-    border: "none",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 700,
-    transition: ".25s",
-    ...(selected ? active : inactive),
-  });
-
+export default function ViewToggle({ view, setView }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 12,
-        marginBottom: 24,
-      }}
-    >
-      <button
-        style={buttonStyle(view === "table")}
+    <Stack direction="row" spacing={1}>
+      <Button
+        size="small"
+        variant={view === "table" ? "contained" : "outlined"}
+        color={view === "table" ? "success" : "inherit"}
+        startIcon={<TableChartIcon sx={{ fontSize: 16 }} />}
         onClick={() => setView("table")}
+        sx={{
+          textTransform: "none",
+          fontWeight: 600,
+          fontSize: "0.78rem",
+          borderRadius: radius.button,
+          px: 2,
+          py: 0.75,
+        }}
       >
-        📋 Table
-      </button>
-
-      <button
-        style={buttonStyle(view === "cards")}
+        Table
+      </Button>
+      <Button
+        size="small"
+        variant={view === "cards" ? "contained" : "outlined"}
+        color={view === "cards" ? "success" : "inherit"}
+        startIcon={<ViewModuleIcon sx={{ fontSize: 16 }} />}
         onClick={() => setView("cards")}
+        sx={{
+          textTransform: "none",
+          fontWeight: 600,
+          fontSize: "0.78rem",
+          borderRadius: radius.button,
+          px: 2,
+          py: 0.75,
+        }}
       >
-        🗂 Cards
-      </button>
-    </div>
+        Cards
+      </Button>
+    </Stack>
   );
 }

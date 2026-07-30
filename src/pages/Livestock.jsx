@@ -3,6 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Grid, Stack } from "@mui/material";
 import PetsIcon from "@mui/icons-material/Pets";
 import AddIcon from "@mui/icons-material/Add";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import PregnantWomanIcon from "@mui/icons-material/PregnantWoman";
+import ScaleIcon from "@mui/icons-material/Scale";
 
 import {
   PremiumPageLayout,
@@ -11,6 +14,7 @@ import {
   PremiumDashboardSection,
   PremiumActionButton,
   PremiumLoadingState,
+  PremiumWorkspaceToolbar,
   spacing,
 } from "../design";
 
@@ -94,19 +98,10 @@ export default function Livestock() {
       title="Livestock"
       subtitle="Manage your herd, monitor performance and access every animal profile."
       icon={<PetsIcon sx={{ fontSize: 28 }} />}
-      actions={
-        <PremiumActionButton
-          label="Add Animal"
-          variant="contained"
-          color="success"
-          startIcon={<AddIcon />}
-          onClick={() => setShowForm((prev) => !prev)}
-        />
-      }
     >
       <Stack spacing={4}>
         {/* KPI Cards */}
-        <PremiumKPIGrid>
+        <PremiumKPIGrid gap={3.5}>
           <PremiumStatCard
             label="Total Animals"
             value={analytics.totalAnimals}
@@ -119,7 +114,7 @@ export default function Livestock() {
             label="Healthy"
             value={analytics.healthyAnimals}
             subtitle="Status: Healthy"
-            icon={<PetsIcon sx={{ fontSize: 28 }} />}
+            icon={<FavoriteIcon sx={{ fontSize: 28 }} />}
             iconBg="rgba(67,160,71,0.12)"
             iconColor="#43A047"
           />
@@ -127,7 +122,7 @@ export default function Livestock() {
             label="Pregnant"
             value={analytics.pregnantAnimals}
             subtitle="Active pregnancies"
-            icon={<PetsIcon sx={{ fontSize: 28 }} />}
+            icon={<PregnantWomanIcon sx={{ fontSize: 28 }} />}
             iconBg="rgba(251,140,0,0.12)"
             iconColor="#FB8C00"
           />
@@ -135,7 +130,7 @@ export default function Livestock() {
             label="Average Weight"
             value={`${analytics.averageWeight} kg`}
             subtitle="Herd average"
-            icon={<PetsIcon sx={{ fontSize: 28 }} />}
+            icon={<ScaleIcon sx={{ fontSize: 28 }} />}
             iconBg="rgba(21,101,192,0.12)"
             iconColor="#1565C0"
           />
@@ -168,10 +163,19 @@ export default function Livestock() {
         <PremiumDashboardSection
           title="Herd Registry"
           description={`${animals.length} animals registered.`}
-          action={
-            <ViewToggle view={view} setView={setView} />
-          }
         >
+          <PremiumWorkspaceToolbar
+            primaryAction={
+              <PremiumActionButton
+                label="Add Animal"
+                variant="contained"
+                color="success"
+                startIcon={<AddIcon />}
+                onClick={() => setShowForm((prev) => !prev)}
+              />
+            }
+            viewToggle={<ViewToggle view={view} setView={setView} />}
+          />
           <LivestockView
             view={view}
             animals={animals}
